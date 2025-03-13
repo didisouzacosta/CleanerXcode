@@ -17,56 +17,59 @@ struct ContentView: View {
     // MARK: - Public Variables
     
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Cleaner Xcode")
-                .bold()
-            
-            VStack(spacing: 8) {
-                Button {
-                    clean()
-                } label: {
-                    Group {
-                        if isLoading {
-                            HStack(spacing: 0) {
-                                ProgressView()
-                                    .scaleEffect(0.6)
-                                Text("Cleaning...")
-                            }
-                            .transition(.move(edge: .leading))
-                        } else if hasError {
-                            Label("Try again!", image: "gobackward")
-                                .transition(.move(edge: .trailing))
-                        } else {
-                            Label("Clean", image: "iconClear")
-                                .transition(.move(edge: .trailing))
-                        }
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 16)
-                    .frame(height: 44)
-                }
-                .background(hasError ? .red : .blue)
-                .clipShape(RoundedRectangle(cornerRadius: 32))
-                .disabled(isLoading)
+        VStack(spacing: 8) {
+            VStack(spacing: 16) {
+                Text("Cleaner Xcode")
+                    .font(.title2)
                 
-                Menu {
-                    Button(role: .destructive) {
-                        terminate()
+                VStack(spacing: 8) {
+                    Button {
+                        clean()
                     } label: {
-                        Label("Close", systemImage: "xmark.circle")
+                        Group {
+                            if isLoading {
+                                HStack(spacing: 0) {
+                                    ProgressView()
+                                        .scaleEffect(0.6)
+                                    Text("Cleaning...")
+                                }
+                                .transition(.move(edge: .leading))
+                            } else if hasError {
+                                Label("Try again!", image: "gobackward")
+                                    .transition(.move(edge: .trailing))
+                            } else {
+                                Label("Clean", image: "iconClear")
+                                    .transition(.move(edge: .trailing))
+                            }
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .frame(height: 44)
                     }
-                } label: {
-                    Image(systemName: "gear")
+                    .background(hasError ? .red : .blue)
+                    .clipShape(RoundedRectangle(cornerRadius: 32))
+                    .disabled(isLoading)
                 }
-                .menuStyle(BorderlessButtonMenuStyle())
-                .menuIndicator(.hidden)
-                .fixedSize()
+                .animation(.easeIn, value: isLoading)
+                
+                Text("Version \(NSApplication.fullVersion)")
+                    .font(.footnote)
+                    .foregroundStyle(.placeholder)
             }
-            .animation(.easeIn, value: isLoading)
             
-            Text("Version \(NSApplication.fullVersion)")
-                .font(.footnote)
-                .foregroundStyle(.placeholder)
+            Divider()
+            
+            Button {
+                quit()
+            } label: {
+                HStack {
+                    Text("Quit")
+                    Spacer()
+                    Text("\(Image(systemName: "command"))Q")
+                        .foregroundStyle(.placeholder)
+                }
+            }
+            .buttonStyle(.plain)
         }
         .frame(width: 160)
         .padding()
@@ -82,7 +85,7 @@ struct ContentView: View {
     
     // MARK: - Private Methods
     
-    private func terminate() {
+    private func quit() {
         NSApplication.shared.terminate(nil)
     }
     
@@ -93,7 +96,9 @@ struct ContentView: View {
         Task(priority: .background) {
             do {
                 try await Task.sleep(nanoseconds: 1_000_000_000)
-                try await shellScripCommander.clean()
+                #if !DEBUG
+                try await shellScripCommander.execute(.removeDerivedData)
+                #endif
             } catch {
                 self.error = error
             }

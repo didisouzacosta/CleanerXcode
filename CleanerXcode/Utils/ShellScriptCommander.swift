@@ -9,13 +9,9 @@ import SwiftUI
 
 final class ShellScriptCommander {
     
-    func clean() async throws {
-        try await execute("clean-xcode")
-    }
-    
-    func execute(_ script: String) async throws {
+    func execute(_ command: Command) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) -> Void in
-            guard let scriptPath = Bundle.main.path(forResource: script, ofType: "sh") else {
+            guard let scriptPath = command.scriptPath else {
                 continuation.resume(throwing: "Script not found in bundle")
                 return
             }
@@ -38,10 +34,34 @@ final class ShellScriptCommander {
                 }
                 
                 process.waitUntilExit()
-                continuation.resume(with: .success(()))
+                continuation.resume()
             } catch {
                 continuation.resume(throwing: error)
             }
+        }
+    }
+    
+}
+
+extension ShellScriptCommander {
+    
+    enum Command: CaseIterable {
+        case removeCache,
+             removeDerivedData,
+             removeDeviceSupport,
+             removeOldSimulators,
+             removePodCache
+        
+        var scriptPath: String? {
+            let resource = switch self {
+            case .removeCache: "remove-caches"
+            case .removeDerivedData: "remove-derived-data"
+            case .removeDeviceSupport: "remove-device-support"
+            case .removeOldSimulators: "remove-old-simulators"
+            case .removePodCache: "remove-pod-cache"
+            }
+            
+            return Bundle.main.path(forResource: resource, ofType: "sh")
         }
     }
     

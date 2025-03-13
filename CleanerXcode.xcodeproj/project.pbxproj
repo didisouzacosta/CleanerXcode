@@ -10,22 +10,9 @@
 		A9B468632D83135F00F5F55E /* CleanerXcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CleanerXcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		A9D2CE1C2D8329A400350905 /* Exceptions for "CleanerXcode" folder in "CleanerXcode" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = A9B468622D83135F00F5F55E /* CleanerXcode */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A9B468652D83135F00F5F55E /* CleanerXcode */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				A9D2CE1C2D8329A400350905 /* Exceptions for "CleanerXcode" folder in "CleanerXcode" target */,
-			);
 			path = CleanerXcode;
 			sourceTree = "<group>";
 		};
@@ -264,7 +251,7 @@
 				CODE_SIGN_ENTITLEMENTS = CleanerXcode/CleanerXcode.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Preview Content\"";
 				DEVELOPMENT_TEAM = MM4N959BB5;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -278,7 +265,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -294,7 +281,7 @@
 				CODE_SIGN_ENTITLEMENTS = CleanerXcode/CleanerXcode.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Preview Content\"";
 				DEVELOPMENT_TEAM = MM4N959BB5;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -308,7 +295,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
