@@ -1,0 +1,101 @@
+//
+//  ContentView.swift
+//  CleanerXcode
+//
+//  Created by Adriano Costa on 12/03/25.
+//
+
+import SwiftUI
+
+struct ContentView: View {
+    
+    // MARK: - States
+    
+    @State private var isLoading = false
+    @State private var error: Error?
+    
+    // MARK: - Public Variables
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Clean Xcode")
+                .bold()
+            
+            VStack(spacing: 8) {
+                Button {
+                    clean()
+                } label: {
+                    Group {
+                        if isLoading {
+                            HStack(spacing: 0) {
+                                ProgressView()
+                                    .scaleEffect(0.6)
+                                Text("Cleaning...")
+                            }
+                            .transition(.move(edge: .leading))
+                        } else {
+                            Label("Clean", image: "iconClear")
+                                .transition(.move(edge: .trailing))
+                        }
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .frame(height: 44)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 32))
+                .buttonStyle(.borderedProminent)
+                .disabled(isLoading)
+                
+                Menu {
+                    Button(role: .destructive) {
+                        terminate()
+                    } label: {
+                        Label("Close", systemImage: "xmark.circle")
+                    }
+                } label: {
+                    Image(systemName: "gear")
+                }
+                .menuStyle(BorderlessButtonMenuStyle())
+                .menuIndicator(.hidden)
+                .fixedSize()
+            }
+            .animation(.easeIn, value: isLoading)
+            
+            Text("Version \(NSApplication.fullVersion)")
+                .font(.footnote)
+                .foregroundStyle(.placeholder)
+        }
+        .frame(width: 160)
+        .padding()
+    }
+    
+    // MARK: - Private Methods
+    
+    private func terminate() {
+        NSApplication.shared.terminate(nil)
+    }
+    
+    private func clean() {
+        isLoading = true
+        error = nil
+        
+        Task(priority: .background) {
+            do {
+                #if DEBUG
+                try await Task.sleep(nanoseconds: 3_000_000_000)
+                #else
+                try await ShellCommander().clean()
+                #endif
+            } catch {
+                self.error = error
+            }
+            
+            isLoading = false
+        }
+    }
+    
+}
+
+#Preview {
+    ContentView()
+}
