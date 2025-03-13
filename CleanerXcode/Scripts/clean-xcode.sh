@@ -11,8 +11,8 @@ rm -rf ~/Library/Developer/Xcode/watchOS\ DeviceSupport
 rm -rf ~/Library/Developer/Xcode/tvOS\ DeviceSupport
 
 # 3
-echo "Removing old simulators..."
-xcrun simctl delete unavailable
+# echo "Removing old simulators..."
+# xcrun simctl delete unavailable
 
 # 4
 echo "Removing caches..."

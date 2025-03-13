@@ -81,11 +81,11 @@ struct ContentView: View {
         
         Task(priority: .background) {
             do {
-                #if DEBUG
-                try await Task.sleep(nanoseconds: 3_000_000_000)
-                #else
+//                #if DEBUG
+//                try await Task.sleep(nanoseconds: 3_000_000_000)
+//                #else
                 try await ShellCommander().clean()
-                #endif
+//                #endif
             } catch {
                 self.error = error
             }
