@@ -33,6 +33,9 @@ struct ContentView: View {
                                 Text("Cleaning...")
                             }
                             .transition(.move(edge: .leading))
+                        } else if hasError {
+                            Label("Try again!", image: "gobackward")
+                                .transition(.move(edge: .trailing))
                         } else {
                             Label("Clean", image: "iconClear")
                                 .transition(.move(edge: .trailing))
@@ -42,8 +45,8 @@ struct ContentView: View {
                     .padding(.horizontal, 16)
                     .frame(height: 44)
                 }
+                .background(hasError ? .red : .blue)
                 .clipShape(RoundedRectangle(cornerRadius: 32))
-                .buttonStyle(.borderedProminent)
                 .disabled(isLoading)
                 
                 Menu {
@@ -69,6 +72,14 @@ struct ContentView: View {
         .padding()
     }
     
+    // MARK: - Private Variables
+    
+    private let shellScripCommander = ShellScriptCommander()
+    
+    private var hasError: Bool {
+        error != nil
+    }
+    
     // MARK: - Private Methods
     
     private func terminate() {
@@ -82,7 +93,7 @@ struct ContentView: View {
         Task(priority: .background) {
             do {
                 try await Task.sleep(nanoseconds: 1_000_000_000)
-                try await ShellCommander().clean()
+                try await shellScripCommander.clean()
             } catch {
                 self.error = error
             }

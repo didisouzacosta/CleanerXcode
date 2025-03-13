@@ -1,5 +1,5 @@
 //
-//  ShellCommander.swift
+//  ShellScriptCommander.swift
 //  CleanXCode
 //
 //  Created by Adriano Costa on 12/03/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-final class ShellCommander {
+final class ShellScriptCommander {
     
     func clean() async throws {
         try await execute("clean-xcode")
