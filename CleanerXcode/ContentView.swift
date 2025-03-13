@@ -18,7 +18,7 @@ struct ContentView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            Text("Clean Xcode")
+            Text("Cleaner Xcode")
                 .bold()
             
             VStack(spacing: 8) {
@@ -81,11 +81,8 @@ struct ContentView: View {
         
         Task(priority: .background) {
             do {
-//                #if DEBUG
-//                try await Task.sleep(nanoseconds: 3_000_000_000)
-//                #else
+                try await Task.sleep(nanoseconds: 1_000_000_000)
                 try await ShellCommander().clean()
-//                #endif
             } catch {
                 self.error = error
             }
