@@ -1,6 +1,6 @@
 //
 //  ShellScriptCommander.swift
-//  CleanXCode
+//  CleanXcode
 //
 //  Created by Adriano Costa on 12/03/25.
 //
@@ -45,23 +45,15 @@ final class ShellScriptCommander {
 
 extension ShellScriptCommander {
     
-    enum Command: CaseIterable {
-        case removeCache,
-             removeDerivedData,
-             removeDeviceSupport,
-             removeOldSimulators,
-             removePodCache
+    enum Command: String, CaseIterable {
+        case removeCache = "remove-caches"
+        case removeDerivedData = "remove-derived-data"
+        case removeDeviceSupport = "remove-device-support"
+        case removeOldSimulators = "remove-old-simulators"
+        case removePodCache = "remove-pod-cache"
         
         var scriptPath: String? {
-            let resource = switch self {
-            case .removeCache: "remove-caches"
-            case .removeDerivedData: "remove-derived-data"
-            case .removeDeviceSupport: "remove-device-support"
-            case .removeOldSimulators: "remove-old-simulators"
-            case .removePodCache: "remove-pod-cache"
-            }
-            
-            return Bundle.main.path(forResource: resource, ofType: "sh")
+            Bundle.main.path(forResource: rawValue, ofType: "sh")
         }
     }
     
