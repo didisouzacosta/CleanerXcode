@@ -51,7 +51,7 @@ struct PreferencesView: View {
                 }
                 
                 Section("Dedication") {
-                    Text("This simple app was made for anyone ❤️ who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.")
+                    Text("This simple app was made for anyone who ❤️ loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.")
                 }
                 
                 Section("Social") {
