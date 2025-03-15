@@ -10,11 +10,10 @@ import SwiftUI
 @main
 struct CleanerXcodeApp: App {
     
-    // MARK: - Private Variables
+    // MARK: - States
     
-    private let preferences = Preferences()
-    
-    @State private var test = false
+    @State private var preferences = Preferences()
+    @State private var navigation = Navigation()
     
     // MARK: - Public Variables
     
@@ -23,22 +22,23 @@ struct CleanerXcodeApp: App {
         
         MenuBarExtra {
             Group {
-                if test {
-                    PreferencesView($test)
+                if navigation.isPresentSettings {
+                    PreferencesView()
                         .transition(.move(edge: .trailing))
                 } else {
-                    HomeView($test)
+                    HomeView()
                         .transition(.move(edge: .leading))
                 }
             }
             .frame(width: 280)
-            .animation(.easeInOut, value: test)
+            .animation(.easeInOut, value: navigation.isPresentSettings)
+            .environment(\.clearStore, clearStore)
+            .environment(\.preferences, preferences)
+            .environment(\.navigation, navigation)
         } label: {
             Image("iconClear")
         }
         .menuBarExtraStyle(.window)
-        .environment(\.clearStore, clearStore)
-        .environment(\.preferences, preferences)
     }
     
 }

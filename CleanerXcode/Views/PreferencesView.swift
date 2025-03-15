@@ -12,10 +12,9 @@ struct PreferencesView: View {
     // MARK: - Environments
     
     @Environment(\.preferences) private var preferences
+    @Environment(\.navigation) private var navigation
     
     // MARK: - Public Variables
-    
-    private var test: Binding<Bool>
     
     private var donateURL: URL {
         #if DEBUG
@@ -25,16 +24,12 @@ struct PreferencesView: View {
         #endif
     }
     
-    init(_ test: Binding<Bool>) {
-        self.test = test
-    }
-    
     var body: some View {
         @Bindable var bindablePreferences = preferences
         
         VStack(alignment: .leading, spacing: 0) {
             Button {
-                test.wrappedValue.toggle()
+                navigation.isPresentSettings.toggle()
             } label: {
                 Label("Home", systemImage: "chevron.backward")
             }
@@ -96,6 +91,7 @@ struct PreferencesView: View {
 }
 
 #Preview {
-    PreferencesView(.constant(false))
+    PreferencesView()
         .environment(\.preferences, .init())
+        .environment(\.navigation, .init())
 }

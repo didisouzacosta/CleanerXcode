@@ -13,18 +13,13 @@ struct HomeView: View {
     // MARK: - Environments
     
     @Environment(\.clearStore) private var clearStore
+    @Environment(\.navigation) private var navigation
     
     // MARK: - States
     
     @State private var cleaning = false
     @State private var error: Error?
     @State private var isShowPreferences = false
-    
-    private var test: Binding<Bool>
-    
-    init(_ test: Binding<Bool>) {
-        self.test = test
-    }
     
     // MARK: - Public Variables
     
@@ -124,7 +119,7 @@ struct HomeView: View {
             
             HStack {
                 Button {
-                    test.wrappedValue.toggle()
+                    navigation.isPresentSettings.toggle()
                 } label: {
                     Image(systemName: "gear")
                         .resizable()
@@ -156,6 +151,7 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(.constant(false))
+    HomeView()
         .environment(\.clearStore, .init(.init()))
+        .environment(\.navigation, .init())
 }
