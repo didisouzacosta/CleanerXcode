@@ -22,20 +22,27 @@ struct PreferencesView: View {
     }
     
     var body: some View {
-        @Bindable var preferencesBindable = preferences
+        @Bindable var bindablePreferences = preferences
         
         VStack(alignment: .leading, spacing: 0) {
-            Button("Back") {
+            Button {
                 test.wrappedValue.toggle()
+            } label: {
+                Label("Home", systemImage: "chevron.backward")
             }
-            .padding([.top, .trailing, .leading], 18)
-            
+            .buttonStyle(.plain)
+            .padding([.top, .trailing, .leading])
+
             Form {
                 Section("Permissions") {
-                    Toggle("Remove Derived Data", isOn: $preferencesBindable.canRemoveDerivedData)
-                    Toggle("Remove Device Support", isOn: $preferencesBindable.canRemoveDeviceSupport)
-                    Toggle("Remove Old Simulators", isOn: $preferencesBindable.canRemoveOldSimulators)
-                    Toggle("Remove Pod Cache", isOn: $preferencesBindable.canRemovePodCache)
+                    Toggle("Remove Derived Data", isOn: $bindablePreferences.canRemoveDerivedData.value)
+                    Toggle("Remove Caches", isOn: $bindablePreferences.canRemoveCaches.value)
+                    Toggle("Remove Device Support", isOn: $bindablePreferences.canRemoveDeviceSupport.value)
+                    Toggle("Remove Old Simulators", isOn: $bindablePreferences.canRemoveOldSimulators.value)
+                }
+                
+                Section("About") {
+                    Text("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.")
                 }
             }
             .scrollIndicators(.never)

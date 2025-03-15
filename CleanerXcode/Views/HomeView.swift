@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Charts
 
 struct HomeView: View {
     
@@ -15,7 +16,7 @@ struct HomeView: View {
     
     // MARK: - States
     
-    @State private var isLoading = false
+    @State private var cleaning = false
     @State private var error: Error?
     @State private var isShowPreferences = false
     
@@ -29,75 +30,13 @@ struct HomeView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            Text("Cleaner Xcode")
-                .font(.title2)
-            
+            header()
             Spacer(minLength: 22)
-            
-            Button {
-                clean()
-            } label: {
-                Group {
-                    if isLoading {
-                        HStack(spacing: 0) {
-                            ProgressView()
-                                .scaleEffect(0.6)
-                            Text("Cleaning...")
-                        }
-                        .transition(.move(edge: .leading))
-                    } else if hasError {
-                        Label("Try again!", image: "gobackward")
-                            .transition(.move(edge: .trailing))
-                    } else {
-                        Label("Clean", image: "iconClear")
-                            .transition(.move(edge: .trailing))
-                    }
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 16)
-                .frame(height: 44)
-                .font(.title3)
-            }
-            .background(hasError ? .red : .blue)
-            .clipShape(RoundedRectangle(cornerRadius: 32))
-            .disabled(isLoading)
-            
+            buttonAction()
             Spacer(minLength: 22)
-            
-            VStack(spacing: 8) {
-                Divider()
-                
-                HStack {
-                    Button {
-                        test.wrappedValue.toggle()
-                    } label: {
-                        Image(systemName: "gear")
-                            .resizable()
-                            .frame(width: 16, height: 16)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(isLoading)
-                    
-                    Text("Version \(NSApplication.fullVersion)")
-                        .font(.footnote)
-                        .foregroundStyle(.placeholder)
-                    
-                    Spacer()
-                    
-                    Button {
-                        quit()
-                    } label: {
-                        HStack {
-                            Text("Quit")
-                            Text("\(Image(systemName: "command"))Q")
-                                .foregroundStyle(.placeholder)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+            footer()
         }
-        .animation(.easeIn, value: isLoading)
+        .animation(.easeIn, value: cleaning)
         .padding([.top, .leading, .trailing])
         .padding(.bottom, 12)
     }
@@ -115,7 +54,9 @@ struct HomeView: View {
     }
     
     private func clean() {
-        isLoading = true
+        guard !cleaning else { return }
+        
+        cleaning = true
         error = nil
         
         Task(priority: .background) {
@@ -125,7 +66,87 @@ struct HomeView: View {
                 self.error = error
             }
             
-            isLoading = false
+            cleaning = false
+        }
+    }
+    
+    // MARK: - Components
+    
+    private func chart(_ steps: [Step]) -> some View {
+        ProgressView(
+            value: CGFloat(steps.count { $0.status != .waiting }),
+            total: CGFloat(steps.count)
+        )
+        .progressViewStyle(.circular)
+        .controlSize(.small)
+    }
+    
+    private func buttonAction() -> some View {
+        Button {
+            clean()
+        } label: {
+            Group {
+                if cleaning {
+                    HStack {
+                        chart(clearStore.steps)
+                        Text("Cleaning...")
+                    }
+                    .transition(.move(edge: .leading))
+                } else if hasError {
+                    Label("Try again!", image: "gobackward")
+                        .transition(.move(edge: .leading))
+                } else {
+                    Label("Clean", image: "iconClear")
+                        .transition(.move(edge: .trailing))
+                }
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 44)
+            .font(.title3)
+        }
+        .buttonStyle(.plain)
+        .background(hasError ? .red : cleaning ? .green : .blue)
+        .clipShape(RoundedRectangle(cornerRadius: 32))
+        .allowsHitTesting(!cleaning)
+    }
+    
+    private func header() -> some View {
+        Text("Cleaner Xcode")
+            .font(.title2)
+    }
+    
+    private func footer() -> some View {
+        VStack(spacing: 8) {
+            Divider()
+            
+            HStack {
+                Button {
+                    test.wrappedValue.toggle()
+                } label: {
+                    Image(systemName: "gear")
+                        .resizable()
+                        .frame(width: 16, height: 16)
+                }
+                .buttonStyle(.plain)
+                .disabled(cleaning)
+                
+                Text("Version \(NSApplication.fullVersion)")
+                    .font(.footnote)
+                    .foregroundStyle(.placeholder)
+                
+                Spacer()
+                
+                Button {
+                    quit()
+                } label: {
+                    HStack {
+                        Text("Quit")
+                        Text("\(Image(systemName: "command"))Q")
+                            .foregroundStyle(.placeholder)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
     

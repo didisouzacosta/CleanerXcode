@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import FluidMenuBarExtra
 
 @main
 struct CleanerXcodeApp: App {
