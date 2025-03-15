@@ -51,12 +51,12 @@ struct PreferencesView: View {
                 }
                 
                 Section("Dedication") {
-                    Text("This simple app was made for anybody ❤️ loves develop for Apple tecnologies.\n\nI'd like dedicate this app for my son Orlando and my wife Gisele.")
+                    Text("This simple app was made for anyone ❤️ who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.")
                 }
                 
                 Section("Social") {
                     VStack(spacing: 16) {
-                        Text("If you like, consider give me a star on Github, follow me on Twitter and Linkedin.")
+                        Text("If you like it, consider giving me a star on GitHub and following me on X and LinkedIn.")
                         
                         HStack(spacing: 16) {
                             Link(destination: .init(string: "https://github.com/didisouzacosta/CleanerXcode")!) {
