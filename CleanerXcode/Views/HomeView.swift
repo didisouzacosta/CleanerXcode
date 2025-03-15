@@ -90,6 +90,7 @@ struct HomeView: View {
                         chart(clearStore.steps)
                         Text("Cleaning...")
                     }
+                    .foregroundStyle(.black.opacity(0.8))
                     .transition(.move(edge: .leading))
                 } else if hasError {
                     Label("Try again!", image: "gobackward")
@@ -103,6 +104,7 @@ struct HomeView: View {
             .frame(height: 44)
             .font(.title3)
             .animation(.bouncy, value: cleaning)
+            .foregroundStyle(.white)
         }
         .buttonStyle(.plain)
         .background(hasError ? .red : cleaning ? .green : .blue)

@@ -72,7 +72,7 @@ struct PreferencesView: View {
                             }
                         }
                         .font(.system(size: 22))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                         
                         Text("or make a donation.")
                         
@@ -81,11 +81,11 @@ struct PreferencesView: View {
                                 .fill(.orange)
                                 .overlay {
                                     Text("Donate")
-                                        .foregroundStyle(.black)
                                         .font(.body)
                                 }
                                 .frame(height: 32)
                         }
+                        .foregroundStyle(.primary)
                     }
                 }
             }
