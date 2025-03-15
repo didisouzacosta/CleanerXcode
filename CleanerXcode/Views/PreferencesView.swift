@@ -17,6 +17,14 @@ struct PreferencesView: View {
     
     private var test: Binding<Bool>
     
+    private var donateURL: URL {
+        #if DEBUG
+        .init(string: "https://buy.stripe.com/test_bIY3e30bxg9vbII6oo")!
+        #else
+        .init(string: "https://buy.stripe.com/00gcN772R2ns3wA9AA")!
+        #endif
+    }
+    
     init(_ test: Binding<Bool>) {
         self.test = test
     }
@@ -66,11 +74,21 @@ struct PreferencesView: View {
                         .font(.system(size: 22))
                         .foregroundStyle(.white)
                         
-                        Text("Or make a donation.")
+                        Text("or make a donation.")
+                        
+                        Link(destination: donateURL) {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(.orange)
+                                .overlay {
+                                    Text("Donate")
+                                        .foregroundStyle(.black)
+                                        .font(.body)
+                                }
+                                .frame(height: 32)
+                        }
                     }
                 }
             }
-            .scrollIndicators(.never)
             .formStyle(.grouped)
         }
     }
