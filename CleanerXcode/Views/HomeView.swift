@@ -90,7 +90,7 @@ struct HomeView: View {
                         chart(clearStore.steps)
                         Text("Cleaning...")
                     }
-                    .foregroundStyle(.black.opacity(0.8))
+                    .foregroundStyle(.white)
                     .transition(.move(edge: .leading))
                 } else if hasError {
                     Label("Try again!", image: "gobackward")
@@ -107,7 +107,7 @@ struct HomeView: View {
             .foregroundStyle(.white)
         }
         .buttonStyle(.plain)
-        .background(hasError ? .red : cleaning ? .green : .blue)
+        .background(hasError ? .red : cleaning ? .working : .blue)
         .clipShape(RoundedRectangle(cornerRadius: 32))
         .allowsHitTesting(!cleaning)
         .animation(.bouncy, value: cleaning)
