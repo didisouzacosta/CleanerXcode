@@ -32,6 +32,7 @@ struct PreferencesView: View {
             }
             .buttonStyle(.plain)
             .padding([.top, .trailing, .leading])
+            .padding(.bottom, 8)
 
             Form {
                 Section("Permissions") {
@@ -41,8 +42,32 @@ struct PreferencesView: View {
                     Toggle("Remove Old Simulators", isOn: $bindablePreferences.canRemoveOldSimulators.value)
                 }
                 
-                Section("About") {
-                    Text("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.")
+                Section("Dedication") {
+                    Text("This simple app was made for anybody ❤️ loves develop for Apple tecnologies.\n\nI'd like dedicate this app for my son Orlando and my wife Gisele.")
+                }
+                
+                Section("Social") {
+                    VStack(spacing: 16) {
+                        Text("If you like, consider give me a star on Github, follow me on Twitter and Linkedin.")
+                        
+                        HStack(spacing: 16) {
+                            Link(destination: .init(string: "https://github.com/didisouzacosta/CleanerXcode")!) {
+                                Image("github.fill")
+                            }
+                            
+                            Link(destination: .init(string: "https://x.com/didisouzacosta")!) {
+                                Image("x-twitter")
+                            }
+                            
+                            Link(destination: .init(string: "https://www.linkedin.com/in/adrianosouzacosta/")!) {
+                                Image("linkedin")
+                            }
+                        }
+                        .font(.system(size: 22))
+                        .foregroundStyle(.white)
+                        
+                        Text("Or make a donation.")
+                    }
                 }
             }
             .scrollIndicators(.never)

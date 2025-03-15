@@ -86,6 +86,8 @@ final class ClearStore {
             }
             
             while let value = await group.next() {
+                try? await Task.sleep(nanoseconds: UInt64(1_000_000_000 / 2))
+                
                 if let index = steps.firstIndex(where: { $0.id == value.id }) {
                     steps[index] = value
                 }

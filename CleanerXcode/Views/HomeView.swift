@@ -36,7 +36,6 @@ struct HomeView: View {
             Spacer(minLength: 22)
             footer()
         }
-        .animation(.easeIn, value: cleaning)
         .padding([.top, .leading, .trailing])
         .padding(.bottom, 12)
     }
@@ -103,11 +102,13 @@ struct HomeView: View {
             .padding(.horizontal, 16)
             .frame(height: 44)
             .font(.title3)
+            .animation(.bouncy, value: cleaning)
         }
         .buttonStyle(.plain)
         .background(hasError ? .red : cleaning ? .green : .blue)
         .clipShape(RoundedRectangle(cornerRadius: 32))
         .allowsHitTesting(!cleaning)
+        .animation(.bouncy, value: cleaning)
     }
     
     private func header() -> some View {
