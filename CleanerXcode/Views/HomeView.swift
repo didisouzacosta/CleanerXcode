@@ -13,7 +13,7 @@ struct HomeView: View {
     // MARK: - Environments
     
     @Environment(\.clearStore) private var clearStore
-    @Environment(\.navigation) private var navigation
+    @Environment(\.route) private var route
     
     // MARK: - States
     
@@ -119,7 +119,7 @@ struct HomeView: View {
             
             HStack {
                 Button {
-                    navigation.isPresentSettings.toggle()
+                    route.isPresentSettings.toggle()
                 } label: {
                     Image(systemName: "gear")
                         .resizable()
@@ -153,5 +153,5 @@ struct HomeView: View {
 #Preview {
     HomeView()
         .environment(\.clearStore, .init(.init()))
-        .environment(\.navigation, .init())
+        .environment(\.route, .init())
 }

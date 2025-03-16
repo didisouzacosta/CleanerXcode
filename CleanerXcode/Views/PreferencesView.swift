@@ -12,24 +12,16 @@ struct PreferencesView: View {
     // MARK: - Environments
     
     @Environment(\.preferences) private var preferences
-    @Environment(\.navigation) private var navigation
+    @Environment(\.route) private var route
     
     // MARK: - Public Variables
-    
-    private var donateURL: URL {
-        #if DEBUG
-        .init(string: "https://buy.stripe.com/test_bIY3e30bxg9vbII6oo")!
-        #else
-        .init(string: "https://buy.stripe.com/00gcN772R2ns3wA9AA")!
-        #endif
-    }
     
     var body: some View {
         @Bindable var bindablePreferences = preferences
         
         VStack(alignment: .leading, spacing: 0) {
             Button {
-                navigation.isPresentSettings.toggle()
+                route.isPresentSettings.toggle()
             } label: {
                 Label("Home", systemImage: "chevron.backward")
             }
@@ -46,7 +38,7 @@ struct PreferencesView: View {
                 }
                 
                 Section("Dedication") {
-                    Text("This simple app was made for anyone who ❤️ loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.")
+                    Text("This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.")
                 }
                 
                 Section("Social") {
@@ -71,7 +63,7 @@ struct PreferencesView: View {
                         
                         Text("or make a donation.")
                         
-                        Link(destination: donateURL) {
+                        Link(destination: .init(string: "https://buy.stripe.com/00gcN772R2ns3wA9AA")!) {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(.orange)
                                 .overlay {
@@ -93,5 +85,5 @@ struct PreferencesView: View {
 #Preview {
     PreferencesView()
         .environment(\.preferences, .init())
-        .environment(\.navigation, .init())
+        .environment(\.route, .init())
 }

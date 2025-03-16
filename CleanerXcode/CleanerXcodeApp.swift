@@ -13,7 +13,7 @@ struct CleanerXcodeApp: App {
     // MARK: - States
     
     @State private var preferences = Preferences()
-    @State private var navigation = Navigation()
+    @State private var route = Route()
     
     // MARK: - Public Variables
     
@@ -22,7 +22,7 @@ struct CleanerXcodeApp: App {
         
         MenuBarExtra {
             Group {
-                if navigation.isPresentSettings {
+                if route.isPresentSettings {
                     PreferencesView()
                         .transition(.move(edge: .trailing))
                 } else {
@@ -31,10 +31,10 @@ struct CleanerXcodeApp: App {
                 }
             }
             .frame(width: 280)
-            .animation(.easeInOut, value: navigation.isPresentSettings)
+            .animation(.easeInOut, value: route.isPresentSettings)
             .environment(\.clearStore, clearStore)
             .environment(\.preferences, preferences)
-            .environment(\.navigation, navigation)
+            .environment(\.route, route)
         } label: {
             Image("iconClear")
         }

@@ -1,5 +1,5 @@
 //
-//  Navigation.swift
+//  Route.swift
 //  CleanerXcode
 //
 //  Created by Adriano Costa on 14/03/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @Observable
-final class Navigation {
+final class Route {
     
     // MARK: - Public Variables
     
@@ -22,6 +22,6 @@ final class Navigation {
 
 extension EnvironmentValues {
     
-    @Entry var navigation = Navigation()
+    @Entry var route = Route()
     
 }

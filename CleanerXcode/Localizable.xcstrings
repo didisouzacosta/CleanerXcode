@@ -161,12 +161,12 @@
         }
       }
     },
-    "This simple app was made for anyone who ❤️ loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele." : {
+    "This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele." : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esse simples app foi feito para qualquer um que ❤️ ama desenvolver para tecnologias Apple. \\n\\n Gostaria de dedicar esse app para meu filho Orlando e minha esposa Gisele."
+            "value" : "Esse simples app foi feito para qualquer um que ama desenvolver para tecnologias Apple. \\n\\n Gostaria de dedicar esse app para meu filho Orlando e minha esposa Gisele."
           }
         }
       }
