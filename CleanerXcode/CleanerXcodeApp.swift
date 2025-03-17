@@ -19,22 +19,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 @main
 struct CleanerXcodeApp: App {
     
-    // MARK: - States
-    
-    @State private var preferences = Preferences()
-    @State private var route = Route()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     
     // MARK: - Private Variables
     
-    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-    
-    private let analytics = Analytics()
+    private let preferences: Preferences
+    private let route: Route
+    private let clearStore: ClearStore
+    private let analytics: Analytics
     
     // MARK: - Public Variables
     
     var body: some Scene {
-        let clearStore = ClearStore(preferences, analytics: analytics)
-        
         MenuBarExtra {
             MainView()
                 .frame(width: 280)
@@ -47,6 +43,13 @@ struct CleanerXcodeApp: App {
         .environment(\.clearStore, clearStore)
         .environment(\.preferences, preferences)
         .environment(\.analytics, analytics)
+    }
+    
+    init() {
+        self.preferences = Preferences()
+        self.route = Route()
+        self.analytics = Analytics()
+        self.clearStore = .init(preferences, analytics: analytics)
     }
     
 }
