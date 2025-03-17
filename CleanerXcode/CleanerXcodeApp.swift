@@ -6,6 +6,15 @@
 //
 
 import SwiftUI
+import FirebaseCore
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        FirebaseApp.configure()
+    }
+    
+}
 
 @main
 struct CleanerXcodeApp: App {
@@ -15,26 +24,25 @@ struct CleanerXcodeApp: App {
     @State private var preferences = Preferences()
     @State private var route = Route()
     
+    // MARK: - Private Variables
+    
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    
+    private let analytics = Analytics()
+    
     // MARK: - Public Variables
     
     var body: some Scene {
-        let clearStore = ClearStore(preferences)
+        let clearStore = ClearStore(preferences, analytics: analytics)
         
         MenuBarExtra {
-            Group {
-                if route.isPresentSettings {
-                    PreferencesView()
-                        .transition(.move(edge: .trailing))
-                } else {
-                    HomeView()
-                        .transition(.move(edge: .leading))
-                }
-            }
-            .frame(width: 280)
-            .animation(.easeInOut, value: route.isPresentSettings)
-            .environment(\.clearStore, clearStore)
-            .environment(\.preferences, preferences)
-            .environment(\.route, route)
+            MainView()
+                .frame(width: 280)
+                .animation(.easeInOut, value: route.isPresentSettings)
+                .environment(\.clearStore, clearStore)
+                .environment(\.preferences, preferences)
+                .environment(\.route, route)
+                .environment(\.analytics, analytics)
         } label: {
             Image("iconClear")
         }

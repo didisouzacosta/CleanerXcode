@@ -13,6 +13,8 @@ struct PreferencesView: View {
     
     @Environment(\.preferences) private var preferences
     @Environment(\.route) private var route
+    @Environment(\.openURL) private var openURL
+    @Environment(\.analytics) private var analytics
     
     // MARK: - Public Variables
     
@@ -46,24 +48,36 @@ struct PreferencesView: View {
                         Text("If you like it, consider giving me a star on GitHub and following me on X and LinkedIn.")
                         
                         HStack(spacing: 16) {
-                            Link(destination: .init(string: "https://github.com/didisouzacosta/CleanerXcode")!) {
+                            Button {
+                                openURL(.init(string: "https://github.com/didisouzacosta/CleanerXcode")!)
+                                analytics.log(.social(.github))
+                            } label: {
                                 Image("github.fill")
-                            }
+                            }.buttonStyle(.plain)
                             
-                            Link(destination: .init(string: "https://x.com/didisouzacosta")!) {
-                                Image("x-twitter")
-                            }
+                            Button {
+                                openURL(.init(string: "https://x.com/didisouzacosta")!)
+                                analytics.log(.social(.x))
+                            } label: {
+                                Image("x")
+                            }.buttonStyle(.plain)
                             
-                            Link(destination: .init(string: "https://www.linkedin.com/in/adrianosouzacosta/")!) {
+                            Button {
+                                openURL(.init(string: "https://www.linkedin.com/in/adrianosouzacosta/")!)
+                                analytics.log(.social(.linkedin))
+                            } label: {
                                 Image("linkedin")
-                            }
+                            }.buttonStyle(.plain)
                         }
                         .font(.system(size: 22))
                         .foregroundStyle(.primary)
                         
                         Text("or make a donation.")
                         
-                        Link(destination: .init(string: "https://buy.stripe.com/00gcN772R2ns3wA9AA")!) {
+                        Button {
+                            openURL(.init(string: "https://buy.stripe.com/00gcN772R2ns3wA9AA")!)
+                            analytics.log(.donate)
+                        } label: {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(.orange)
                                 .overlay {
@@ -71,8 +85,7 @@ struct PreferencesView: View {
                                         .font(.body)
                                 }
                                 .frame(height: 32)
-                        }
-                        .foregroundStyle(.primary)
+                        }.buttonStyle(.plain)
                     }
                 }
             }
@@ -86,4 +99,5 @@ struct PreferencesView: View {
     PreferencesView()
         .environment(\.preferences, .init())
         .environment(\.route, .init())
+        .environment(\.analytics, .init())
 }

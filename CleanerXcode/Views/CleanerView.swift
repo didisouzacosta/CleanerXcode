@@ -1,5 +1,5 @@
 //
-//  HomeView.swift
+//  CleanerView.swift
 //  CleanerXcode
 //
 //  Created by Adriano Costa on 12/03/25.
@@ -8,11 +8,12 @@
 import SwiftUI
 import Charts
 
-struct HomeView: View {
+struct CleanerView: View {
     
     // MARK: - Environments
     
     @Environment(\.clearStore) private var clearStore
+    @Environment(\.analytics) private var analytics
     @Environment(\.route) private var route
     
     // MARK: - States
@@ -66,7 +67,7 @@ struct HomeView: View {
     
     // MARK: - Components
     
-    private func chart(_ steps: [Step]) -> some View {
+    private func progressView(_ steps: [Step]) -> some View {
         ProgressView(
             value: CGFloat(steps.count { $0.status != .waiting }),
             total: CGFloat(steps.count)
@@ -82,7 +83,7 @@ struct HomeView: View {
             Group {
                 if cleaning {
                     HStack {
-                        chart(clearStore.steps)
+                        progressView(clearStore.steps)
                         Text("Cleaning...")
                     }
                     .foregroundStyle(.white)
@@ -151,7 +152,7 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView()
-        .environment(\.clearStore, .init(.init()))
+    CleanerView()
+        .environment(\.clearStore, .init(.init(), analytics: Analytics()))
         .environment(\.route, .init())
 }

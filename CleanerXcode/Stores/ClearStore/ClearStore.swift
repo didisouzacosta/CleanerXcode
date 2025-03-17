@@ -46,6 +46,7 @@ final class ClearStore {
     
     private let shellScripCommander = ShellScript()
     private let preferences: Preferences
+    private let analytics: AnalyticsRepresentable
     
     private var enabledCommands: [ShellScript.Command] {
         [
@@ -62,8 +63,12 @@ final class ClearStore {
     
     // MARK: - Initializers
     
-    init(_ preferences: Preferences) {
+    init(
+        _ preferences: Preferences,
+        analytics: AnalyticsRepresentable
+    ) {
         self.preferences = preferences
+        self.analytics = analytics
     }
     
     // MARK: - Public Methods
@@ -92,6 +97,8 @@ final class ClearStore {
                     steps[index] = value
                 }
             }
+            
+            analytics.log(.clear(enabledCommands))
         }
     }
     
@@ -103,6 +110,9 @@ final class ClearStore {
 
 extension EnvironmentValues {
     
-    @Entry var clearStore = ClearStore(.init())
+    @Entry var clearStore = ClearStore(
+        .init(),
+        analytics: Analytics()
+    )
     
 }
