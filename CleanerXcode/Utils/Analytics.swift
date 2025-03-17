@@ -14,7 +14,7 @@ enum AnalyticsEvent {
         case x, github, linkedin
     }
     
-    case clear([ShellScript.Command])
+    case clear([Shell.Command])
     case social(Social)
     case donate
     

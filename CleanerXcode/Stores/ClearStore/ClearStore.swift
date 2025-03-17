@@ -44,16 +44,19 @@ final class ClearStore {
     
     // MARK: - Private Variables
     
-    private let shellScripCommander = ShellScript()
+    private let shell = Shell()
     private let preferences: Preferences
     private let analytics: AnalyticsRepresentable
     
-    private var enabledCommands: [ShellScript.Command] {
+    private var enabledCommands: [Shell.Command] {
         [
-            preferences.canRemoveDerivedData,
+            preferences.canRemoveArchives,
             preferences.canRemoveCaches,
+            preferences.canRemoveDerivedData,
             preferences.canRemoveDeviceSupport,
-            preferences.canRemoveOldSimulators
+            preferences.canRemoveOldSimulators,
+            preferences.canRemoveSimultorData,
+            preferences.canResertXcode
         ]
         .filter { $0.value }
         .compactMap {
@@ -82,7 +85,7 @@ final class ClearStore {
             enabledCommands.enumerated().forEach { index, command in
                 group.addTask(priority: .background) { [weak self] in
                     do {
-                        try await self?.shellScripCommander.execute(command)
+                        try await self?.shell.execute(command)
                         return .init(command.id, status: .success)
                     } catch {
                         return .init(command.id, status: .failure)

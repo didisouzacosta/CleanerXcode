@@ -10,23 +10,38 @@ import SwiftUI
 @Observable
 final class Preferences {
     
-    var canRemoveDerivedData = StoragedValue(
-        ShellScript.Command.removeDerivedData.rawValue,
+    var canRemoveArchives = StoragedValue(
+        Shell.Command.removeArchives.rawValue,
         defaultValue: true
     )
     
     var canRemoveCaches = StoragedValue(
-        ShellScript.Command.removeCaches.rawValue,
+        Shell.Command.removeCaches.rawValue,
+        defaultValue: true
+    )
+    
+    var canRemoveDerivedData = StoragedValue(
+        Shell.Command.removeDerivedData.rawValue,
         defaultValue: true
     )
     
     var canRemoveDeviceSupport = StoragedValue(
-        ShellScript.Command.removeDeviceSupport.rawValue,
+        Shell.Command.removeDeviceSupport.rawValue,
         defaultValue: false
     )
     
     var canRemoveOldSimulators = StoragedValue(
-        ShellScript.Command.removeOldSimulators.rawValue,
+        Shell.Command.removeOldSimulators.rawValue,
+        defaultValue: false
+    )
+    
+    var canRemoveSimultorData = StoragedValue(
+        Shell.Command.removeSimulatorData.rawValue,
+        defaultValue: true
+    )
+    
+    var canResertXcode = StoragedValue(
+        Shell.Command.resetXcode.rawValue,
         defaultValue: false
     )
     

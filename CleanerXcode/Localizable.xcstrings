@@ -91,22 +91,22 @@
         }
       }
     },
-    "Permissions" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permissões"
-          }
-        }
-      }
-    },
     "Quit" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sair"
+          }
+        }
+      }
+    },
+    "Remove Archives" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover todos os Archives"
           }
         }
       }
@@ -147,6 +147,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remover Simuladores Antigos"
+          }
+        }
+      }
+    },
+    "Remove Simulator Data" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover dados dos simuladores"
+          }
+        }
+      }
+    },
+    "Reset Xcode" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reseter Xcode"
           }
         }
       }

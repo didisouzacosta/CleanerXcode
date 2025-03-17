@@ -1,5 +1,5 @@
 //
-//  ShellScript.swift
+//  Shell.swift
 //  CleanXcode
 //
 //  Created by Adriano Costa on 12/03/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-final class ShellScript {
+final class Shell {
     
     func execute(_ command: Command) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) -> Void in
@@ -43,13 +43,16 @@ final class ShellScript {
     
 }
 
-extension ShellScript {
+extension Shell {
     
     enum Command: String, CaseIterable, Identifiable {
+        case removeArchives = "remove-archives"
         case removeCaches = "remove-caches"
         case removeDerivedData = "remove-derived-data"
         case removeDeviceSupport = "remove-device-support"
         case removeOldSimulators = "remove-old-simulators"
+        case removeSimulatorData = "remove-simulator-data"
+        case resetXcode = "reset-xcode"
         
         var id: String {
             rawValue

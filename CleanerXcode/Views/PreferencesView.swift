@@ -32,11 +32,14 @@ struct PreferencesView: View {
             .padding(.bottom, 8)
 
             Form {
-                Section("Permissions") {
-                    Toggle("Remove Derived Data", isOn: $bindablePreferences.canRemoveDerivedData.value)
+                Section {
+                    Toggle("Remove Archives", isOn: $bindablePreferences.canRemoveArchives.value)
                     Toggle("Remove Caches", isOn: $bindablePreferences.canRemoveCaches.value)
+                    Toggle("Remove Derived Data", isOn: $bindablePreferences.canRemoveDerivedData.value)
                     Toggle("Remove Device Support", isOn: $bindablePreferences.canRemoveDeviceSupport.value)
                     Toggle("Remove Old Simulators", isOn: $bindablePreferences.canRemoveOldSimulators.value)
+                    Toggle("Remove Simulator Data", isOn: $bindablePreferences.canRemoveSimultorData.value)
+                    Toggle("Reset Xcode", isOn: $bindablePreferences.canResertXcode.value)
                 }
                 
                 Section("Dedication") {
