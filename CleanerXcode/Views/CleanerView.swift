@@ -72,8 +72,7 @@ struct CleanerView: View {
             value: CGFloat(steps.count { $0.status != .waiting }),
             total: CGFloat(steps.count)
         )
-        .progressViewStyle(.circular)
-        .controlSize(.small)
+        .progressViewStyle(CustomCircularProgressViewStyle())
     }
     
     private func buttonAction() -> some View {
