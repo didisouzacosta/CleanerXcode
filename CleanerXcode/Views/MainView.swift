@@ -25,6 +25,7 @@ struct MainView: View {
                     .transition(.move(edge: .leading))
             }
         }
+        .animation(.easeInOut, value: route.isPresentSettings)
     }
     
 }

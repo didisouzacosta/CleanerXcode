@@ -38,15 +38,15 @@ struct CleanerXcodeApp: App {
         MenuBarExtra {
             MainView()
                 .frame(width: 280)
-                .animation(.easeInOut, value: route.isPresentSettings)
-                .environment(\.clearStore, clearStore)
-                .environment(\.preferences, preferences)
                 .environment(\.route, route)
-                .environment(\.analytics, analytics)
+                
         } label: {
             Image("iconClear")
         }
         .menuBarExtraStyle(.window)
+        .environment(\.clearStore, clearStore)
+        .environment(\.preferences, preferences)
+        .environment(\.analytics, analytics)
     }
     
 }
