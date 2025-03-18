@@ -41,7 +41,7 @@ final class ClearStore {
     // MARK: - Public Variables
     
     private(set) var steps = [Step]()
-    private(set) var freeUpSpace: ValueState<Double?> = .idle
+    private(set) var freeUpSpace: ValueState<FreeUpSpace?> = .idle
     
     // MARK: - Private Variables
     
@@ -145,13 +145,17 @@ final class ClearStore {
         
         Task {
             do {
-                if let value = try await shell.execute(.calculateFreeUpSpace) {
-                    if let size = Double(value) {
-                        freeUpSpace = .success(size)
-                    } else {
-                        freeUpSpace = .success(nil)
-                    }
+                guard let value = try await shell.execute(.calculateFreeUpSpace) else {
+                    throw ""
                 }
+                
+                guard let data = value.data(using: .utf8) else {
+                    throw ""
+                }
+                
+                let result = try JSONDecoder().decode(FreeUpSpace.self, from: data)
+                
+                freeUpSpace = .success(result)
             } catch {
                 freeUpSpace = .failure(error)
             }

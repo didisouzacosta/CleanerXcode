@@ -15,6 +15,7 @@ struct CleanerView: View {
     @Environment(\.clearStore) private var clearStore
     @Environment(\.analytics) private var analytics
     @Environment(\.route) private var route
+    @Environment(\.openURL) private var openURL
     
     // MARK: - States
     
@@ -28,7 +29,34 @@ struct CleanerView: View {
         VStack(spacing: 0) {
             header()
             Spacer(minLength: 22)
-            buttonAction()
+            VStack(spacing: 16) {
+                buttonAction()
+                
+                HStack(spacing: 16) {
+                    Button {
+                        openURL(.init(string: "https://github.com/didisouzacosta/CleanerXcode")!)
+                        analytics.log(.social(.github))
+                    } label: {
+                        Image("github.fill")
+                    }.buttonStyle(.plain)
+                    
+                    Button {
+                        openURL(.init(string: "https://x.com/didisouzacosta")!)
+                        analytics.log(.social(.x))
+                    } label: {
+                        Image("x")
+                    }.buttonStyle(.plain)
+                    
+                    Button {
+                        openURL(.init(string: "https://www.linkedin.com/in/adrianosouzacosta/")!)
+                        analytics.log(.social(.linkedin))
+                    } label: {
+                        Image("linkedin")
+                    }.buttonStyle(.plain)
+                }
+                .font(.system(size: 16))
+                .foregroundStyle(.primary)
+            }
             Spacer(minLength: 22)
             footer()
         }
@@ -98,7 +126,7 @@ struct CleanerView: View {
                             Text("Cleaner")
                             ValueStateView(clearStore.freeUpSpace) { value in
                                 if let value {
-                                    Text(value.byteFormatter())
+                                    Text(value.totalSize.byteFormatter())
                                 }
                             }
                         }

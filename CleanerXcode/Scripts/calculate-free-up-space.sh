@@ -1,16 +1,44 @@
 #!/usr/bin/env bash
 
-DERIVED_DATA="$(du -s ~/Library/Developer/Xcode/DerivedData/ | cut -f1)"
-#ARCHIVES="$(du -s ~/Library/Developer/Xcode/Archives | cut -f1)"
-#SIMULATOR_DATA="$(du -s ~/Library/Developer/CoreSimulator | cut -f1)"
-#XCODE_CACHE="$(du -s ~/Library/Caches/com.apple.dt.Xcode | cut -f1)"
-#CARTHAGE_CACHE="$(du -s ~/Library/Caches/org.carthage.CarthageKit | cut -f1)"
-#DEVICE_SUPPORT_IOS="$(du -s ~/Library/Developer/Xcode/iOS\ DeviceSupport | cut -f1)"
-#DEVICE_SUPPORT_WATHOS="$(du -s ~/Library/Developer/Xcode/watchOS\ DeviceSupport | cut -f1)"
-#DEVICE_SUPPORT_TVOS="$(du -s ~/Library/Developer/Xcode/tvOS\ DeviceSupport | cut -f1)"
+paths=(
+    "derived_data $HOME/Library/Developer/Xcode/DerivedData/"
+    "archives $HOME/Library/Developer/Xcode/Archives"
+    "simulator_data $HOME/Library/Developer/CoreSimulator"
+    "xcode_cache $HOME/Library/Caches/com.apple.dt.Xcode"
+    "carthage_cache $HOME/Library/Caches/org.carthage.CarthageKit"
+    "device_support_ios $HOME/Library/Developer/Xcode/iOS\ DeviceSupport"
+    "device_support_watchos $HOME/Library/Developer/Xcode/watchOS\ DeviceSupport"
+    "device_support_tvos $HOME/Library/Developer/Xcode/tvOS\ DeviceSupport"
+)
 
-#SUM=$((DERIVED_DATA + ARCHIVES + SIMULATOR_DATA + XCODE_CACHE + CARTHAGE_CACHE + DEVICE_SUPPORT_IOS + DEVICE_SUPPORT_WATHOS + DEVICE_SUPPORT_TVOS))
+infos=()
 
-SUM=$((DERIVED_DATA))
+for path in "${paths[@]}"; do
+    read -a item <<< "$path"
 
-echo "$SUM"
+    reference="${item[0]}"
+    path="${item[1]}"
+
+    if [ -d "${path}" ];
+    then
+        size=$(du -s "${path}" | cut -f1)
+        infos+=("${reference} ${size}")
+    else
+        infos+=("${reference} 0")
+    fi
+done
+
+jsonString=""
+
+for info in "${infos[@]}"; do
+    read -a item <<< "$info"
+    
+    if [ "$jsonString" != "" ];
+    then
+        jsonString+=","
+    fi
+
+    jsonString+="\"${item[0]}\": ${item[1]}"
+done
+
+echo "{${jsonString}}"
