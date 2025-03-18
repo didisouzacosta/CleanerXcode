@@ -9,8 +9,9 @@ import SwiftUI
 
 final class Shell {
     
-    func execute(_ command: Command) async throws {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) -> Void in
+    @discardableResult
+    func execute(_ command: Command) async throws -> String? {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String?, Error>) -> Void in
             guard let scriptPath = command.scriptPath else {
                 continuation.resume(throwing: "Script not found in bundle")
                 return
@@ -27,14 +28,14 @@ final class Shell {
             do {
                 try process.run()
                 
-                let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+                var outputString: String?
                 
-                if let outputString = String(data: outputData, encoding: .utf8) {
-                    print("Script Output: \(outputString)")
+                if let outputData = try outputPipe.fileHandleForReading.readToEnd() {
+                    outputString = String(data: outputData, encoding: .utf8)
                 }
                 
                 process.waitUntilExit()
-                continuation.resume()
+                continuation.resume(with: .success(outputString))
             } catch {
                 continuation.resume(throwing: error)
             }
