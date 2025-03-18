@@ -31,7 +31,8 @@ final class Shell {
                 var outputString: String?
                 
                 if let outputData = try outputPipe.fileHandleForReading.readToEnd() {
-                    outputString = String(data: outputData, encoding: .utf8)
+                    outputString = String(data: outputData, encoding: .utf8)?
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
                 }
                 
                 process.waitUntilExit()
@@ -54,6 +55,7 @@ extension Shell {
         case removeOldSimulators = "remove-old-simulators"
         case removeSimulatorData = "remove-simulator-data"
         case resetXcode = "reset-xcode"
+        case calculateFreeUpSpace = "calculate-free-up-space"
         
         var id: String {
             rawValue

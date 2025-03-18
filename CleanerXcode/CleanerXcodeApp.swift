@@ -24,9 +24,10 @@ struct CleanerXcodeApp: App {
     
     // MARK: - Private Variables
     
-    private let preferences: Preferences
-    private let route: Route
-    private let clearStore: ClearStore
+    @State private var preferences: Preferences
+    @State private var clearStore: ClearStore
+    @State private var route: Route
+    
     private let analytics: Analytics
     
     // MARK: - Public Variables
@@ -36,21 +37,26 @@ struct CleanerXcodeApp: App {
             MainView()
                 .frame(width: 280)
                 .environment(\.route, route)
-                
+                .environment(\.clearStore, clearStore)
+                .environment(\.preferences, preferences)
+                .environment(\.analytics, analytics)
         } label: {
             Image("iconClear")
         }
         .menuBarExtraStyle(.window)
-        .environment(\.clearStore, clearStore)
-        .environment(\.preferences, preferences)
-        .environment(\.analytics, analytics)
     }
     
     init() {
-        self.preferences = Preferences()
-        self.route = Route()
-        self.analytics = Analytics()
-        self.clearStore = .init(preferences, analytics: analytics)
+        let preferences = Preferences()
+        let route = Route()
+        let analytics = Analytics()
+        let clearStore = ClearStore(preferences, analytics: analytics)
+        
+        self.analytics = analytics
+        
+        _preferences = .init(wrappedValue: preferences)
+        _route = .init(wrappedValue: route)
+        _clearStore = .init(wrappedValue: clearStore)
     }
     
 }

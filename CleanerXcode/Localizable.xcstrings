@@ -12,6 +12,7 @@
       }
     },
     "Clean" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -20,6 +21,9 @@
           }
         }
       }
+    },
+    "Cleaner" : {
+
     },
     "Cleaner Xcode" : {
       "localizations" : {

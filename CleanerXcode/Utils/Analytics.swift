@@ -14,13 +14,13 @@ enum AnalyticsEvent {
         case x, github, linkedin
     }
     
-    case clear([Shell.Command])
+    case cleaner([Shell.Command])
     case social(Social)
     case donate
     
     var name: String {
         switch self {
-        case .clear: "clear"
+        case .cleaner: "cleaner"
         case .social: "social"
         case .donate: "donate"
         }
@@ -28,7 +28,7 @@ enum AnalyticsEvent {
     
     var paramaters: [String: Any]? {
         switch self {
-        case .clear(let commands):
+        case .cleaner(let commands):
             ["commands": commands.map { $0.rawValue }.joined(separator: ", ")]
         case .social(let social):
             ["platform": social.rawValue]

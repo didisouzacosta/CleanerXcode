@@ -41,12 +41,15 @@ final class ClearStore {
     // MARK: - Public Variables
     
     private(set) var steps = [Step]()
+    private(set) var freeUpSpace: ValueState<Double?> = .idle
     
     // MARK: - Private Variables
     
     private let shell = Shell()
     private let preferences: Preferences
     private let analytics: AnalyticsRepresentable
+    
+    private var timer: Timer?
     
     private var enabledCommands: [Shell.Command] {
         [
@@ -72,11 +75,16 @@ final class ClearStore {
     ) {
         self.preferences = preferences
         self.analytics = analytics
+        
+        defer {
+            setupTimer()
+            calculateFreeUpSpace()
+        }
     }
     
     // MARK: - Public Methods
     
-    func clear() async throws {
+    func cleaner() async throws {
         steps = enabledCommands.map { command in
             .init(command.id, status: .waiting)
         }
@@ -101,12 +109,53 @@ final class ClearStore {
                 }
             }
             
-            analytics.log(.clear(enabledCommands))
+            calculateFreeUpSpace()
+            
+            analytics.log(.cleaner(enabledCommands))
         }
     }
     
     func quit() {
         NSApplication.shared.terminate(nil)
+    }
+    
+    // MARK: - Private Methods
+    
+    private func setupTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            
+            switch freeUpSpace {
+            case .loading:
+                return
+            default:
+                calculateFreeUpSpace()
+            }
+        }
+    }
+    
+    private func calculateFreeUpSpace() {
+        if case .idle = freeUpSpace {
+            freeUpSpace = .loading
+        } else if case .success(let value) = freeUpSpace, value == nil {
+            freeUpSpace = .loading
+        } else if case .failure = freeUpSpace {
+            freeUpSpace = .loading
+        }
+        
+        Task {
+            do {
+                if let value = try await shell.execute(.calculateFreeUpSpace) {
+                    if let size = Double(value) {
+                        freeUpSpace = .success(size)
+                    } else {
+                        freeUpSpace = .success(nil)
+                    }
+                }
+            } catch {
+                freeUpSpace = .failure(error)
+            }
+        }
     }
     
 }

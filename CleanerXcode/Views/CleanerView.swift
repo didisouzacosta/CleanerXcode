@@ -56,7 +56,7 @@ struct CleanerView: View {
         
         Task(priority: .background) {
             do {
-                try await clearStore.clear()
+                try await clearStore.cleaner()
             } catch {
                 self.error = error
             }
@@ -91,8 +91,19 @@ struct CleanerView: View {
                     Label("Try again!", image: "gobackward")
                         .transition(.move(edge: .leading))
                 } else {
-                    Label("Clean", image: "iconClear")
-                        .transition(.move(edge: .trailing))
+                    HStack {
+                        Image(.iconClear)
+                        
+                        HStack(spacing: 4) {
+                            Text("Cleaner")
+                            ValueStateView(clearStore.freeUpSpace) { value in
+                                if let value {
+                                    Text(value.byteFormatter())
+                                }
+                            }
+                        }
+                    }
+                    .transition(.move(edge: .trailing))
                 }
             }
             .padding(.horizontal, 16)
