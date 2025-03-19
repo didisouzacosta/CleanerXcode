@@ -29,14 +29,14 @@ struct UsedSpace: Decodable {
         case deviceSupportTvOS = "device_support_tvos"
     }
     
-    var cacheSize: Int {
+    var cache: Int {
         [
             xcodeCache,
             carthageCache,
         ].reduce(0, +)
     }
     
-    var deviceSupportSize: Int {
+    var deviceSupport: Int {
         [
             deviceSupportIOS,
             deviceSupportWatchOS,
@@ -49,8 +49,8 @@ struct UsedSpace: Decodable {
             derivedData,
             archives,
             simulatorData,
-            cacheSize,
-            deviceSupportSize
+            cache,
+            deviceSupport
         ].reduce(0, +)
     }
     

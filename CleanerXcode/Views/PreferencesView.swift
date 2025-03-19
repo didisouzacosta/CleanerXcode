@@ -42,7 +42,7 @@ struct PreferencesView: View {
                     
                     factoryToggle(
                         "Remove Caches",
-                        detail: sizeFormatted(clearStore.usedSpace.cacheSize),
+                        detail: sizeFormatted(clearStore.usedSpace.cache),
                         isOn: $bindablePreferences.canRemoveCaches.value
                     )
                     
@@ -57,7 +57,7 @@ struct PreferencesView: View {
                 Section {
                     factoryToggle(
                         "Clear Device Support",
-                        detail: sizeFormatted(clearStore.usedSpace.deviceSupportSize),
+                        detail: sizeFormatted(clearStore.usedSpace.deviceSupport),
                         isOn: $bindablePreferences.canClearDeviceSupport.value
                     )
                     

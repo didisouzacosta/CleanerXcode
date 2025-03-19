@@ -51,9 +51,9 @@ extension Shell {
         case removeArchives = "remove-archives"
         case removeCaches = "remove-caches"
         case removeDerivedData = "remove-derived-data"
-        case removeOldSimulators = "remove-old-simulators"
         case clearDeviceSupport = "clear-device-support"
         case clearSimulatorData = "clear-simulator-data"
+        case removeOldSimulators = "remove-old-simulators"
         case resetXcodePreferences = "reset-xcode-preferences"
         case calculateFreeUpSpace = "calculate-free-up-space"
         

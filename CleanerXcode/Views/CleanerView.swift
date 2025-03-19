@@ -31,31 +31,7 @@ struct CleanerView: View {
             Spacer(minLength: 22)
             VStack(spacing: 16) {
                 buttonAction()
-                
-                HStack(spacing: 16) {
-                    Button {
-                        openURL(.init(string: "https://github.com/didisouzacosta/CleanerXcode")!)
-                        analytics.log(.social(.github))
-                    } label: {
-                        Image("github.fill")
-                    }.buttonStyle(.plain)
-                    
-                    Button {
-                        openURL(.init(string: "https://x.com/didisouzacosta")!)
-                        analytics.log(.social(.x))
-                    } label: {
-                        Image("x")
-                    }.buttonStyle(.plain)
-                    
-                    Button {
-                        openURL(.init(string: "https://www.linkedin.com/in/adrianosouzacosta/")!)
-                        analytics.log(.social(.linkedin))
-                    } label: {
-                        Image("linkedin")
-                    }.buttonStyle(.plain)
-                }
-                .font(.system(size: 16))
-                .foregroundStyle(.primary)
+                social()
             }
             Spacer(minLength: 22)
             footer()
@@ -103,6 +79,11 @@ struct CleanerView: View {
         .progressViewStyle(CustomCircularProgressViewStyle())
     }
     
+    private func header() -> some View {
+        Text("Cleaner Xcode")
+            .font(.title2)
+    }
+    
     private func buttonAction() -> some View {
         Button {
             clean()
@@ -124,7 +105,10 @@ struct CleanerView: View {
                         
                         HStack(spacing: 4) {
                             Text("Cleaner")
-                            Text(Double(clearStore.usedSpace.totalSize).byteFormatter())
+                            
+                            if clearStore.freeUpSpace > 0 {
+                                Text(clearStore.freeUpSpace.byteFormatter())
+                            }
                         }
                     }
                     .transition(.move(edge: .trailing))
@@ -143,9 +127,31 @@ struct CleanerView: View {
         .animation(.bouncy, value: cleaning)
     }
     
-    private func header() -> some View {
-        Text("Cleaner Xcode")
-            .font(.title2)
+    private func social() -> some View {
+        HStack(spacing: 16) {
+            Button {
+                openURL(.init(string: "https://github.com/didisouzacosta/CleanerXcode")!)
+                analytics.log(.social(.github))
+            } label: {
+                Image("github.fill")
+            }.buttonStyle(.plain)
+            
+            Button {
+                openURL(.init(string: "https://x.com/didisouzacosta")!)
+                analytics.log(.social(.x))
+            } label: {
+                Image("x")
+            }.buttonStyle(.plain)
+            
+            Button {
+                openURL(.init(string: "https://www.linkedin.com/in/adrianosouzacosta/")!)
+                analytics.log(.social(.linkedin))
+            } label: {
+                Image("linkedin")
+            }.buttonStyle(.plain)
+        }
+        .font(.system(size: 16))
+        .foregroundStyle(.primary)
     }
     
     private func footer() -> some View {

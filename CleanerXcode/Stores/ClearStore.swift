@@ -43,6 +43,13 @@ final class ClearStore {
     private(set) var steps = [Step]()
     private(set) var usedSpace = UsedSpace()
     
+    var freeUpSpace: Double {
+        let total = enabledCommands.reduce(0) { partial, command in
+            partial + size(of: command)
+        }
+        return Double(total)
+    }
+    
     // MARK: - Private Variables
     
     private let shell = Shell()
@@ -138,6 +145,21 @@ final class ClearStore {
             } catch {
                 usedSpace = .init()
             }
+        }
+    }
+    
+}
+
+extension ClearStore {
+    
+    func size(of command: Shell.Command) -> Int {
+        switch command {
+        case .removeArchives: usedSpace.archives
+        case .removeCaches: usedSpace.cache
+        case .removeDerivedData: usedSpace.derivedData
+        case .clearDeviceSupport: usedSpace.deviceSupport
+        case .clearSimulatorData: usedSpace.simulatorData
+        default: 0
         }
     }
     
