@@ -106,6 +106,7 @@ struct PreferencesView: View {
                 }
             }
             .formStyle(.grouped)
+            .animation(.bouncy, value: clearStore.freeUpSpace)
         }
     }
     
@@ -132,6 +133,7 @@ struct PreferencesView: View {
             
             if let detail {
                 Text(detail)
+                    .contentTransition(.numericText())
                     .foregroundStyle(.placeholder)
             }
             

@@ -85,7 +85,11 @@ struct CleanerView: View {
     }
     
     private func buttonAction() -> some View {
-        Button {
+        var backgroundColor: Color {
+            hasError ? .red : clearStore.freeUpSpace.isZero ? .working.opacity(0.6) : cleaning ? .working : .blue
+        }
+        
+        return Button {
             clean()
         } label: {
             Group {
@@ -104,12 +108,14 @@ struct CleanerView: View {
                         Image(.iconClear)
                         
                         HStack(spacing: 4) {
-                            Text(clearStore.freeUpSpace.isZero ? "All Cleaned" : "Cleaner")
+                            Text(clearStore.freeUpSpace.isZero ? "Relax, all cleaned" : "Cleaner")
                             
                             if !clearStore.freeUpSpace.isZero {
                                 Text(clearStore.freeUpSpace.byteFormatter())
+                                    .contentTransition(.numericText())
                             }
                         }
+                        .animation(.bouncy, value: clearStore.freeUpSpace)
                     }
                     .transition(.move(edge: .trailing))
                 }
@@ -122,7 +128,7 @@ struct CleanerView: View {
         }
         .disabled(clearStore.freeUpSpace.isZero)
         .buttonStyle(.plain)
-        .background(hasError ? .red : cleaning ? .working : .blue)
+        .background(backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 32))
         .allowsHitTesting(!cleaning)
         .animation(.bouncy, value: cleaning)

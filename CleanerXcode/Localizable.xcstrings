@@ -14,9 +14,6 @@
         }
       }
     },
-    "All Cleaned" : {
-
-    },
     "Clean" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -115,6 +112,9 @@
           }
         }
       }
+    },
+    "Relax, all cleaned" : {
+
     },
     "Remove Archives" : {
       "extractionState" : "stale",
