@@ -22,13 +22,15 @@ struct CleanerXcodeApp: App {
     
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     
+    // MARK: - States
+    
+    @State private var route = Route()
+    @State private var clearStore = ClearStore(.shared, analytics: Analytics.shared)
+    @State private var preferences = Preferences.shared
+    
     // MARK: - Private Variables
     
-    @State private var preferences: Preferences
-    @State private var clearStore: ClearStore
-    @State private var route: Route
-    
-    private let analytics: Analytics
+    private let analytics = Analytics.shared
     
     // MARK: - Public Variables
     
@@ -41,22 +43,12 @@ struct CleanerXcodeApp: App {
                 .environment(\.preferences, preferences)
                 .environment(\.analytics, analytics)
         } label: {
-            Image("iconClear")
+            HStack {
+                Image("iconClear")
+                Text(clearStore.freeUpSpace.byteFormatter())
+            }
         }
         .menuBarExtraStyle(.window)
-    }
-    
-    init() {
-        let preferences = Preferences()
-        let route = Route()
-        let analytics = Analytics()
-        let clearStore = ClearStore(preferences, analytics: analytics)
-        
-        self.analytics = analytics
-        
-        _preferences = .init(wrappedValue: preferences)
-        _route = .init(wrappedValue: route)
-        _clearStore = .init(wrappedValue: clearStore)
     }
     
 }

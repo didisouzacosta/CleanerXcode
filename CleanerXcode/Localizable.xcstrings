@@ -2,7 +2,14 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
-
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " "
+          }
+        }
+      }
     },
     "%@Q" : {
       "localizations" : {
@@ -34,12 +41,12 @@
         }
       }
     },
-    "Cleaning..." : {
+    "Cleaning" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limpando…"
+            "value" : "Limpando"
           }
         }
       }

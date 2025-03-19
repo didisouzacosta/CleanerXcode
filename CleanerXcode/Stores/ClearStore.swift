@@ -137,15 +137,8 @@ final class ClearStore {
     
     private func calculateFreeUpSpace() {
         Task {
-            do {
-                guard let value = try await shell.execute(.calculateFreeUpSpace) else {
-                    throw ""
-                }
-                
-                usedSpace = try value.data(using: .utf8)?.decoder() ?? .init()
-            } catch {
-                usedSpace = .init()
-            }
+            let value = try? await shell.execute(.calculateFreeUpSpace)
+            usedSpace = (try? value?.data(using: .utf8)?.decoder()) ?? .init()
         }
     }
     

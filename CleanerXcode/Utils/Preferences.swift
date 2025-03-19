@@ -10,6 +10,8 @@ import SwiftUI
 @Observable
 final class Preferences {
     
+    static let shared = Preferences()
+    
     var canRemoveArchives = StoragedValue(
         Shell.Command.removeArchives.rawValue,
         defaultValue: true

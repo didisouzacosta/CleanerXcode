@@ -47,6 +47,8 @@ protocol AnalyticsRepresentable {
 
 struct Analytics: AnalyticsRepresentable {
     
+    static let shared = Analytics()
+    
     func log(_ event: AnalyticsEvent) {
         FirebaseAnalytics.Analytics.logEvent(
             event.name,
