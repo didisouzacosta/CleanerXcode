@@ -96,7 +96,7 @@ struct CleanerView: View {
                 if cleaning {
                     HStack {
                         progressView(clearStore.steps)
-                        Text("Cleaning...")
+                        Text("Cleaning")
                     }
                     .foregroundStyle(.white)
                     .transition(.move(edge: .leading))

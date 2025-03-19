@@ -14,8 +14,7 @@
         }
       }
     },
-    "Clean" : {
-      "extractionState" : "stale",
+    "Cleaner" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -24,9 +23,6 @@
           }
         }
       }
-    },
-    "Cleaner" : {
-
     },
     "Cleaner Xcode" : {
       "localizations" : {
@@ -79,26 +75,11 @@
       }
     },
     "If you like it tool, consider make a donation." : {
-
-    },
-    "If you like it, consider giving me a star on GitHub and following me on X and LinkedIn." : {
-      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se você gostou, considere deixar uma estrela no Github, me seguir no X e Linkedin."
-          }
-        }
-      }
-    },
-    "or make a donation." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ou faça uma doação"
+            "value" : "Se você gostou, considere fazer uma doação"
           }
         }
       }
@@ -114,92 +95,11 @@
       }
     },
     "Relax, all cleaned" : {
-
-    },
-    "Remove Archives" : {
-      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Remover todos os Archives"
-          }
-        }
-      }
-    },
-    "Remove Caches" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remover Caches"
-          }
-        }
-      }
-    },
-    "Remove Derived Data" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remover Derived Data"
-          }
-        }
-      }
-    },
-    "Remove Device Support" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remover Device Support"
-          }
-        }
-      }
-    },
-    "Remove Old Simulators" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remover Simuladores Antigos"
-          }
-        }
-      }
-    },
-    "Remove Simulator Data" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remover dados dos simuladores"
-          }
-        }
-      }
-    },
-    "Reset Xcode" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reseter Xcode"
-          }
-        }
-      }
-    },
-    "Social" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Social"
+            "value" : "Relaxa, está tudo limpo"
           }
         }
       }

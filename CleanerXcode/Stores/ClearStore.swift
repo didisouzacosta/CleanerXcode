@@ -116,8 +116,9 @@ final class ClearStore {
                 }
             }
             
-            calculateFreeUpSpace()
+            steps = steps.filter { $0.status != .failure }
             
+            calculateFreeUpSpace()
             analytics.log(.cleaner(enabledCommands))
         }
     }
