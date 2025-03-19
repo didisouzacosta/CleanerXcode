@@ -41,7 +41,7 @@ final class ClearStore {
     // MARK: - Public Variables
     
     private(set) var steps = [Step]()
-    private(set) var freeUpSpace: ValueState<FreeUpSpace?> = .idle
+    private(set) var usedSpace = UsedSpace()
     
     // MARK: - Private Variables
     
@@ -56,10 +56,10 @@ final class ClearStore {
             preferences.canRemoveArchives,
             preferences.canRemoveCaches,
             preferences.canRemoveDerivedData,
-            preferences.canRemoveDeviceSupport,
             preferences.canRemoveOldSimulators,
-            preferences.canRemoveSimultorData,
-            preferences.canResertXcode
+            preferences.canClearDeviceSupport,
+            preferences.canClearSimultorData,
+            preferences.canResertXcodePreferences
         ]
         .filter { $0.value }
         .compactMap {
@@ -123,41 +123,20 @@ final class ClearStore {
     
     private func setupTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            
-            switch freeUpSpace {
-            case .loading:
-                return
-            default:
-                calculateFreeUpSpace()
-            }
+            self?.calculateFreeUpSpace()
         }
     }
     
     private func calculateFreeUpSpace() {
-        if case .idle = freeUpSpace {
-            freeUpSpace = .loading
-        } else if case .success(let value) = freeUpSpace, value == nil {
-            freeUpSpace = .loading
-        } else if case .failure = freeUpSpace {
-            freeUpSpace = .loading
-        }
-        
         Task {
             do {
                 guard let value = try await shell.execute(.calculateFreeUpSpace) else {
                     throw ""
                 }
                 
-                guard let data = value.data(using: .utf8) else {
-                    throw ""
-                }
-                
-                let result = try JSONDecoder().decode(FreeUpSpace.self, from: data)
-                
-                freeUpSpace = .success(result)
+                usedSpace = try value.data(using: .utf8)?.decoder() ?? .init()
             } catch {
-                freeUpSpace = .failure(error)
+                usedSpace = .init()
             }
         }
     }

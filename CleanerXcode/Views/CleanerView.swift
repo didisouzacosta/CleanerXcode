@@ -124,11 +124,7 @@ struct CleanerView: View {
                         
                         HStack(spacing: 4) {
                             Text("Cleaner")
-                            ValueStateView(clearStore.freeUpSpace) { value in
-                                if let value {
-                                    Text(value.totalSize.byteFormatter())
-                                }
-                            }
+                            Text(Double(clearStore.usedSpace.totalSize).byteFormatter())
                         }
                     }
                     .transition(.move(edge: .trailing))

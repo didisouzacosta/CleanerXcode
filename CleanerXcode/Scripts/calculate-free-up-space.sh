@@ -21,7 +21,7 @@ for path in "${paths[@]}"; do
 
     if [ -d "${path}" ];
     then
-        size=$(du -s "${path}" | cut -f1)
+        size=$(du -sk "${path}" | cut -f1)
         infos+=("${reference} ${size}")
     else
         infos+=("${reference} 0")

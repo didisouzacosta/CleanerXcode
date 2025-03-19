@@ -11,6 +11,7 @@ struct PreferencesView: View {
     
     // MARK: - Environments
     
+    @Environment(\.clearStore) private var clearStore
     @Environment(\.preferences) private var preferences
     @Environment(\.route) private var route
     @Environment(\.openURL) private var openURL
@@ -33,49 +34,61 @@ struct PreferencesView: View {
 
             Form {
                 Section {
-                    Toggle("Remove Archives", isOn: $bindablePreferences.canRemoveArchives.value)
-                    Toggle("Remove Caches", isOn: $bindablePreferences.canRemoveCaches.value)
-                    Toggle("Remove Derived Data", isOn: $bindablePreferences.canRemoveDerivedData.value)
-                    Toggle("Remove Device Support", isOn: $bindablePreferences.canRemoveDeviceSupport.value)
-                    Toggle("Remove Old Simulators", isOn: $bindablePreferences.canRemoveOldSimulators.value)
-                    Toggle("Remove Simulator Data", isOn: $bindablePreferences.canRemoveSimultorData.value)
-                    Toggle("Reset Xcode", isOn: $bindablePreferences.canResertXcode.value)
+                    factoryToggle(
+                        "Remove Archives",
+                        detail: sizeFormatted(clearStore.usedSpace.archives),
+                        isOn: $bindablePreferences.canRemoveArchives.value
+                    )
+                    
+                    factoryToggle(
+                        "Remove Caches",
+                        detail: sizeFormatted(clearStore.usedSpace.cacheSize),
+                        isOn: $bindablePreferences.canRemoveCaches.value
+                    )
+                    
+                    factoryToggle(
+                        "Remove Derived Data",
+                        detail: sizeFormatted(clearStore.usedSpace.derivedData),
+                        isOn: $bindablePreferences.canRemoveDerivedData.value
+                    )
                 }
+                .tint(.green)
+                
+                Section {
+                    factoryToggle(
+                        "Clear Device Support",
+                        detail: sizeFormatted(clearStore.usedSpace.deviceSupportSize),
+                        isOn: $bindablePreferences.canClearDeviceSupport.value
+                    )
+                    
+                    factoryToggle(
+                        "Clear Simulator Data",
+                        detail: sizeFormatted(clearStore.usedSpace.simulatorData),
+                        isOn: $bindablePreferences.canClearSimultorData.value
+                    )
+                    
+                    factoryToggle(
+                        "Remove Old Simulators",
+                        isOn: $bindablePreferences.canRemoveOldSimulators.value
+                    )
+                }
+                .tint(.red)
+                
+                Section {
+                    factoryToggle(
+                        "Reset Xcode Preferences",
+                        isOn: $bindablePreferences.canResertXcodePreferences.value
+                    )
+                }
+                .tint(.orange)
                 
                 Section("Dedication") {
                     Text("This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.")
                 }
                 
-                Section("Social") {
-                    VStack(spacing: 16) {
-                        Text("If you like it, consider giving me a star on GitHub and following me on X and LinkedIn.")
-                        
-                        HStack(spacing: 16) {
-                            Button {
-                                openURL(.init(string: "https://github.com/didisouzacosta/CleanerXcode")!)
-                                analytics.log(.social(.github))
-                            } label: {
-                                Image("github.fill")
-                            }.buttonStyle(.plain)
-                            
-                            Button {
-                                openURL(.init(string: "https://x.com/didisouzacosta")!)
-                                analytics.log(.social(.x))
-                            } label: {
-                                Image("x")
-                            }.buttonStyle(.plain)
-                            
-                            Button {
-                                openURL(.init(string: "https://www.linkedin.com/in/adrianosouzacosta/")!)
-                                analytics.log(.social(.linkedin))
-                            } label: {
-                                Image("linkedin")
-                            }.buttonStyle(.plain)
-                        }
-                        .font(.system(size: 22))
-                        .foregroundStyle(.primary)
-                        
-                        Text("or make a donation.")
+                Section("Donate") {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("If you like it tool, consider make a donation.")
                         
                         Button {
                             openURL(.init(string: "https://buy.stripe.com/00gcN772R2ns3wA9AA")!)
@@ -96,10 +109,42 @@ struct PreferencesView: View {
         }
     }
     
+    // MARK: - Private Methods
+    
+    private func sizeFormatted(_ size: Int) -> String {
+        Double(size).byteFormatter()
+    }
+    
+    @ViewBuilder
+    private func factoryToggle(
+        _ title: String,
+        detail: String? = nil,
+        isOn: Binding<Bool>
+    ) -> some View {
+        HStack(alignment: .center) {
+            Image(systemName: "info.circle")
+                .resizable()
+                .frame(width: 12, height: 12)
+            
+            Text(title)
+            
+            Spacer()
+            
+            if let detail {
+                Text(detail)
+                    .foregroundStyle(.placeholder)
+            }
+            
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+        }
+    }
+    
 }
 
 #Preview {
     PreferencesView()
+        .environment(\.clearStore, .init(.init(), analytics: Analytics()))
         .environment(\.preferences, .init())
         .environment(\.route, .init())
         .environment(\.analytics, .init())

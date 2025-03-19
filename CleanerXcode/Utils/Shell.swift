@@ -51,10 +51,10 @@ extension Shell {
         case removeArchives = "remove-archives"
         case removeCaches = "remove-caches"
         case removeDerivedData = "remove-derived-data"
-        case removeDeviceSupport = "remove-device-support"
         case removeOldSimulators = "remove-old-simulators"
-        case removeSimulatorData = "remove-simulator-data"
-        case resetXcode = "reset-xcode"
+        case clearDeviceSupport = "clear-device-support"
+        case clearSimulatorData = "clear-simulator-data"
+        case resetXcodePreferences = "reset-xcode-preferences"
         case calculateFreeUpSpace = "calculate-free-up-space"
         
         var id: String {

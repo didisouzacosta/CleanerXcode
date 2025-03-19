@@ -25,8 +25,8 @@ final class Preferences {
         defaultValue: true
     )
     
-    var canRemoveDeviceSupport = StoragedValue(
-        Shell.Command.removeDeviceSupport.rawValue,
+    var canClearDeviceSupport = StoragedValue(
+        Shell.Command.clearDeviceSupport.rawValue,
         defaultValue: false
     )
     
@@ -35,13 +35,13 @@ final class Preferences {
         defaultValue: false
     )
     
-    var canRemoveSimultorData = StoragedValue(
-        Shell.Command.removeSimulatorData.rawValue,
-        defaultValue: true
+    var canClearSimultorData = StoragedValue(
+        Shell.Command.clearSimulatorData.rawValue,
+        defaultValue: false
     )
     
-    var canResertXcode = StoragedValue(
-        Shell.Command.resetXcode.rawValue,
+    var canResertXcodePreferences = StoragedValue(
+        Shell.Command.resetXcodePreferences.rawValue,
         defaultValue: false
     )
     

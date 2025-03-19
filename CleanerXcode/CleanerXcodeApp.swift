@@ -35,7 +35,7 @@ struct CleanerXcodeApp: App {
     var body: some Scene {
         MenuBarExtra {
             MainView()
-                .frame(width: 280)
+                .frame(width: 340)
                 .environment(\.route, route)
                 .environment(\.clearStore, clearStore)
                 .environment(\.preferences, preferences)

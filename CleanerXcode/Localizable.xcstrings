@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "%@Q" : {
       "localizations" : {
         "pt-BR" : {
@@ -75,7 +78,11 @@
         }
       }
     },
+    "If you like it tool, consider make a donation." : {
+
+    },
     "If you like it, consider giving me a star on GitHub and following me on X and LinkedIn." : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -86,6 +93,7 @@
       }
     },
     "or make a donation." : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -106,6 +114,7 @@
       }
     },
     "Remove Archives" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -116,6 +125,7 @@
       }
     },
     "Remove Caches" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -126,6 +136,7 @@
       }
     },
     "Remove Derived Data" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -136,6 +147,7 @@
       }
     },
     "Remove Device Support" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -146,6 +158,7 @@
       }
     },
     "Remove Old Simulators" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -156,6 +169,7 @@
       }
     },
     "Remove Simulator Data" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -166,6 +180,7 @@
       }
     },
     "Reset Xcode" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -176,6 +191,7 @@
       }
     },
     "Social" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
