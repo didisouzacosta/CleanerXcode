@@ -104,9 +104,9 @@ struct CleanerView: View {
                         Image(.iconClear)
                         
                         HStack(spacing: 4) {
-                            Text("Cleaner")
+                            Text(clearStore.freeUpSpace.isZero ? "All Cleaned" : "Cleaner")
                             
-                            if clearStore.freeUpSpace > 0 {
+                            if !clearStore.freeUpSpace.isZero {
                                 Text(clearStore.freeUpSpace.byteFormatter())
                             }
                         }
@@ -120,6 +120,7 @@ struct CleanerView: View {
             .animation(.bouncy, value: cleaning)
             .foregroundStyle(.white)
         }
+        .disabled(clearStore.freeUpSpace.isZero)
         .buttonStyle(.plain)
         .background(hasError ? .red : cleaning ? .working : .blue)
         .clipShape(RoundedRectangle(cornerRadius: 32))
