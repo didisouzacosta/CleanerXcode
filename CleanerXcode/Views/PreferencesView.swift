@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TipKit
 
 struct PreferencesView: View {
     
@@ -33,57 +34,109 @@ struct PreferencesView: View {
             .padding(.bottom, 8)
 
             Form {
-                Section {
-                    factoryToggle(
-                        "Remove Archives",
-                        detail: sizeFormatted(clearStore.usedSpace.archives),
-                        isOn: $bindablePreferences.canRemoveArchives.value
-                    )
-                    
-                    factoryToggle(
-                        "Remove Caches",
-                        detail: sizeFormatted(clearStore.usedSpace.cache),
-                        isOn: $bindablePreferences.canRemoveCaches.value
-                    )
-                    
-                    factoryToggle(
-                        "Remove Derived Data",
-                        detail: sizeFormatted(clearStore.usedSpace.derivedData),
-                        isOn: $bindablePreferences.canRemoveDerivedData.value
-                    )
-                }
-                .tint(.green)
+                Section("Cleaner") {
+                    Group {
+                        factoryToggle(
+                            "Remove Archives",
+                            accessory: {
+                                Image(systemName: "info.circle")
+                                    .resizable()
+                                    .frame(width: 12, height: 12)
+                                    .popoverTip(ListOfFavoritesTip())
+                                    .onTapGesture {
+                                        
+                                    }
+                            },
+                            detail: sizeFormatted(clearStore.usedSpace.archives),
+                            isOn: $bindablePreferences.canRemoveArchives.value
+                        )
+                        
+                        factoryToggle(
+                            "Remove Caches",
+                            accessory: {
+                                Image(systemName: "info.circle")
+                                    .resizable()
+                                    .frame(width: 12, height: 12)
+                            },
+                            detail: sizeFormatted(clearStore.usedSpace.cache),
+                            isOn: $bindablePreferences.canRemoveCaches.value
+                        )
+                        
+                        factoryToggle(
+                            "Remove Derived Data",
+                            accessory: {
+                                Image(systemName: "info.circle")
+                                    .resizable()
+                                    .frame(width: 12, height: 12)
+                            },
+                            detail: sizeFormatted(clearStore.usedSpace.derivedData),
+                            isOn: $bindablePreferences.canRemoveDerivedData.value
+                        )
+                    }
+                    .tint(.green)
                 
-                Section {
-                    factoryToggle(
-                        "Clear Device Support",
-                        detail: sizeFormatted(clearStore.usedSpace.deviceSupport),
-                        isOn: $bindablePreferences.canClearDeviceSupport.value
-                    )
+                    Group {
+                        factoryToggle(
+                            "Reset Xcode Preferences",
+                            accessory: {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .resizable()
+                                    .frame(width: 12, height: 12)
+                                    .foregroundStyle(.yellow)
+                            },
+                            isOn: $bindablePreferences.canResertXcodePreferences.value
+                        )
+                    }
+                    .tint(.orange)
                     
-                    factoryToggle(
-                        "Clear Simulator Data",
-                        detail: sizeFormatted(clearStore.usedSpace.simulatorData),
-                        isOn: $bindablePreferences.canClearSimultorData.value
-                    )
-                    
-                    factoryToggle(
-                        "Remove Old Simulators",
-                        isOn: $bindablePreferences.canRemoveOldSimulators.value
-                    )
+                    Group {
+                        factoryToggle(
+                            "Clear Device Support",
+                            accessory: {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .resizable()
+                                    .frame(width: 12, height: 12)
+                                    .foregroundStyle(.red)
+                            },
+                            detail: sizeFormatted(clearStore.usedSpace.deviceSupport),
+                            isOn: $bindablePreferences.canClearDeviceSupport.value
+                        )
+                        
+                        factoryToggle(
+                            "Clear Simulator Data",
+                            accessory: {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .resizable()
+                                    .frame(width: 12, height: 12)
+                                    .foregroundStyle(.red)
+                            },
+                            detail: sizeFormatted(clearStore.usedSpace.simulatorData),
+                            isOn: $bindablePreferences.canClearSimultorData.value
+                        )
+                        
+                        factoryToggle(
+                            "Remove Old Simulators",
+                            accessory: {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .resizable()
+                                    .frame(width: 12, height: 12)
+                                    .foregroundStyle(.red)
+                            },
+                            isOn: $bindablePreferences.canRemoveOldSimulators.value
+                        )
+                    }
+                    .tint(.red)
                 }
-                .tint(.red)
                 
-                Section {
+                Section("Preferences") {
                     factoryToggle(
-                        "Reset Xcode Preferences",
-                        isOn: $bindablePreferences.canResertXcodePreferences.value
+                        "Display Free Up Space In Menu Bar",
+                        isOn: $bindablePreferences.displayFreeUpSpaceInMenuBar.value
                     )
                 }
-                .tint(.orange)
                 
                 Section("Dedication") {
-                    Text("This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.")
+                    Text("This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando.")
                 }
                 
                 Section("Donate") {
@@ -116,18 +169,16 @@ struct PreferencesView: View {
         Double(size).byteFormatter()
     }
     
-    @ViewBuilder
     private func factoryToggle(
-        _ title: String,
+        _ label: String,
+        @ViewBuilder accessory: () -> some View = { EmptyView() },
         detail: String? = nil,
         isOn: Binding<Bool>
     ) -> some View {
         HStack(alignment: .center) {
-            Image(systemName: "info.circle")
-                .resizable()
-                .frame(width: 12, height: 12)
+//            accessory()
             
-            Text(title)
+            Text(label)
             
             Spacer()
             
@@ -144,6 +195,18 @@ struct PreferencesView: View {
     
 }
 
+struct ListOfFavoritesTip: Tip {
+    var title: Text {
+        Text("Favorite List")
+    }
+    var message: Text? {
+        Text("Check your favorite list")
+    }
+    var image: Image? {
+        Image(systemName: "star")
+    }
+}
+
 #Preview {
     PreferencesView()
         .environment(\.clearStore, .init(.init(), analytics: Analytics()))
@@ -151,3 +214,4 @@ struct PreferencesView: View {
         .environment(\.route, .init())
         .environment(\.analytics, .init())
 }
+

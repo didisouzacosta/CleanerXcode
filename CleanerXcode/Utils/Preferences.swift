@@ -47,6 +47,11 @@ final class Preferences {
         defaultValue: false
     )
     
+    var displayFreeUpSpaceInMenuBar = StoragedValue(
+        "display-free-up-space-in-menu-bar",
+        defaultValue: true
+    )
+    
 }
 
 extension EnvironmentValues {

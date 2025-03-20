@@ -21,6 +21,9 @@
         }
       }
     },
+    "Check your favorite list" : {
+
+    },
     "Cleaner" : {
       "localizations" : {
         "pt-BR" : {
@@ -71,6 +74,9 @@
         }
       }
     },
+    "Favorite List" : {
+
+    },
     "Home" : {
       "localizations" : {
         "pt-BR" : {
@@ -91,6 +97,16 @@
         }
       }
     },
+    "Preferences" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferências"
+          }
+        }
+      }
+    },
     "Quit" : {
       "localizations" : {
         "pt-BR" : {
@@ -102,6 +118,7 @@
       }
     },
     "Relax, all cleaned" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -111,12 +128,15 @@
         }
       }
     },
-    "This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele." : {
+    "Relax, all clear" : {
+
+    },
+    "This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando." : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esse simples app foi feito para qualquer um que ama desenvolver para tecnologias Apple. \\n\\n Gostaria de dedicar esse app para meu filho Orlando e minha esposa Gisele."
+            "value" : "Esse app foi feito para qualquer um que ama desenvolver para tecnologias Apple.\n\nGostaria de dedicar esse app a meu filho Orlando."
           }
         }
       }

@@ -24,9 +24,9 @@ struct CleanerXcodeApp: App {
     
     // MARK: - States
     
-    @State private var route = Route()
-    @State private var clearStore = ClearStore(.shared, analytics: Analytics.shared)
-    @State private var preferences = Preferences.shared
+    private var route = Route()
+    private var clearStore = ClearStore(.shared, analytics: Analytics.shared)
+    private var preferences = Preferences.shared
     
     // MARK: - Private Variables
     
@@ -45,7 +45,10 @@ struct CleanerXcodeApp: App {
         } label: {
             HStack {
                 Image("iconClear")
-                Text(clearStore.freeUpSpace.byteFormatter())
+                
+                if preferences.displayFreeUpSpaceInMenuBar.value {
+                    Text(clearStore.freeUpSpace.byteFormatter())
+                }
             }
         }
         .menuBarExtraStyle(.window)

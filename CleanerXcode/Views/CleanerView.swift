@@ -99,16 +99,16 @@ struct CleanerView: View {
                         Text("Cleaning")
                     }
                     .foregroundStyle(.white)
-                    .transition(.move(edge: .leading))
+                    .transition(.blurReplace)
                 } else if hasError {
                     Label("Try again!", image: "gobackward")
-                        .transition(.move(edge: .leading))
+                        .transition(.blurReplace)
                 } else {
                     HStack {
                         Image(.iconClear)
                         
                         HStack(spacing: 4) {
-                            Text(clearStore.freeUpSpace.isZero ? "Relax, all cleaned" : "Cleaner")
+                            Text(clearStore.freeUpSpace.isZero ? "Relax, all clear" : "Cleaner")
                             
                             if !clearStore.freeUpSpace.isZero {
                                 Text(clearStore.freeUpSpace.byteFormatter())
@@ -117,7 +117,7 @@ struct CleanerView: View {
                         }
                         .animation(.bouncy, value: clearStore.freeUpSpace)
                     }
-                    .transition(.move(edge: .trailing))
+                    .transition(.blurReplace)
                 }
             }
             .padding(.horizontal, 16)

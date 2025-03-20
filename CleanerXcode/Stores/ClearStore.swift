@@ -44,10 +44,9 @@ final class ClearStore {
     private(set) var usedSpace = UsedSpace()
     
     var freeUpSpace: Double {
-        let total = enabledCommands.reduce(0) { partial, command in
+        enabledCommands.reduce(0) { partial, command in
             partial + size(of: command)
-        }
-        return Double(total)
+        }.toDouble()
     }
     
     // MARK: - Private Variables
