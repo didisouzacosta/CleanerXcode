@@ -31,7 +31,7 @@ struct CustomCircularProgressViewStyle: ProgressViewStyle {
             
             Circle()
                 .trim(from: 0.0, to: CGFloat(configuration.fractionCompleted ?? 0))
-                .stroke(.white, style: StrokeStyle(lineWidth: 3))
+                .stroke(.white, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .frame(width: size)
         }

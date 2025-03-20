@@ -19,7 +19,6 @@ struct CleanerView: View {
     
     // MARK: - States
     
-    @State private var cleaning = false
     @State private var error: Error?
     @State private var isShowPreferences = false
     
@@ -53,19 +52,16 @@ struct CleanerView: View {
     }
     
     private func clean() {
-        guard !cleaning else { return }
+        guard !clearStore.isCleaning else { return }
         
-        cleaning = true
         error = nil
         
-        Task(priority: .background) {
+        Task(priority: .background) { @MainActor in
             do {
                 try await clearStore.cleaner()
             } catch {
                 self.error = error
             }
-            
-            cleaning = false
         }
     }
     
@@ -73,10 +69,11 @@ struct CleanerView: View {
     
     private func progressView(_ steps: [Step]) -> some View {
         ProgressView(
-            value: CGFloat(steps.count { $0.status != .waiting }),
-            total: CGFloat(steps.count)
+            value: clearStore.clearProgress,
+            total: clearStore.clearProgressTotal
         )
         .progressViewStyle(CustomCircularProgressViewStyle())
+        .animation(.easeIn, value: clearStore.clearProgress)
     }
     
     private func header() -> some View {
@@ -85,53 +82,55 @@ struct CleanerView: View {
     }
     
     private func buttonAction() -> some View {
+        var allowsHitTesting: Bool {
+            !clearStore.isCleaning || !clearStore.freeUpSpace.isZero
+        }
+        
         var backgroundColor: Color {
-            hasError ? .red : clearStore.freeUpSpace.isZero ? .working.opacity(0.6) : cleaning ? .working : .blue
+            hasError ? .red : clearStore.isCleaning ? .working : .blue
+        }
+        
+        var buttonText: String {
+            if clearStore.isCleaning {
+                "Cleaning"
+            } else if hasError {
+                "Try again!"
+            } else if clearStore.freeUpSpace.isZero {
+                "Relax, all clear"
+            } else {
+                "Cleaner"
+            }
+        }
+        
+        @ViewBuilder
+        func acessory() -> some View {
+            if clearStore.isCleaning {
+                progressView(clearStore.steps)
+            } else if hasError {
+                Image(systemName: "gobackward")
+            } else {
+                Image(.iconClear)
+            }
         }
         
         return Button {
             clean()
         } label: {
-            Group {
-                if cleaning {
-                    HStack {
-                        progressView(clearStore.steps)
-                        Text("Cleaning")
-                    }
-                    .foregroundStyle(.white)
-                    .transition(.blurReplace)
-                } else if hasError {
-                    Label("Try again!", image: "gobackward")
-                        .transition(.blurReplace)
-                } else {
-                    HStack {
-                        Image(.iconClear)
-                        
-                        HStack(spacing: 4) {
-                            Text(clearStore.freeUpSpace.isZero ? "Relax, all clear" : "Cleaner")
-                            
-                            if !clearStore.freeUpSpace.isZero {
-                                Text(clearStore.freeUpSpace.byteFormatter())
-                                    .contentTransition(.numericText())
-                            }
-                        }
-                        .animation(.bouncy, value: clearStore.freeUpSpace)
-                    }
-                    .transition(.blurReplace)
-                }
+            HStack {
+                acessory()
+                Text(buttonText)
+                    .contentTransition(.numericText())
             }
             .padding(.horizontal, 16)
             .frame(height: 44)
             .font(.title3)
-            .animation(.bouncy, value: cleaning)
             .foregroundStyle(.white)
         }
-        .disabled(clearStore.freeUpSpace.isZero)
         .buttonStyle(.plain)
         .background(backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 32))
-        .allowsHitTesting(!cleaning)
-        .animation(.bouncy, value: cleaning)
+        .allowsHitTesting(allowsHitTesting)
+        .animation(.bouncy, value: clearStore.isCleaning)
     }
     
     private func social() -> some View {
@@ -174,7 +173,7 @@ struct CleanerView: View {
                         .frame(width: 16, height: 16)
                 }
                 .buttonStyle(.plain)
-                .disabled(cleaning)
+                .disabled(clearStore.isCleaning)
                 
                 Text("Version \(NSApplication.fullVersion)")
                     .font(.footnote)

@@ -1,3 +1,7 @@
+# v0.1.0 - Build 104
+
+• Improving clear button animations.
+
 # v0.1.0 - Build 103
 
 • Display free up space in toolbar menu.

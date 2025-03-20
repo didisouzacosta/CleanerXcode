@@ -42,11 +42,25 @@ final class ClearStore {
     
     private(set) var steps = [Step]()
     private(set) var usedSpace = UsedSpace()
+    private(set) var isCleaning = false
+    private(set) var isCalculatingSize = false
     
     var freeUpSpace: Double {
         enabledCommands.reduce(0) { partial, command in
             partial + size(of: command)
         }.toDouble()
+    }
+    
+    var freeUpSpaceDescription: String {
+        isCalculatingSize ? "Calculating..." : freeUpSpace.byteFormatter()
+    }
+    
+    var clearProgress: CGFloat {
+        CGFloat(steps.count { $0.status != .waiting })
+    }
+    
+    var clearProgressTotal: CGFloat {
+        CGFloat(steps.count)
     }
     
     // MARK: - Private Variables
@@ -95,6 +109,8 @@ final class ClearStore {
             .init(command.id, status: .waiting)
         }
         
+        isCleaning = !steps.isEmpty
+        
         await withTaskGroup(of: Step.self) { group in
             enabledCommands.enumerated().forEach { index, command in
                 group.addTask(priority: .background) { [weak self] in
@@ -116,6 +132,7 @@ final class ClearStore {
             }
             
             steps = steps.filter { $0.status != .failure }
+            isCleaning = false
             
             calculateFreeUpSpace()
             analytics.log(.cleaner(enabledCommands))
@@ -135,9 +152,12 @@ final class ClearStore {
     }
     
     private func calculateFreeUpSpace() {
-        Task {
+        isCalculatingSize = true
+        
+        Task(priority: .background) { @MainActor in
             let value = try? await shell.execute(.calculateFreeUpSpace)
             usedSpace = (try? value?.data(using: .utf8)?.decoder()) ?? .init()
+            isCalculatingSize = false
         }
     }
     

@@ -45,6 +45,7 @@
       }
     },
     "Cleaning" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -128,9 +129,6 @@
         }
       }
     },
-    "Relax, all clear" : {
-
-    },
     "This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando." : {
       "localizations" : {
         "pt-BR" : {
@@ -142,6 +140,7 @@
       }
     },
     "Try again!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {

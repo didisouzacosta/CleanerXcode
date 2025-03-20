@@ -10,10 +10,12 @@
 		A90C14842D86CA9000989A0A /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A90C14832D86CA9000989A0A /* FirebaseAnalytics */; };
 		A90C14862D86CA9000989A0A /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A90C14852D86CA9000989A0A /* FirebaseCore */; };
 		A90C14882D86CA9000989A0A /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A90C14872D86CA9000989A0A /* FirebaseCrashlytics */; };
+		A9C74C222D8C7401007A5AC2 /* RELEASE_NOTES.md in Resources */ = {isa = PBXBuildFile; fileRef = A9C74C212D8C7401007A5AC2 /* RELEASE_NOTES.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A9B468632D83135F00F5F55E /* CleanerXcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CleanerXcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9C74C212D8C7401007A5AC2 /* RELEASE_NOTES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = RELEASE_NOTES.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -41,6 +43,7 @@
 		A9B4685A2D83135F00F5F55E = {
 			isa = PBXGroup;
 			children = (
+				A9C74C212D8C7401007A5AC2 /* RELEASE_NOTES.md */,
 				A9B468652D83135F00F5F55E /* CleanerXcode */,
 				A9B468642D83135F00F5F55E /* Products */,
 			);
@@ -125,6 +128,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9C74C222D8C7401007A5AC2 /* RELEASE_NOTES.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -270,7 +274,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 103;
+				CURRENT_PROJECT_VERSION = 104;
 				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Preview Content\"";
 				DEVELOPMENT_TEAM = MM4N959BB5;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -302,7 +306,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 103;
+				CURRENT_PROJECT_VERSION = 104;
 				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Preview Content\"";
 				DEVELOPMENT_TEAM = MM4N959BB5;
 				ENABLE_HARDENED_RUNTIME = YES;
