@@ -124,7 +124,7 @@ struct PreferencesView: View {
     }
     
     private func factoryToggle(
-        _ label: String,
+        _ text: LocalizedStringKey,
         @ViewBuilder accessory: () -> some View = { EmptyView() },
         detail: String? = nil,
         isOn: Binding<Bool>
@@ -132,7 +132,7 @@ struct PreferencesView: View {
         HStack(alignment: .center) {
             accessory()
             
-            Text(label)
+            Text(text)
             
             Spacer()
             
@@ -147,18 +147,6 @@ struct PreferencesView: View {
         }
     }
     
-}
-
-struct ListOfFavoritesTip: Tip {
-    var title: Text {
-        Text("Favorite List")
-    }
-    var message: Text? {
-        Text("Check your favorite list")
-    }
-    var image: Image? {
-        Image(systemName: "star")
-    }
 }
 
 #Preview {

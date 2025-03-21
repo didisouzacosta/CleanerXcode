@@ -154,7 +154,7 @@ fileprivate struct CleanerButton: View {
         }
     }
 
-    private var text: String {
+    private var text: LocalizedStringKey {
         switch status {
         case .cleaning: "Cleaning"
         case .error: "Try again"

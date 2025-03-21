@@ -21,19 +21,22 @@
         }
       }
     },
-    "Cache" : {
-
-    },
-    "Check your favorite list" : {
-
-    },
-    "Cleaner" : {
-      "extractionState" : "stale",
+    "🎉 Success, all clear!" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limpar"
+            "value" : "🎉 Sucesso, tudo limpo!"
+          }
+        }
+      }
+    },
+    "Cache" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cache"
           }
         }
       }
@@ -49,12 +52,41 @@
       }
     },
     "Cleaning" : {
-      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limpando"
+          }
+        }
+      }
+    },
+    "Clear %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpar %@"
+          }
+        }
+      }
+    },
+    "Clear Device Support" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpar Device Support"
+          }
+        }
+      }
+    },
+    "Clear Simulator Data" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpar Simulator Data"
           }
         }
       }
@@ -69,6 +101,16 @@
         }
       }
     },
+    "Display Free Up Space In Menu Bar" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exibir espaço usado na barra de tarefas"
+          }
+        }
+      }
+    },
     "Donate" : {
       "localizations" : {
         "pt-BR" : {
@@ -78,9 +120,6 @@
           }
         }
       }
-    },
-    "Favorite List" : {
-
     },
     "Home" : {
       "localizations" : {
@@ -122,41 +161,82 @@
         }
       }
     },
-    "Relax, all cleaned" : {
-      "extractionState" : "stale",
+    "Remove Archives" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Relaxa, está tudo limpo"
+            "value" : "Remover Archives"
+          }
+        }
+      }
+    },
+    "Remove Caches" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover Caches"
+          }
+        }
+      }
+    },
+    "Remove Derived Data" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Derived Data"
+          }
+        }
+      }
+    },
+    "Remove Old Simulators" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Simuladores Antigos"
+          }
+        }
+      }
+    },
+    "Reset Xcode Preferences" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetar preferências do Xcode"
           }
         }
       }
     },
     "Simulators & Xcode" : {
-
-    },
-    "This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele." : {
-
-    },
-    "This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando." : {
-      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esse app foi feito para qualquer um que ama desenvolver para tecnologias Apple.\n\nGostaria de dedicar esse app a meu filho Orlando."
+            "value" : "Simuladores & Xcode"
           }
         }
       }
     },
-    "Try again!" : {
-      "extractionState" : "stale",
+    "This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele." : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tente novamente"
+            "value" : "Esse simples app foi feito para aqueles que amam desenvolver para tecnologias App.\n\nEu gostaria de dedicar esse app para meu filho Orlando e minha esposa Gisele."
+          }
+        }
+      }
+    },
+    "Try again" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tentar novamente"
           }
         }
       }
