@@ -28,50 +28,29 @@ struct PreferencesView: View {
         @Bindable var bindablePreferences = preferences
         
         VStack(alignment: .leading, spacing: 0) {
-            Button {
+            HighlightButton {
                 route.isPresentSettings.toggle()
             } label: {
                 Label("Home", systemImage: "chevron.backward")
             }
-            .buttonStyle(.plain)
             .padding([.top, .trailing, .leading])
-            .padding(.bottom, 8)
 
             Form {
                 Section("Cache") {
                     factoryToggle(
                         "Remove Archives",
-                        accessory: {
-                            Image(systemName: "info.circle")
-                                .resizable()
-                                .frame(width: 12, height: 12)
-                                .popoverTip(ListOfFavoritesTip())
-                                .onTapGesture {
-                                    
-                                }
-                        },
                         detail: sizeFormatted(clearStore.usedSpace.archives),
                         isOn: $bindablePreferences.canRemoveArchives.value
                     )
                     
                     factoryToggle(
                         "Remove Caches",
-                        accessory: {
-                            Image(systemName: "info.circle")
-                                .resizable()
-                                .frame(width: 12, height: 12)
-                        },
                         detail: sizeFormatted(clearStore.usedSpace.cache),
                         isOn: $bindablePreferences.canRemoveCaches.value
                     )
                     
                     factoryToggle(
                         "Remove Derived Data",
-                        accessory: {
-                            Image(systemName: "info.circle")
-                                .resizable()
-                                .frame(width: 12, height: 12)
-                        },
                         detail: sizeFormatted(clearStore.usedSpace.derivedData),
                         isOn: $bindablePreferences.canRemoveDerivedData.value
                     )
@@ -119,7 +98,7 @@ struct PreferencesView: View {
                             Image(systemName: "exclamationmark.triangle")
                                 .resizable()
                                 .frame(width: 12, height: 12)
-                                .foregroundStyle(.yellow)
+                                .foregroundStyle(.red)
                         },
                         isOn: $bindablePreferences.canResertXcodePreferences.value
                     )
@@ -134,7 +113,7 @@ struct PreferencesView: View {
                 }
                 
                 Section("Dedication") {
-                    Text("This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando.")
+                    Text("This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.")
                 }
                 
                 Section("Donate") {
@@ -176,7 +155,7 @@ struct PreferencesView: View {
         isOn: Binding<Bool>
     ) -> some View {
         HStack(alignment: .center) {
-//            accessory()
+            accessory()
             
             Text(label)
             

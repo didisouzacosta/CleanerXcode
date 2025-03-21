@@ -7,60 +7,32 @@
 
 import SwiftUI
 
-struct Step: Identifiable, Hashable {
-    
-    enum Status {
-        case waiting
-        case working
-        case success
-        case failure
-        
-        var color: Color {
-            switch self {
-            case .waiting: .white.opacity(0.3)
-            case .working: .blue
-            case .success: .white
-            case .failure: .red
-            }
-        }
-    }
-    
-    let id: String
-    let status: Status
-    
-    init(_ id: String, status: Status) {
-        self.id = id
-        self.status = status
-    }
-    
-}
-
 @Observable
 final class ClearStore {
     
     // MARK: - Public Variables
     
-    private(set) var steps = [Step]()
     private(set) var usedSpace = UsedSpace()
-    private(set) var isCleaning = false
     private(set) var isCalculatingSize = false
+    private(set) var isCleaning = false
+    
+    var cleanerStatus: Status {
+        if isCleaning {
+            .cleaning(
+                progress: cleanerProgress,
+                total: cleanerProgressTotal
+            )
+        } else if isCleanerCompleted {
+            .completed
+        } else {
+            .idle
+        }
+    }
     
     var freeUpSpace: Double {
         enabledCommands.reduce(0) { partial, command in
             partial + size(of: command)
         }.toDouble()
-    }
-    
-    var freeUpSpaceDescription: String {
-        isCalculatingSize ? "Calculating..." : freeUpSpace.byteFormatter()
-    }
-    
-    var clearProgress: CGFloat {
-        CGFloat(steps.count { $0.status != .waiting })
-    }
-    
-    var clearProgressTotal: CGFloat {
-        CGFloat(steps.count)
     }
     
     // MARK: - Private Variables
@@ -70,6 +42,16 @@ final class ClearStore {
     private let analytics: AnalyticsRepresentable
     
     private var timer: Timer?
+    private var isCleanerCompleted = false
+    private var cleanerSteps = [CleanerStep]()
+    
+    private var cleanerProgress: Double {
+        Double(cleanerSteps.count)
+    }
+    
+    private var cleanerProgressTotal: CGFloat {
+        CGFloat(enabledCommands.count)
+    }
     
     private var enabledCommands: [Shell.Command] {
         [
@@ -104,38 +86,41 @@ final class ClearStore {
     
     // MARK: - Public Methods
     
+    @MainActor
     func cleaner() async throws {
-        steps = enabledCommands.map { command in
-            .init(command.id, status: .waiting)
-        }
+        isCleaning = true
+        isCleanerCompleted = false
         
-        isCleaning = !steps.isEmpty
-        
-        await withTaskGroup(of: Step.self) { group in
+        await withTaskGroup(of: CleanerStep.self) { group in
             enabledCommands.enumerated().forEach { index, command in
                 group.addTask(priority: .background) { [weak self] in
                     do {
-                        try await self?.shell.execute(command)
-                        return .init(command.id, status: .success)
+//                        try await self?.shell.execute(command)
+                        try? await Task.sleep(nanoseconds: 1.second)
+                        return .init(command.id, error: nil)
                     } catch {
-                        return .init(command.id, status: .failure)
+                        return .init(command.id, error: error)
                     }
                 }
             }
             
-            while let value = await group.next() {
-                try? await Task.sleep(nanoseconds: UInt64(1_000_000_000 / 2))
-                
-                if let index = steps.firstIndex(where: { $0.id == value.id }) {
-                    steps[index] = value
-                }
+            while let step = await group.next() {
+                try? await Task.sleep(nanoseconds: 1.second / 2)
+                cleanerSteps.append(step)
             }
-            
-            steps = steps.filter { $0.status != .failure }
-            isCleaning = false
             
             calculateFreeUpSpace()
             analytics.log(.cleaner(enabledCommands))
+            
+            try? await Task.sleep(nanoseconds: 1.second)
+            
+            isCleaning = false
+            isCleanerCompleted = true
+            cleanerSteps = []
+            
+            try? await Task.sleep(nanoseconds: 2.second)
+            
+            isCleanerCompleted = false
         }
     }
     
@@ -165,7 +150,14 @@ final class ClearStore {
 
 extension ClearStore {
     
-    func size(of command: Shell.Command) -> Int {
+    enum Status: Equatable {
+        case idle
+        case completed
+        case cleaning(progress: Double, total: Double)
+        case error
+    }
+    
+    private func size(of command: Shell.Command) -> Int {
         switch command {
         case .removeArchives: usedSpace.archives
         case .removeCaches: usedSpace.cache
@@ -174,6 +166,32 @@ extension ClearStore {
         case .clearSimulatorData: usedSpace.simulatorData
         default: 0
         }
+    }
+    
+}
+
+fileprivate struct CleanerStep: Equatable, Identifiable {
+    
+    // MARK: - Public Variables
+    
+    let id: String
+    let error: Error?
+    
+    var hasError: Bool {
+        error != nil
+    }
+    
+    // MARK: - Initializers
+    
+    init(_ id: String, error: Error?) {
+        self.id = id
+        self.error = error
+    }
+    
+    // MARK: - Public Methods
+    
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.id == rhs.id
     }
     
 }

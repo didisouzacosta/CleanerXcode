@@ -19,7 +19,7 @@ struct CleanerView: View {
     
     // MARK: - States
     
-    @State private var error: Error?
+    @State private var task: Task<Void, Error>?
     @State private var isShowPreferences = false
     
     // MARK: - Public Variables
@@ -27,22 +27,26 @@ struct CleanerView: View {
     var body: some View {
         VStack(spacing: 0) {
             header()
+            
             Spacer(minLength: 22)
+            
             VStack(spacing: 16) {
-                buttonAction()
+                CleanerButton(
+                    status: clearStore.cleanerStatus,
+                    freeUpSpace: clearStore.freeUpSpace
+                ) {
+                    cleaner()
+                }
+                
                 social()
             }
+            
             Spacer(minLength: 22)
+            
             footer()
         }
         .padding([.top, .leading, .trailing])
         .padding(.bottom, 12)
-    }
-    
-    // MARK: - Private Variables
-    
-    private var hasError: Bool {
-        error != nil
     }
     
     // MARK: - Private Methods
@@ -51,110 +55,49 @@ struct CleanerView: View {
         clearStore.quit()
     }
     
-    private func clean() {
+    private func cleaner() {
         guard !clearStore.isCleaning else { return }
         
-        error = nil
+        task?.cancel()
         
-        Task(priority: .background) { @MainActor in
+        task = Task(priority: .background) { @MainActor in
             do {
                 try await clearStore.cleaner()
             } catch {
-                self.error = error
+                print(error)
             }
         }
     }
     
     // MARK: - Components
     
-    private func progressView(_ steps: [Step]) -> some View {
-        ProgressView(
-            value: clearStore.clearProgress,
-            total: clearStore.clearProgressTotal
-        )
-        .progressViewStyle(CustomCircularProgressViewStyle())
-        .animation(.easeIn, value: clearStore.clearProgress)
-    }
-    
     private func header() -> some View {
         Text("Cleaner Xcode")
             .font(.title2)
     }
     
-    private func buttonAction() -> some View {
-        var allowsHitTesting: Bool {
-            !clearStore.isCleaning || !clearStore.freeUpSpace.isZero
-        }
-        
-        var backgroundColor: Color {
-            hasError ? .red : clearStore.isCleaning ? .working : .blue
-        }
-        
-        var buttonText: String {
-            if clearStore.isCleaning {
-                "Cleaning"
-            } else if hasError {
-                "Try again!"
-            } else if clearStore.freeUpSpace.isZero {
-                "Relax, all clear"
-            } else {
-                "Cleaner"
-            }
-        }
-        
-        @ViewBuilder
-        func acessory() -> some View {
-            if clearStore.isCleaning {
-                progressView(clearStore.steps)
-            } else if hasError {
-                Image(systemName: "gobackward")
-            } else {
-                Image(.iconClear)
-            }
-        }
-        
-        return Button {
-            clean()
-        } label: {
-            HStack {
-                acessory()
-                Text(buttonText)
-                    .contentTransition(.numericText())
-            }
-            .padding(.horizontal, 16)
-            .frame(height: 44)
-            .font(.title3)
-            .foregroundStyle(.white)
-        }
-        .buttonStyle(.plain)
-        .background(backgroundColor)
-        .clipShape(RoundedRectangle(cornerRadius: 32))
-        .allowsHitTesting(allowsHitTesting)
-        .animation(.bouncy, value: clearStore.isCleaning)
-    }
-    
     private func social() -> some View {
         HStack(spacing: 16) {
-            Button {
+            HighlightButton {
                 openURL(.init(string: "https://github.com/didisouzacosta/CleanerXcode")!)
                 analytics.log(.social(.github))
             } label: {
                 Image("github.fill")
-            }.buttonStyle(.plain)
+            }
             
-            Button {
+            HighlightButton {
                 openURL(.init(string: "https://x.com/didisouzacosta")!)
                 analytics.log(.social(.x))
             } label: {
                 Image("x")
-            }.buttonStyle(.plain)
+            }
             
-            Button {
+            HighlightButton {
                 openURL(.init(string: "https://www.linkedin.com/in/adrianosouzacosta/")!)
                 analytics.log(.social(.linkedin))
             } label: {
                 Image("linkedin")
-            }.buttonStyle(.plain)
+            }
         }
         .font(.system(size: 16))
         .foregroundStyle(.primary)
@@ -165,14 +108,13 @@ struct CleanerView: View {
             Divider()
             
             HStack {
-                Button {
+                HighlightButton {
                     route.isPresentSettings.toggle()
                 } label: {
                     Image(systemName: "gear")
                         .resizable()
                         .frame(width: 16, height: 16)
                 }
-                .buttonStyle(.plain)
                 .disabled(clearStore.isCleaning)
                 
                 Text("Version \(NSApplication.fullVersion)")
@@ -181,7 +123,7 @@ struct CleanerView: View {
                 
                 Spacer()
                 
-                Button {
+                HighlightButton {
                     quit()
                 } label: {
                     HStack {
@@ -190,9 +132,89 @@ struct CleanerView: View {
                             .foregroundStyle(.placeholder)
                     }
                 }
-                .buttonStyle(.plain)
             }
         }
+    }
+    
+}
+
+fileprivate struct CleanerButton: View {
+    
+    // MARK: - Private Variables
+    
+    private var backgroundColor: Color {
+        switch status {
+        case .idle: .blue
+        case .completed, .cleaning: .cleaning
+        case .error: .red
+        }
+    }
+
+    private var text: String {
+        switch status {
+        case .cleaning: "Cleaning"
+        case .error: "Try again"
+        case .completed: "🎉 Success, all clear!"
+        case .idle: "Clear \(freeUpSpace.byteFormatter())"
+        }
+    }
+    
+    // MARK: - Public Variables
+    
+    var body: some View {
+        ZStack {
+            Button {
+                action()
+            } label: {
+                HStack {
+                    switch status {
+                    case .cleaning(let progress, let total):
+                        ProgressView(
+                            value: progress,
+                            total: total
+                        )
+                        .progressViewStyle(CustomCircularProgressViewStyle())
+                        .frame(width: 12, height: 12)
+                    case .idle:
+                        Image(.iconClear)
+                    default:
+                        EmptyView()
+                    }
+                    
+                    Text(text)
+                        .contentTransition(.numericText())
+                }
+                .font(.title2)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .clipped()
+                .background {
+                    RoundedRectangle(cornerRadius: 32)
+                        .fill(backgroundColor)
+                }
+                .animation(.snappy, value: status)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    // MARK: - Private Variables
+    
+    private let action: () -> Void
+    private let status: ClearStore.Status
+    private let freeUpSpace: Double
+    
+    // MARK: - Initializers
+    
+    init(
+        status: ClearStore.Status,
+        freeUpSpace: Double,
+        action: @escaping () -> Void
+    ) {
+        self.status = status
+        self.freeUpSpace = freeUpSpace
+        self.action = action
     }
     
 }
