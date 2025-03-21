@@ -61,6 +61,16 @@
         }
       }
     },
+    "Clear" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpar"
+          }
+        }
+      }
+    },
     "Clear %@" : {
       "localizations" : {
         "pt-BR" : {

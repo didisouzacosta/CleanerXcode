@@ -159,7 +159,12 @@ fileprivate struct CleanerButton: View {
         case .cleaning: "Cleaning"
         case .error: "Try again"
         case .completed: "🎉 Success, all clear!"
-        case .idle: "Clear \(freeUpSpace.byteFormatter())"
+        case .idle:
+            if freeUpSpace.isZero {
+                "Clear"
+            } else {
+                "Clear \(freeUpSpace.byteFormatter())"
+            }
         }
     }
     
