@@ -95,8 +95,7 @@ final class ClearStore {
             enabledCommands.enumerated().forEach { index, command in
                 group.addTask(priority: .background) { [weak self] in
                     do {
-//                        try await self?.shell.execute(command)
-                        try? await Task.sleep(nanoseconds: 1.second)
+                        try await self?.shell.execute(command)
                         return .init(command.id, error: nil)
                     } catch {
                         return .init(command.id, error: error)
