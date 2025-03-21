@@ -59,51 +59,26 @@ struct PreferencesView: View {
                 Section("Simulators & Xcode") {
                     factoryToggle(
                         "Clear Device Support",
-                        accessory: {
-                            Image(systemName: "exclamationmark.triangle")
-                                .resizable()
-                                .frame(width: 12, height: 12)
-                                .foregroundStyle(.red)
-                        },
                         detail: sizeFormatted(clearStore.usedSpace.deviceSupport),
                         isOn: $bindablePreferences.canClearDeviceSupport.value
                     )
                     
                     factoryToggle(
                         "Clear Simulator Data",
-                        accessory: {
-                            Image(systemName: "exclamationmark.triangle")
-                                .resizable()
-                                .frame(width: 12, height: 12)
-                                .foregroundStyle(.red)
-                        },
                         detail: sizeFormatted(clearStore.usedSpace.simulatorData),
                         isOn: $bindablePreferences.canClearSimultorData.value
                     )
                     
                     factoryToggle(
                         "Remove Old Simulators",
-                        accessory: {
-                            Image(systemName: "exclamationmark.triangle")
-                                .resizable()
-                                .frame(width: 12, height: 12)
-                                .foregroundStyle(.red)
-                        },
                         isOn: $bindablePreferences.canRemoveOldSimulators.value
                     )
                     
                     factoryToggle(
                         "Reset Xcode Preferences",
-                        accessory: {
-                            Image(systemName: "exclamationmark.triangle")
-                                .resizable()
-                                .frame(width: 12, height: 12)
-                                .foregroundStyle(.red)
-                        },
                         isOn: $bindablePreferences.canResertXcodePreferences.value
                     )
                 }
-                .tint(.red)
                 
                 Section("Preferences") {
                     factoryToggle(

@@ -140,6 +140,10 @@ struct CleanerView: View {
 
 fileprivate struct CleanerButton: View {
     
+    // MARK: - States
+    
+    @State private var isHover = false
+    
     // MARK: - Private Variables
     
     private var backgroundColor: Color {
@@ -156,6 +160,17 @@ fileprivate struct CleanerButton: View {
         case .error: "Try again"
         case .completed: "🎉 Success, all clear!"
         case .idle: "Clear \(freeUpSpace.byteFormatter())"
+        }
+    }
+    
+    private var allowsHitTesting: Bool {
+        switch status {
+        case .cleaning(_, _):
+            false
+        case .completed:
+            false
+        default:
+            true
         }
     }
     
@@ -192,10 +207,16 @@ fileprivate struct CleanerButton: View {
                 .background {
                     RoundedRectangle(cornerRadius: 32)
                         .fill(backgroundColor)
+                        .scaleEffect(isHover && allowsHitTesting ? 1.05 : 1)
                 }
                 .animation(.snappy, value: status)
             }
+            .allowsHitTesting(allowsHitTesting)
+            .animation(.bouncy, value: isHover)
             .buttonStyle(.plain)
+            .onHover { status in
+                isHover = status
+            }
         }
     }
     

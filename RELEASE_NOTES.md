@@ -1,3 +1,10 @@
+# v0.1.0 - Build 105
+
+• Adding hover effect in all buttons.
+• Improving cleaner button action animation, adding a better effect on finished the clear.
+• Improving the logic of clear.
+• Fixing localization.
+
 # v0.1.0 - Build 104
 
 • Improving clear button animations.
