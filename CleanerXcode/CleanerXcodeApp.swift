@@ -52,6 +52,7 @@ struct CleanerXcodeApp: App {
             }
         }
         .menuBarExtraStyle(.window)
+        .windowResizability(.contentSize)
     }
     
 }

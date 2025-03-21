@@ -21,10 +21,14 @@
         }
       }
     },
+    "Cache" : {
+
+    },
     "Check your favorite list" : {
 
     },
     "Cleaner" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -128,6 +132,9 @@
           }
         }
       }
+    },
+    "Simulators & Xcode" : {
+
     },
     "This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando." : {
       "localizations" : {

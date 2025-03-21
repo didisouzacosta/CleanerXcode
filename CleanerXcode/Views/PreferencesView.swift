@@ -18,6 +18,10 @@ struct PreferencesView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.analytics) private var analytics
     
+    // MARK: - States
+    
+    @State private var contentHeight: CGFloat = 0
+    
     // MARK: - Public Variables
     
     var body: some View {
@@ -34,99 +38,93 @@ struct PreferencesView: View {
             .padding(.bottom, 8)
 
             Form {
-                Section("Cleaner") {
-                    Group {
-                        factoryToggle(
-                            "Remove Archives",
-                            accessory: {
-                                Image(systemName: "info.circle")
-                                    .resizable()
-                                    .frame(width: 12, height: 12)
-                                    .popoverTip(ListOfFavoritesTip())
-                                    .onTapGesture {
-                                        
-                                    }
-                            },
-                            detail: sizeFormatted(clearStore.usedSpace.archives),
-                            isOn: $bindablePreferences.canRemoveArchives.value
-                        )
-                        
-                        factoryToggle(
-                            "Remove Caches",
-                            accessory: {
-                                Image(systemName: "info.circle")
-                                    .resizable()
-                                    .frame(width: 12, height: 12)
-                            },
-                            detail: sizeFormatted(clearStore.usedSpace.cache),
-                            isOn: $bindablePreferences.canRemoveCaches.value
-                        )
-                        
-                        factoryToggle(
-                            "Remove Derived Data",
-                            accessory: {
-                                Image(systemName: "info.circle")
-                                    .resizable()
-                                    .frame(width: 12, height: 12)
-                            },
-                            detail: sizeFormatted(clearStore.usedSpace.derivedData),
-                            isOn: $bindablePreferences.canRemoveDerivedData.value
-                        )
-                    }
-                    .tint(.green)
-                
-                    Group {
-                        factoryToggle(
-                            "Reset Xcode Preferences",
-                            accessory: {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .resizable()
-                                    .frame(width: 12, height: 12)
-                                    .foregroundStyle(.yellow)
-                            },
-                            isOn: $bindablePreferences.canResertXcodePreferences.value
-                        )
-                    }
-                    .tint(.orange)
+                Section("Cache") {
+                    factoryToggle(
+                        "Remove Archives",
+                        accessory: {
+                            Image(systemName: "info.circle")
+                                .resizable()
+                                .frame(width: 12, height: 12)
+                                .popoverTip(ListOfFavoritesTip())
+                                .onTapGesture {
+                                    
+                                }
+                        },
+                        detail: sizeFormatted(clearStore.usedSpace.archives),
+                        isOn: $bindablePreferences.canRemoveArchives.value
+                    )
                     
-                    Group {
-                        factoryToggle(
-                            "Clear Device Support",
-                            accessory: {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .resizable()
-                                    .frame(width: 12, height: 12)
-                                    .foregroundStyle(.red)
-                            },
-                            detail: sizeFormatted(clearStore.usedSpace.deviceSupport),
-                            isOn: $bindablePreferences.canClearDeviceSupport.value
-                        )
-                        
-                        factoryToggle(
-                            "Clear Simulator Data",
-                            accessory: {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .resizable()
-                                    .frame(width: 12, height: 12)
-                                    .foregroundStyle(.red)
-                            },
-                            detail: sizeFormatted(clearStore.usedSpace.simulatorData),
-                            isOn: $bindablePreferences.canClearSimultorData.value
-                        )
-                        
-                        factoryToggle(
-                            "Remove Old Simulators",
-                            accessory: {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .resizable()
-                                    .frame(width: 12, height: 12)
-                                    .foregroundStyle(.red)
-                            },
-                            isOn: $bindablePreferences.canRemoveOldSimulators.value
-                        )
-                    }
-                    .tint(.red)
+                    factoryToggle(
+                        "Remove Caches",
+                        accessory: {
+                            Image(systemName: "info.circle")
+                                .resizable()
+                                .frame(width: 12, height: 12)
+                        },
+                        detail: sizeFormatted(clearStore.usedSpace.cache),
+                        isOn: $bindablePreferences.canRemoveCaches.value
+                    )
+                    
+                    factoryToggle(
+                        "Remove Derived Data",
+                        accessory: {
+                            Image(systemName: "info.circle")
+                                .resizable()
+                                .frame(width: 12, height: 12)
+                        },
+                        detail: sizeFormatted(clearStore.usedSpace.derivedData),
+                        isOn: $bindablePreferences.canRemoveDerivedData.value
+                    )
                 }
+                
+                Section("Simulators & Xcode") {
+                    factoryToggle(
+                        "Clear Device Support",
+                        accessory: {
+                            Image(systemName: "exclamationmark.triangle")
+                                .resizable()
+                                .frame(width: 12, height: 12)
+                                .foregroundStyle(.red)
+                        },
+                        detail: sizeFormatted(clearStore.usedSpace.deviceSupport),
+                        isOn: $bindablePreferences.canClearDeviceSupport.value
+                    )
+                    
+                    factoryToggle(
+                        "Clear Simulator Data",
+                        accessory: {
+                            Image(systemName: "exclamationmark.triangle")
+                                .resizable()
+                                .frame(width: 12, height: 12)
+                                .foregroundStyle(.red)
+                        },
+                        detail: sizeFormatted(clearStore.usedSpace.simulatorData),
+                        isOn: $bindablePreferences.canClearSimultorData.value
+                    )
+                    
+                    factoryToggle(
+                        "Remove Old Simulators",
+                        accessory: {
+                            Image(systemName: "exclamationmark.triangle")
+                                .resizable()
+                                .frame(width: 12, height: 12)
+                                .foregroundStyle(.red)
+                        },
+                        isOn: $bindablePreferences.canRemoveOldSimulators.value
+                    )
+                    
+                    factoryToggle(
+                        "Reset Xcode Preferences",
+                        accessory: {
+                            Image(systemName: "exclamationmark.triangle")
+                                .resizable()
+                                .frame(width: 12, height: 12)
+                                .foregroundStyle(.yellow)
+                        },
+                        isOn: $bindablePreferences.canResertXcodePreferences.value
+                    )
+                }
+                .tint(.red)
                 
                 Section("Preferences") {
                     factoryToggle(
@@ -159,7 +157,9 @@ struct PreferencesView: View {
                 }
             }
             .formStyle(.grouped)
+            .frame(height: contentHeight)
             .animation(.bouncy, value: clearStore.freeUpSpace)
+            .scrollContentHeight($contentHeight)
         }
     }
     
