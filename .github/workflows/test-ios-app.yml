@@ -18,9 +18,9 @@ jobs:
       - name: Install Bundler
         run: gem install bundler
 
-      - name: Install Fastlane Dependencies
-        run: bundle install
-        working-directory: fastlane
+      # - name: Install Fastlane Dependencies
+      #   run: bundle install
+      #   working-directory: fastlane
 
       - name: Select Xcode Version
         run: sudo xcode-select -switch /Applications/Xcode.app
