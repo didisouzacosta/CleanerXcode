@@ -1,4 +1,6 @@
-update_fastlane
+require 'dotenv'
+
+# update_fastlane
 
 default_platform(:mac)
 
@@ -27,6 +29,12 @@ platform :mac do
 
   desc "Export a signed macOS app"
   lane :export do
+    Dotenv.load
+
+    username = ENV["AC_USERNAME"]
+    password = ENV["AC_PASSWORD"]
+    team_id = ENV["TEAM_ID"]
+
     gym(
       project: "CleanerXcode.xcodeproj",
       scheme: "CleanerXcode",
@@ -34,5 +42,17 @@ platform :mac do
       export_method: "developer-id", # Or "app_store" if submitting to Mac App Store
       clean: true
     )
+
+    # Create a ZIP for notarization
+    zip_path = "./../build/CleanerXcode.zip"
+    sh "ditto -c -k --keepParent ../build/CleanerXcode.app ../build/CleanerXcode.zip"
+
+    # Submit to Apple Notary Service
+    sh "xcrun notarytool submit ../build/CleanerXcode.zip --apple-id \"#{username}\" --password \"#{password}\" --team-id \"#{team_id}\" --wait"
+
+    # Staple notarization ticket
+    sh "xcrun stapler staple ../build/CleanerXcode.app"
+
+    UI.success("✅ App successfully notarized and ready for distribution!")
   end
 end
