@@ -26,7 +26,7 @@ jobs:
         run: sudo xcode-select -switch /Applications/Xcode.app
 
       - name: Build macOS App
-        run: bundle exec fastlane mac build
+        run: fastlane mac build
 
       - name: Run Tests
-        run: bundle exec fastlane mac test
+        run: fastlane mac test
