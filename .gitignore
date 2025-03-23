@@ -5,6 +5,10 @@
 ## Environment variables
 .env
 
+## Build
+build/CleanerXcode.app
+build/CleanerXcode.zip
+
 ## Analytics
 GoogleService-info.plist
 
