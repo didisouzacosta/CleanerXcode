@@ -1,13 +1,37 @@
 update_fastlane
 
-default_platform(:ios)
+default_platform(:mac)
 
-platform :ios do
-
-  desc "Run unit tests"
-  lane :tests do
-    setup_ci if ENV['CI']
-    run_tests(scheme: "CleanerXcode")
+platform :mac do
+  desc "Build and archive the macOS app"
+  lane :build do
+    xcodebuild(
+      project: "CleanerXcode.xcodeproj",
+      scheme: "CleanerXcode",
+      sdk: "macosx",
+      destination: "platform=macOS",
+      configuration: "Release",
+      clean: true
+    )
   end
 
+  desc "Run tests for macOS app"
+  lane :test do
+    scan(
+      project: "CleanerXcode.xcodeproj",
+      scheme: "CleanerXcode",
+      clean: true
+    )
+  end
+
+  desc "Export a signed macOS app"
+  lane :export do
+    gym(
+      project: "CleanerXcode.xcodeproj",
+      scheme: "CleanerXcode",
+      output_directory: "./build",
+      export_method: "developer-id", # Or "app_store" if submitting to Mac App Store
+      clean: true
+    )
+  end
 end

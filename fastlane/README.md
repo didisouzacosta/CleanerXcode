@@ -13,15 +13,31 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 # Available Actions
 
-## iOS
+## Mac
 
-### ios tests
+### mac build
 
 ```sh
-[bundle exec] fastlane ios tests
+[bundle exec] fastlane mac build
 ```
 
-Run unit tests
+Build and archive the macOS app
+
+### mac test
+
+```sh
+[bundle exec] fastlane mac test
+```
+
+Run tests for macOS app
+
+### mac export
+
+```sh
+[bundle exec] fastlane mac export
+```
+
+Export a signed macOS app
 
 ----
 
