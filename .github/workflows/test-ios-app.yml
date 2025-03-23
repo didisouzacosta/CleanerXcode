@@ -2,7 +2,7 @@ name: test-ios-app
 on:
   push:
     branches:
-      - 'master'
+      - 'main'
 jobs:
   build:
     runs-on: macos-latest
