@@ -17,6 +17,7 @@ platform :mac do
 
   desc "Run tests for macOS app"
   lane :test do
+    setup_ci if ENV['CI']
     scan(
       project: "CleanerXcode.xcodeproj",
       scheme: "CleanerXcode",
