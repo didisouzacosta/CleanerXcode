@@ -11,8 +11,6 @@ jobs:
         with:
           xcode-version: latest-stable
       - uses: actions/checkout@v2
-
-      - nam: Run Tests
       - run: fastlane tests
 
       # - name: Clean Derived Data
