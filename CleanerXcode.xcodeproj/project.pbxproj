@@ -7,52 +7,94 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A90C14842D86CA9000989A0A /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A90C14832D86CA9000989A0A /* FirebaseAnalytics */; };
-		A90C14862D86CA9000989A0A /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A90C14852D86CA9000989A0A /* FirebaseCore */; };
-		A90C14882D86CA9000989A0A /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A90C14872D86CA9000989A0A /* FirebaseCrashlytics */; };
-		A9C74C222D8C7401007A5AC2 /* RELEASE_NOTES.md in Resources */ = {isa = PBXBuildFile; fileRef = A9C74C212D8C7401007A5AC2 /* RELEASE_NOTES.md */; };
+		A9D98E8F2D8FCD76000448A2 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A9D98E8E2D8FCD76000448A2 /* FirebaseAnalytics */; };
+		A9D98E912D8FCD76000448A2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A9D98E902D8FCD76000448A2 /* FirebaseCrashlytics */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A9D98E1F2D8FCBF0000448A2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A9D98E052D8FCBEF000448A2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A9D98E0C2D8FCBEF000448A2;
+			remoteInfo = CleanerXcode;
+		};
+		A9D98E292D8FCBF0000448A2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A9D98E052D8FCBEF000448A2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A9D98E0C2D8FCBEF000448A2;
+			remoteInfo = CleanerXcode;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		A9B468632D83135F00F5F55E /* CleanerXcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CleanerXcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A9C74C212D8C7401007A5AC2 /* RELEASE_NOTES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = RELEASE_NOTES.md; sourceTree = "<group>"; };
+		A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CleanerXcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9D98E1E2D8FCBF0000448A2 /* CleanerXcodeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CleanerXcodeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9D98E282D8FCBF0000448A2 /* CleanerXcodeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CleanerXcodeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A9B468652D83135F00F5F55E /* CleanerXcode */ = {
+		A9D98E0F2D8FCBEF000448A2 /* CleanerXcode */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = CleanerXcode;
+			sourceTree = "<group>";
+		};
+		A9D98E212D8FCBF0000448A2 /* CleanerXcodeTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CleanerXcodeTests;
+			sourceTree = "<group>";
+		};
+		A9D98E2B2D8FCBF0000448A2 /* CleanerXcodeUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CleanerXcodeUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A9B468602D83135F00F5F55E /* Frameworks */ = {
+		A9D98E0A2D8FCBEF000448A2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A90C14882D86CA9000989A0A /* FirebaseCrashlytics in Frameworks */,
-				A90C14862D86CA9000989A0A /* FirebaseCore in Frameworks */,
-				A90C14842D86CA9000989A0A /* FirebaseAnalytics in Frameworks */,
+				A9D98E8F2D8FCD76000448A2 /* FirebaseAnalytics in Frameworks */,
+				A9D98E912D8FCD76000448A2 /* FirebaseCrashlytics in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9D98E1B2D8FCBF0000448A2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9D98E252D8FCBF0000448A2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A9B4685A2D83135F00F5F55E = {
+		A9D98E042D8FCBEF000448A2 = {
 			isa = PBXGroup;
 			children = (
-				A9C74C212D8C7401007A5AC2 /* RELEASE_NOTES.md */,
-				A9B468652D83135F00F5F55E /* CleanerXcode */,
-				A9B468642D83135F00F5F55E /* Products */,
+				A9D98E0F2D8FCBEF000448A2 /* CleanerXcode */,
+				A9D98E212D8FCBF0000448A2 /* CleanerXcodeTests */,
+				A9D98E2B2D8FCBF0000448A2 /* CleanerXcodeUITests */,
+				A9D98E0E2D8FCBEF000448A2 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		A9B468642D83135F00F5F55E /* Products */ = {
+		A9D98E0E2D8FCBEF000448A2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A9B468632D83135F00F5F55E /* CleanerXcode.app */,
+				A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */,
+				A9D98E1E2D8FCBF0000448A2 /* CleanerXcodeTests.xctest */,
+				A9D98E282D8FCBF0000448A2 /* CleanerXcodeUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -60,82 +102,163 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A9B468622D83135F00F5F55E /* CleanerXcode */ = {
+		A9D98E0C2D8FCBEF000448A2 /* CleanerXcode */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A9B468722D83136000F5F55E /* Build configuration list for PBXNativeTarget "CleanerXcode" */;
+			buildConfigurationList = A9D98E322D8FCBF0000448A2 /* Build configuration list for PBXNativeTarget "CleanerXcode" */;
 			buildPhases = (
-				A9B4685F2D83135F00F5F55E /* Sources */,
-				A9B468602D83135F00F5F55E /* Frameworks */,
-				A9B468612D83135F00F5F55E /* Resources */,
+				A9D98E092D8FCBEF000448A2 /* Sources */,
+				A9D98E0A2D8FCBEF000448A2 /* Frameworks */,
+				A9D98E0B2D8FCBEF000448A2 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				A9B468652D83135F00F5F55E /* CleanerXcode */,
+				A9D98E0F2D8FCBEF000448A2 /* CleanerXcode */,
 			);
 			name = CleanerXcode;
 			packageProductDependencies = (
-				A90C14832D86CA9000989A0A /* FirebaseAnalytics */,
-				A90C14852D86CA9000989A0A /* FirebaseCore */,
-				A90C14872D86CA9000989A0A /* FirebaseCrashlytics */,
+				A9D98E8E2D8FCD76000448A2 /* FirebaseAnalytics */,
+				A9D98E902D8FCD76000448A2 /* FirebaseCrashlytics */,
 			);
 			productName = CleanerXcode;
-			productReference = A9B468632D83135F00F5F55E /* CleanerXcode.app */;
+			productReference = A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A9D98E1D2D8FCBF0000448A2 /* CleanerXcodeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A9D98E352D8FCBF0000448A2 /* Build configuration list for PBXNativeTarget "CleanerXcodeTests" */;
+			buildPhases = (
+				A9D98E1A2D8FCBF0000448A2 /* Sources */,
+				A9D98E1B2D8FCBF0000448A2 /* Frameworks */,
+				A9D98E1C2D8FCBF0000448A2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A9D98E202D8FCBF0000448A2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A9D98E212D8FCBF0000448A2 /* CleanerXcodeTests */,
+			);
+			name = CleanerXcodeTests;
+			packageProductDependencies = (
+			);
+			productName = CleanerXcodeTests;
+			productReference = A9D98E1E2D8FCBF0000448A2 /* CleanerXcodeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A9D98E272D8FCBF0000448A2 /* CleanerXcodeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A9D98E382D8FCBF0000448A2 /* Build configuration list for PBXNativeTarget "CleanerXcodeUITests" */;
+			buildPhases = (
+				A9D98E242D8FCBF0000448A2 /* Sources */,
+				A9D98E252D8FCBF0000448A2 /* Frameworks */,
+				A9D98E262D8FCBF0000448A2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A9D98E2A2D8FCBF0000448A2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A9D98E2B2D8FCBF0000448A2 /* CleanerXcodeUITests */,
+			);
+			name = CleanerXcodeUITests;
+			packageProductDependencies = (
+			);
+			productName = CleanerXcodeUITests;
+			productReference = A9D98E282D8FCBF0000448A2 /* CleanerXcodeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		A9B4685B2D83135F00F5F55E /* Project object */ = {
+		A9D98E052D8FCBEF000448A2 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
-					A9B468622D83135F00F5F55E = {
+					A9D98E0C2D8FCBEF000448A2 = {
 						CreatedOnToolsVersion = 16.2;
+					};
+					A9D98E1D2D8FCBF0000448A2 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = A9D98E0C2D8FCBEF000448A2;
+					};
+					A9D98E272D8FCBF0000448A2 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = A9D98E0C2D8FCBEF000448A2;
 					};
 				};
 			};
-			buildConfigurationList = A9B4685E2D83135F00F5F55E /* Build configuration list for PBXProject "CleanerXcode" */;
+			buildConfigurationList = A9D98E082D8FCBEF000448A2 /* Build configuration list for PBXProject "CleanerXcode" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
-				"pt-BR",
 			);
-			mainGroup = A9B4685A2D83135F00F5F55E;
+			mainGroup = A9D98E042D8FCBEF000448A2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				A90C14822D86CA9000989A0A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				A9D98E8D2D8FCD76000448A2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = A9B468642D83135F00F5F55E /* Products */;
+			productRefGroup = A9D98E0E2D8FCBEF000448A2 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A9B468622D83135F00F5F55E /* CleanerXcode */,
+				A9D98E0C2D8FCBEF000448A2 /* CleanerXcode */,
+				A9D98E1D2D8FCBF0000448A2 /* CleanerXcodeTests */,
+				A9D98E272D8FCBF0000448A2 /* CleanerXcodeUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A9B468612D83135F00F5F55E /* Resources */ = {
+		A9D98E0B2D8FCBEF000448A2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A9C74C222D8C7401007A5AC2 /* RELEASE_NOTES.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9D98E1C2D8FCBF0000448A2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9D98E262D8FCBF0000448A2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A9B4685F2D83135F00F5F55E /* Sources */ = {
+		A9D98E092D8FCBEF000448A2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9D98E1A2D8FCBF0000448A2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9D98E242D8FCBF0000448A2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -144,8 +267,21 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		A9D98E202D8FCBF0000448A2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A9D98E0C2D8FCBEF000448A2 /* CleanerXcode */;
+			targetProxy = A9D98E1F2D8FCBF0000448A2 /* PBXContainerItemProxy */;
+		};
+		A9D98E2A2D8FCBF0000448A2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A9D98E0C2D8FCBEF000448A2 /* CleanerXcode */;
+			targetProxy = A9D98E292D8FCBF0000448A2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
-		A9B468702D83136000F5F55E /* Debug */ = {
+		A9D98E302D8FCBF0000448A2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -204,12 +340,11 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
-		A9B468712D83136000F5F55E /* Release */ = {
+		A9D98E312D8FCBF0000448A2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -261,91 +396,168 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Release;
 		};
-		A9B468732D83136000F5F55E /* Debug */ = {
+		A9D98E332D8FCBF0000448A2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CleanerXcode/CleanerXcode.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 105;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Preview Content\"";
 				DEVELOPMENT_TEAM = MM4N959BB5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = CleanerXcode/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		A9B468742D83136000F5F55E /* Release */ = {
+		A9D98E342D8FCBF0000448A2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CleanerXcode/CleanerXcode.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 105;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Preview Content\"";
 				DEVELOPMENT_TEAM = MM4N959BB5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = CleanerXcode/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A9D98E362D8FCBF0000448A2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MM4N959BB5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcodeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CleanerXcode.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CleanerXcode";
+			};
+			name = Debug;
+		};
+		A9D98E372D8FCBF0000448A2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MM4N959BB5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcodeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CleanerXcode.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CleanerXcode";
+			};
+			name = Release;
+		};
+		A9D98E392D8FCBF0000448A2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MM4N959BB5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcodeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = CleanerXcode;
+			};
+			name = Debug;
+		};
+		A9D98E3A2D8FCBF0000448A2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MM4N959BB5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcodeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = CleanerXcode;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A9B4685E2D83135F00F5F55E /* Build configuration list for PBXProject "CleanerXcode" */ = {
+		A9D98E082D8FCBEF000448A2 /* Build configuration list for PBXProject "CleanerXcode" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A9B468702D83136000F5F55E /* Debug */,
-				A9B468712D83136000F5F55E /* Release */,
+				A9D98E302D8FCBF0000448A2 /* Debug */,
+				A9D98E312D8FCBF0000448A2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A9B468722D83136000F5F55E /* Build configuration list for PBXNativeTarget "CleanerXcode" */ = {
+		A9D98E322D8FCBF0000448A2 /* Build configuration list for PBXNativeTarget "CleanerXcode" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A9B468732D83136000F5F55E /* Debug */,
-				A9B468742D83136000F5F55E /* Release */,
+				A9D98E332D8FCBF0000448A2 /* Debug */,
+				A9D98E342D8FCBF0000448A2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A9D98E352D8FCBF0000448A2 /* Build configuration list for PBXNativeTarget "CleanerXcodeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A9D98E362D8FCBF0000448A2 /* Debug */,
+				A9D98E372D8FCBF0000448A2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A9D98E382D8FCBF0000448A2 /* Build configuration list for PBXNativeTarget "CleanerXcodeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A9D98E392D8FCBF0000448A2 /* Debug */,
+				A9D98E3A2D8FCBF0000448A2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -353,33 +565,28 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A90C14822D86CA9000989A0A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+		A9D98E8D2D8FCD76000448A2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 11.9.0;
+				minimumVersion = 11.10.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A90C14832D86CA9000989A0A /* FirebaseAnalytics */ = {
+		A9D98E8E2D8FCD76000448A2 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A90C14822D86CA9000989A0A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = A9D98E8D2D8FCD76000448A2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
 		};
-		A90C14852D86CA9000989A0A /* FirebaseCore */ = {
+		A9D98E902D8FCD76000448A2 /* FirebaseCrashlytics */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A90C14822D86CA9000989A0A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCore;
-		};
-		A90C14872D86CA9000989A0A /* FirebaseCrashlytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A90C14822D86CA9000989A0A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = A9D98E8D2D8FCD76000448A2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = A9B4685B2D83135F00F5F55E /* Project object */;
+	rootObject = A9D98E052D8FCBEF000448A2 /* Project object */;
 }
