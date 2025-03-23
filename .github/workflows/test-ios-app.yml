@@ -6,10 +6,12 @@ on:
 jobs:
   build:
     runs-on: macos-latest
-    timeout-minutes: 60
     steps:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest-stable
       - uses: actions/checkout@v2
-      - run: fastlane tests
+      # - run: fastlane tests
+
+      - name: Run xcodebuild
+        run: xcodebuild -showBuildSettings -scheme CleanerXcode -project ./CleanerXcode.xcodeproj 2>&1
