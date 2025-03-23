@@ -19,19 +19,11 @@
 			remoteGlobalIDString = A9D98E0C2D8FCBEF000448A2;
 			remoteInfo = CleanerXcode;
 		};
-		A9D98E292D8FCBF0000448A2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A9D98E052D8FCBEF000448A2 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A9D98E0C2D8FCBEF000448A2;
-			remoteInfo = CleanerXcode;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CleanerXcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9D98E1E2D8FCBF0000448A2 /* CleanerXcodeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CleanerXcodeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A9D98E282D8FCBF0000448A2 /* CleanerXcodeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CleanerXcodeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -43,11 +35,6 @@
 		A9D98E212D8FCBF0000448A2 /* CleanerXcodeTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = CleanerXcodeTests;
-			sourceTree = "<group>";
-		};
-		A9D98E2B2D8FCBF0000448A2 /* CleanerXcodeUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CleanerXcodeUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,13 +56,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A9D98E252D8FCBF0000448A2 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -84,7 +64,6 @@
 			children = (
 				A9D98E0F2D8FCBEF000448A2 /* CleanerXcode */,
 				A9D98E212D8FCBF0000448A2 /* CleanerXcodeTests */,
-				A9D98E2B2D8FCBF0000448A2 /* CleanerXcodeUITests */,
 				A9D98E0E2D8FCBEF000448A2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -94,7 +73,6 @@
 			children = (
 				A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */,
 				A9D98E1E2D8FCBF0000448A2 /* CleanerXcodeTests.xctest */,
-				A9D98E282D8FCBF0000448A2 /* CleanerXcodeUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -149,29 +127,6 @@
 			productReference = A9D98E1E2D8FCBF0000448A2 /* CleanerXcodeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		A9D98E272D8FCBF0000448A2 /* CleanerXcodeUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A9D98E382D8FCBF0000448A2 /* Build configuration list for PBXNativeTarget "CleanerXcodeUITests" */;
-			buildPhases = (
-				A9D98E242D8FCBF0000448A2 /* Sources */,
-				A9D98E252D8FCBF0000448A2 /* Frameworks */,
-				A9D98E262D8FCBF0000448A2 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				A9D98E2A2D8FCBF0000448A2 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				A9D98E2B2D8FCBF0000448A2 /* CleanerXcodeUITests */,
-			);
-			name = CleanerXcodeUITests;
-			packageProductDependencies = (
-			);
-			productName = CleanerXcodeUITests;
-			productReference = A9D98E282D8FCBF0000448A2 /* CleanerXcodeUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -186,10 +141,6 @@
 						CreatedOnToolsVersion = 16.2;
 					};
 					A9D98E1D2D8FCBF0000448A2 = {
-						CreatedOnToolsVersion = 16.2;
-						TestTargetID = A9D98E0C2D8FCBEF000448A2;
-					};
-					A9D98E272D8FCBF0000448A2 = {
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = A9D98E0C2D8FCBEF000448A2;
 					};
@@ -214,7 +165,6 @@
 			targets = (
 				A9D98E0C2D8FCBEF000448A2 /* CleanerXcode */,
 				A9D98E1D2D8FCBF0000448A2 /* CleanerXcodeTests */,
-				A9D98E272D8FCBF0000448A2 /* CleanerXcodeUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -228,13 +178,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A9D98E1C2D8FCBF0000448A2 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A9D98E262D8FCBF0000448A2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -258,13 +201,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A9D98E242D8FCBF0000448A2 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -272,11 +208,6 @@
 			isa = PBXTargetDependency;
 			target = A9D98E0C2D8FCBEF000448A2 /* CleanerXcode */;
 			targetProxy = A9D98E1F2D8FCBF0000448A2 /* PBXContainerItemProxy */;
-		};
-		A9D98E2A2D8FCBF0000448A2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = A9D98E0C2D8FCBEF000448A2 /* CleanerXcode */;
-			targetProxy = A9D98E292D8FCBF0000448A2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -491,38 +422,6 @@
 			};
 			name = Release;
 		};
-		A9D98E392D8FCBF0000448A2 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = MM4N959BB5;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcodeUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = CleanerXcode;
-			};
-			name = Debug;
-		};
-		A9D98E3A2D8FCBF0000448A2 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = MM4N959BB5;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcodeUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = CleanerXcode;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -549,15 +448,6 @@
 			buildConfigurations = (
 				A9D98E362D8FCBF0000448A2 /* Debug */,
 				A9D98E372D8FCBF0000448A2 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		A9D98E382D8FCBF0000448A2 /* Build configuration list for PBXNativeTarget "CleanerXcodeUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A9D98E392D8FCBF0000448A2 /* Debug */,
-				A9D98E3A2D8FCBF0000448A2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
