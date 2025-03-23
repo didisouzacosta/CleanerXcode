@@ -11,7 +11,12 @@ jobs:
         with:
           xcode-version: latest-stable
       - uses: actions/checkout@v2
-      # - run: fastlane tests
 
-      - name: Run xcodebuild
-        run: xcodebuild -showBuildSettings -scheme CleanerXcode -project ./CleanerXcode.xcodeproj 2>&1
+      - nam: Run Tests
+      - run: fastlane tests
+
+      # - name: Clean Derived Data
+      #   run: xcodebuild clean -project ./CleanerXcode.xcodeproj -scheme CleanerXcode
+
+      # - name: Run xcodebuild
+      #   run: xcodebuild -showBuildSettings -scheme CleanerXcode -project ./CleanerXcode.xcodeproj 2>&1

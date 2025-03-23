@@ -1,2 +1,2 @@
-# clean(true)
-skip_build(false)
+clean(true)
+# skip_build(false)
