@@ -5,7 +5,7 @@ default_platform(:ios)
 platform :ios do
 
   desc "Run unit tests"
-  lane :test do
+  lane :tests do
     setup_ci if ENV['CI']
     run_tests(scheme: "CleanerXcode")
   end
