@@ -3,8 +3,10 @@ update_fastlane
 default_platform(:ios)
 
 platform :ios do
+
   desc "Unit tests"
   lane :unit_tests do
     run_tests(scheme: "CleanerXcode")
   end
+
 end
