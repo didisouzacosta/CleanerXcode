@@ -1,3 +1,2 @@
-clean(true)
-disable_concurrent_testing(true)
+# clean(true)
 skip_build(false)
