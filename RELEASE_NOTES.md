@@ -1,3 +1,8 @@
+# v0.1.0 - Build 106
+
+• Update app icon.
+• Update release notes.
+
 # v0.1.0 - Build 105
 
 • Adding hover effect in all buttons.
