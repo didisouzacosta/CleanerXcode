@@ -1,61 +1,61 @@
 {
   "images" : [
     {
-      "filename" : "CleanXcode - 16@2x.png",
+      "filename" : "AppIcon - 16.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "16x16"
     },
     {
-      "filename" : "CleanXcode - 32@2x.png",
+      "filename" : "AppIcon - 32.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "16x16"
     },
     {
-      "filename" : "CleanXcode - 32@2x 1.png",
+      "filename" : "AppIcon - 33.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "32x32"
     },
     {
-      "filename" : "CleanXcode - 64@2x.png",
+      "filename" : "AppIcon - 64.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "32x32"
     },
     {
-      "filename" : "CleanXcode - 128@2x.png",
+      "filename" : "AppIcon - 128.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "128x128"
     },
     {
-      "filename" : "CleanXcode - 256@2x.png",
+      "filename" : "AppIcon - 256.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "128x128"
     },
     {
-      "filename" : "CleanXcode - 256@2x 1.png",
+      "filename" : "AppIcon - 257.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
     },
     {
-      "filename" : "CleanXcode - 512@2x.png",
+      "filename" : "AppIcon - 512.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
     },
     {
-      "filename" : "CleanXcode - 512@2x 1.png",
+      "filename" : "AppIcon - 513.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"
     },
     {
-      "filename" : "CleanXcode - 1024.png",
+      "filename" : "AppIcon - 1024.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "512x512"
