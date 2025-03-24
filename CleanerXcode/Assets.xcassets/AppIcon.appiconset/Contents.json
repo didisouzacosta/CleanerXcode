@@ -1,55 +1,55 @@
 {
   "images" : [
     {
-      "filename" : "CleanXcode - 16.png",
+      "filename" : "CleanXcode - 16@2x.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "16x16"
     },
     {
-      "filename" : "CleanXcode - 32.png",
+      "filename" : "CleanXcode - 32@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "16x16"
     },
     {
-      "filename" : "CleanXcode - 33.png",
+      "filename" : "CleanXcode - 32@2x 1.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "32x32"
     },
     {
-      "filename" : "CleanXcode - 64.png",
+      "filename" : "CleanXcode - 64@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "32x32"
     },
     {
-      "filename" : "CleanXcode - 128.png",
+      "filename" : "CleanXcode - 128@2x.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "128x128"
     },
     {
-      "filename" : "CleanXcode - 256.png",
+      "filename" : "CleanXcode - 256@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "128x128"
     },
     {
-      "filename" : "CleanXcode - 257.png",
+      "filename" : "CleanXcode - 256@2x 1.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
     },
     {
-      "filename" : "CleanXcode - 512.png",
+      "filename" : "CleanXcode - 512@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
     },
     {
-      "filename" : "CleanXcode - 513.png",
+      "filename" : "CleanXcode - 512@2x 1.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"
