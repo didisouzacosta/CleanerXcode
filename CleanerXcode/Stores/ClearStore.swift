@@ -12,8 +12,7 @@ final class ClearStore {
     
     // MARK: - Public Variables
     
-    private(set) var usedSpace = UsedSpace()
-    private(set) var isCalculatingSize = false
+    private(set) var usedSpace = StateValue<UsedSpace>(.init(), state: .isLoading)
     private(set) var isCleaning = false
     
     var cleanerStatus: Status {
@@ -136,12 +135,12 @@ final class ClearStore {
     }
     
     private func calculateFreeUpSpace() {
-        isCalculatingSize = true
+        usedSpace.state = .isLoading
         
         Task(priority: .background) { @MainActor in
             let value = try? await shell.execute(.calculateFreeUpSpace)
-            usedSpace = (try? value?.data(using: .utf8)?.decoder()) ?? .init()
-            isCalculatingSize = false
+            let usedSpace: UsedSpace = (try? value?.data(using: .utf8)?.decoder()) ?? .init()
+            self.usedSpace.state = .success(usedSpace)
         }
     }
     
@@ -158,11 +157,11 @@ extension ClearStore {
     
     private func size(of command: Shell.Command) -> Int {
         switch command {
-        case .removeArchives: usedSpace.archives
-        case .removeCaches: usedSpace.cache
-        case .removeDerivedData: usedSpace.derivedData
-        case .clearDeviceSupport: usedSpace.deviceSupport
-        case .clearSimulatorData: usedSpace.simulatorData
+        case .removeArchives: usedSpace.value.archives
+        case .removeCaches: usedSpace.value.cache
+        case .removeDerivedData: usedSpace.value.derivedData
+        case .clearDeviceSupport: usedSpace.value.deviceSupport
+        case .clearSimulatorData: usedSpace.value.simulatorData
         default: 0
         }
     }

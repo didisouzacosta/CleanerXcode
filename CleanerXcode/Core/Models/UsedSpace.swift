@@ -5,7 +5,7 @@
 //  Created by Adriano Costa on 18/03/25.
 //
 
-struct UsedSpace: Decodable {
+struct UsedSpace: Decodable, Equatable {
     
     // MARK: - Public Variables
     
