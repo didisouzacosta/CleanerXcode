@@ -21,7 +21,7 @@ Xcode can accumulate a large number of temporary files and data that take up dis
 - **Intuitive interface:** Easy to use, with clear options for managing Xcode files.
 
 ## Installation & Usage
-1. [Download CleanerXcode](https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/v0.1.1/releases/CleanerXcode.zip).
+1. [Download CleanerXcode](https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/v0.1.1/releases/CleanerXcode.dmg).
 2. Open the application and select the desired cleaning options.
 3. Click the clean button and wait for the process to complete.
 
