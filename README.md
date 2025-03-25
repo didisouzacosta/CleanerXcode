@@ -10,6 +10,10 @@ CleanerXcode is a macOS tool designed to remove unnecessary Xcode files, such as
 ### Why use it?
 Xcode can accumulate a large number of temporary files and data that take up disk space and may affect system performance. CleanerXcode solves this problem by providing a simple and effective way to free up space and improve your workflow speed.
 
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/ac6f66d0-8e3f-48e7-a102-6d6b32d67830"/>
+</div>
+
 ## Key Features
 - **Temporary file removal:** Deletes Derived Data, build caches, and other temporary Xcode files.
 - **Device support cleanup:** Removes outdated device support and simulator data.
@@ -20,10 +24,6 @@ Xcode can accumulate a large number of temporary files and data that take up dis
 1. [Download CleanerXcode](https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/v0.1.1/releases/CleanerXcode.zip).
 2. Open the application and select the desired cleaning options.
 3. Click the clean button and wait for the process to complete.
-
-<div align="center">
-  <video src="https://github.com/user-attachments/assets/ac6f66d0-8e3f-48e7-a102-6d6b32d67830"/>
-</div>
 
 ## Areas for Improvement
 - Support for advanced customization of file removal.
@@ -51,6 +51,10 @@ This project is licensed under the MIT License. You are free to use, modify, and
 ### Didication
 
 This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.
+
+### Special thanks
+
+My sincere thanks for [Lesley](https://github.com/lesleyandrez) and [Nic](https://github.com/ngimelliUW) for all help.
 
 ### Donate
 
