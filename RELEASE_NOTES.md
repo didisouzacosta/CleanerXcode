@@ -2,6 +2,7 @@
 
 • Update app icon.
 • Update release notes.
+• Improve free up space and used space state management using StateValue component.
 
 # v0.1.0 - Build 105
 
