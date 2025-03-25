@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A94471EA2D9305470079ED9B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A94471E82D9305470079ED9B /* README.md */; };
+		A94471EB2D9305470079ED9B /* RELEASE_NOTES.md in Resources */ = {isa = PBXBuildFile; fileRef = A94471E92D9305470079ED9B /* RELEASE_NOTES.md */; };
 		A9D98E8F2D8FCD76000448A2 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A9D98E8E2D8FCD76000448A2 /* FirebaseAnalytics */; };
 		A9D98E912D8FCD76000448A2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A9D98E902D8FCD76000448A2 /* FirebaseCrashlytics */; };
 /* End PBXBuildFile section */
@@ -22,6 +24,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A94471E82D9305470079ED9B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		A94471E92D9305470079ED9B /* RELEASE_NOTES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = RELEASE_NOTES.md; sourceTree = "<group>"; };
 		A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CleanerXcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9D98E1E2D8FCBF0000448A2 /* CleanerXcodeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CleanerXcodeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -62,6 +66,8 @@
 		A9D98E042D8FCBEF000448A2 = {
 			isa = PBXGroup;
 			children = (
+				A94471E82D9305470079ED9B /* README.md */,
+				A94471E92D9305470079ED9B /* RELEASE_NOTES.md */,
 				A9D98E0F2D8FCBEF000448A2 /* CleanerXcode */,
 				A9D98E212D8FCBF0000448A2 /* CleanerXcodeTests */,
 				A9D98E0E2D8FCBEF000448A2 /* Products */,
@@ -174,6 +180,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A94471EA2D9305470079ED9B /* README.md in Resources */,
+				A94471EB2D9305470079ED9B /* RELEASE_NOTES.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
