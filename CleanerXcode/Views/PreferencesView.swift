@@ -39,19 +39,19 @@ struct PreferencesView: View {
                 Section("Cache") {
                     factoryToggle(
                         "Remove Archives",
-                        detail: sizeFormatted(clearStore.usedSpace.archives),
+                        detail: sizeFormatted(clearStore.usedSpace.value.archives),
                         isOn: $bindablePreferences.canRemoveArchives.value
                     )
                     
                     factoryToggle(
                         "Remove Caches",
-                        detail: sizeFormatted(clearStore.usedSpace.cache),
+                        detail: sizeFormatted(clearStore.usedSpace.value.cache),
                         isOn: $bindablePreferences.canRemoveCaches.value
                     )
                     
                     factoryToggle(
                         "Remove Derived Data",
-                        detail: sizeFormatted(clearStore.usedSpace.derivedData),
+                        detail: sizeFormatted(clearStore.usedSpace.value.derivedData),
                         isOn: $bindablePreferences.canRemoveDerivedData.value
                     )
                 }
@@ -59,13 +59,13 @@ struct PreferencesView: View {
                 Section("Simulators & Xcode") {
                     factoryToggle(
                         "Clear Device Support",
-                        detail: sizeFormatted(clearStore.usedSpace.deviceSupport),
+                        detail: sizeFormatted(clearStore.usedSpace.value.deviceSupport),
                         isOn: $bindablePreferences.canClearDeviceSupport.value
                     )
                     
                     factoryToggle(
                         "Clear Simulator Data",
-                        detail: sizeFormatted(clearStore.usedSpace.simulatorData),
+                        detail: sizeFormatted(clearStore.usedSpace.value.simulatorData),
                         isOn: $bindablePreferences.canClearSimultorData.value
                     )
                     

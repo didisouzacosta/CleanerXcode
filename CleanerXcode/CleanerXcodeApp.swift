@@ -24,6 +24,10 @@ struct CleanerXcodeApp: App {
     
     // MARK: - States
     
+    @State private var isFirstAppear = true
+    
+    // MARK: - Private Variables
+    
     private var route = Route()
     private var clearStore = ClearStore(.shared, analytics: Analytics.shared)
     private var preferences = Preferences.shared
@@ -47,8 +51,17 @@ struct CleanerXcodeApp: App {
                 Image("iconClear")
                 
                 if preferences.displayFreeUpSpaceInMenuBar.value {
-                    Text(clearStore.freeUpSpace.byteFormatter())
+                    if clearStore.isCleaning {
+                        Text("Cleaning...")
+                    } else if clearStore.usedSpace.isLoading && clearStore.freeUpSpace.isZero && isFirstAppear {
+                        Text("Calculating...")
+                    } else {
+                        Text(clearStore.freeUpSpace.byteFormatter())
+                    }
                 }
+            }
+            .onAppear {
+                isFirstAppear = false
             }
         }
         .menuBarExtraStyle(.window)
