@@ -33,18 +33,22 @@ Xcode can accumulate a large number of temporary files and data that take up dis
 - **Suggest Improvements:** Submit a proposal via [issue](https://github.com/didisouzacosta/CleanerXcode/issues/new/choose) or pull request.
 - **Submit Code:** Fork the repository, create a branch with your changes, and submit a pull request.
 
+Feel free to contribute and help improve CleanerXcode!
+
 ### Coding Standards
 - Follow best practices for Swift and macOS development.
 - Include clear documentation and explanatory comments in the code.
+- This project uses Google Analytics. To run it in developer mode, the project already includes the GoogleService-Info-Development.plist. To run it in production mode, you need to contact me to request the production GoogleService-Info.plist file.
 
-### Additional Resources
-- [Code of Conduct](#)
-- [Contribution Guide](#)
-- [Project Roadmap](#)
+### License
 
-### Additional Information
-- [Code of Conduct](#)
-- [Contribution Guide](#)
-- [Project Roadmap](#)
+This project is licensed under the MIT License. You are free to use, modify, and distribute it as long as you include the original license terms. See the [LICENSE file](https://github.com/didisouzacosta/CleanerXcode/blob/v0.1.1/LICENSE) for more details.
 
-Feel free to contribute and help improve CleanerXcode!
+### Didication
+
+This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.
+
+### Donate
+
+If this project help you, consider make a [donation](https://buy.stripe.com/00gcN772R2ns3wA9AA).
+
