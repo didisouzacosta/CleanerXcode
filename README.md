@@ -21,6 +21,10 @@ Xcode can accumulate a large number of temporary files and data that take up dis
 2. Open the application and select the desired cleaning options.
 3. Click the clean button and wait for the process to complete.
 
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/ac6f66d0-8e3f-48e7-a102-6d6b32d67830"/>
+</div>
+
 ## Areas for Improvement
 - Support for advanced customization of file removal.
 - Integration with macOS shortcuts for automated cleaning.
