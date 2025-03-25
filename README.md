@@ -11,7 +11,7 @@ CleanerXcode is a macOS tool designed to remove unnecessary Xcode files, such as
 Xcode can accumulate a large number of temporary files and data that take up disk space and may affect system performance. CleanerXcode solves this problem by providing a simple and effective way to free up space and improve your workflow speed.
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/ac6f66d0-8e3f-48e7-a102-6d6b32d67830"/>
+  <video src="https://github.com/user-attachments/assets/cab5d274-b49d-409d-a2c3-6d49ffa0d05f"/>
 </div>
 
 ## Key Features
