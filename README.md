@@ -50,7 +50,8 @@ This project is licensed under the MIT License. You are free to use, modify, and
 
 ### Didication
 
-This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele.
+This simple app was made for anyone who loves developing for Apple technologies.
+I'd like to dedicate this app to my son Orlando and my wife Gisele.
 
 ### Special thanks
 
