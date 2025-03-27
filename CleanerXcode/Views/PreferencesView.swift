@@ -7,6 +7,7 @@
 
 import SwiftUI
 import TipKit
+import LaunchAtLogin
 
 struct PreferencesView: View {
     
@@ -85,6 +86,12 @@ struct PreferencesView: View {
                         "Display Free Up Space In Menu Bar",
                         isOn: $bindablePreferences.displayFreeUpSpaceInMenuBar.value
                     )
+                    
+                    LaunchAtLogin.Toggle {
+                        Text("Launch At Login")
+                    } changedValue: { isOn in
+                        preferences.launchAtLogin.value = isOn
+                    }
                 }
                 
                 Section("Dedication") {

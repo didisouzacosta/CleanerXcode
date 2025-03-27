@@ -52,6 +52,11 @@ final class Preferences {
         defaultValue: true
     )
     
+    var launchAtLogin = StoragedValue(
+        "launch-at-login",
+        defaultValue: true
+    )
+    
 }
 
 extension EnvironmentValues {

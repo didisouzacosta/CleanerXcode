@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseCore
+import LaunchAtLogin
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     
@@ -55,6 +56,9 @@ struct CleanerXcodeApp: App {
                         Text(clearStore.freeUpSpace.byteFormatter())
                     }
                 }
+            }
+            .onAppear {
+                LaunchAtLogin.isEnabled = preferences.launchAtLogin.value
             }
         }
         .menuBarExtraStyle(.window)
