@@ -2,6 +2,7 @@
 
 • Launching at login.
 • Adding launch at login preference in settings view.
+• Update app icon.
 
 # v0.1.1 - Build 106
 
