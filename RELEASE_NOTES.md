@@ -1,3 +1,8 @@
+# v0.2.0 - Build 107
+
+• Launching at login.
+• Adding launch at login preference in settings view.
+
 # v0.1.1 - Build 106
 
 • Update app icon.

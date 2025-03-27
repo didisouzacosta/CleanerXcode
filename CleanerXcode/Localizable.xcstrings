@@ -171,6 +171,16 @@
         }
       }
     },
+    "Launch At Login" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar no login"
+          }
+        }
+      }
+    },
     "Preferences" : {
       "localizations" : {
         "pt-BR" : {
