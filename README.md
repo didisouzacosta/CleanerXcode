@@ -20,6 +20,12 @@ Xcode can accumulate a large number of temporary files and data that take up dis
 - **Simulator management:** Allows the removal of obsolete simulators, keeping only the essentials.
 - **Intuitive interface:** Easy to use, with clear options for managing Xcode files.
 
+## Requirements
+
+| Platform                                             | 
+| ---------------------------------------------------- |
+| macOS 15.0+
+
 ## Installation & Usage
 1. [Download CleanerXcode](https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/main/releases/CleanerXcode.dmg).
 2. Open the application and select the desired cleaning options.
