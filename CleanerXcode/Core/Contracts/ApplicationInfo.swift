@@ -12,5 +12,6 @@ protocol ApplicationInfo {
     var version: String { get }
     var build: String { get }
     var fullVersion: String { get }
+    var versionFileURL: URL? { get }
     
 }
