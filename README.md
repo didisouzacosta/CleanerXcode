@@ -1,5 +1,5 @@
 <p align="center">
-  <image src="https://github.com/user-attachments/assets/9622a1a3-46c2-4acc-ab86-96963f97cdda"width="200" />
+  <image src="app-icon.png" width="200" />
 </p>
 
 <h1 align="center">CleanerXcode (BETA)</h1>
