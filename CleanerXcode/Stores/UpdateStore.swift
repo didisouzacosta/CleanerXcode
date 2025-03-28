@@ -21,7 +21,6 @@ final class UpdateStore {
     // MARK: - Private Variables
     
     private let applicationInfo: ApplicationInfo
-    private let versionFileURL = URL(string: "https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/resources/version.json")!
     
     // MARK: - Initializers
     
@@ -33,6 +32,10 @@ final class UpdateStore {
     
     func checkUpdates() {
         hasUpdate.state = .isLoading
+        
+        guard let versionFileURL = applicationInfo.versionFileURL else {
+            return
+        }
         
         Task { @MainActor in
             do {

@@ -7,6 +7,18 @@
 
 import SwiftUI
 
+extension Bundle {
+    
+    var versionFileURL: URL? {
+        guard let stringURL = infoDictionary?["VERSION_FILE_URL"] as? String else {
+            return nil
+        }
+        
+        return .init(string: stringURL)
+    }
+    
+}
+
 extension Bundle: ApplicationInfo {
     
     var version: String {
