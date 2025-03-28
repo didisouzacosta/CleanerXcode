@@ -21,7 +21,7 @@ final class UpdateStore {
     // MARK: - Private Variables
     
     private let applicationInfo: ApplicationInfo
-    private let versionFileURL = URL(string: "https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/main/resources/version.json")!
+    private let versionFileURL = URL(string: "https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/check-updates/resources/version.json")!
     
     // MARK: - Initializers
     
