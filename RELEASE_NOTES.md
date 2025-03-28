@@ -1,3 +1,8 @@
+# v0.3.0 - Build 108
+
+• Display if has updates.
+• Improve consume of button improving the reusable.
+
 # v0.2.0 - Build 107
 
 • Launching at login.
