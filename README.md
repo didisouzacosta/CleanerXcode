@@ -1,7 +1,9 @@
 <p align="center">
-  <image src="resources/app-icon.png" width="200" style="display: block" />
-  
-  <a href="https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/main/releases/CleanerXcode.dmg" style="display: block">
+  <image src="resources/app-icon.png" width="200" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/main/releases/CleanerXcode.dmg">
     <image src="resources/download-button.png" width="200" />
   </a>
 </p>
