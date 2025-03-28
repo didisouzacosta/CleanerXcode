@@ -1,5 +1,8 @@
 <p align="center">
-  <image src="app-icon.png" width="200" />
+  <image src="resources/app-icon.png" width="200" />
+  <a href="https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/main/releases/CleanerXcode.dmg">
+    <image src="resources/download-button.png" width="100" />
+  </a>
 </p>
 
 <h1 align="center">CleanerXcode (BETA)</h1>
