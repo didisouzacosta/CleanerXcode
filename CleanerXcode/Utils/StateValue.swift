@@ -21,7 +21,7 @@ struct StateValue<T: Equatable> {
         }
     }
     
-    init(_ value: T, state: State) {
+    init(_ value: T, state: State = .idle) {
         self.value = value
         self.state = state
     }
@@ -31,6 +31,7 @@ struct StateValue<T: Equatable> {
 extension StateValue {
     
     enum State {
+        case idle
         case isLoading
         case failure(any Error)
         case success(T)

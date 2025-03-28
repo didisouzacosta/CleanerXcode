@@ -27,6 +27,7 @@ struct CleanerXcodeApp: App {
     
     private var route = Route()
     private var clearStore = ClearStore(.shared, analytics: Analytics.shared)
+    private var updateStore = UpdateStore(Bundle.main)
     private var preferences = Preferences.shared
     
     // MARK: - Private Variables
@@ -41,6 +42,7 @@ struct CleanerXcodeApp: App {
                 .frame(width: 340)
                 .environment(\.route, route)
                 .environment(\.clearStore, clearStore)
+                .environment(\.updateStore, updateStore)
                 .environment(\.preferences, preferences)
                 .environment(\.analytics, analytics)
         } label: {
@@ -59,6 +61,7 @@ struct CleanerXcodeApp: App {
             }
             .onAppear {
                 LaunchAtLogin.isEnabled = preferences.launchAtLogin.value
+                updateStore.checkUpdates()
             }
         }
         .menuBarExtraStyle(.window)

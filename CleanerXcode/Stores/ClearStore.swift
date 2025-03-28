@@ -12,7 +12,7 @@ final class ClearStore {
     
     // MARK: - Public Variables
     
-    private(set) var usedSpace = StateValue<UsedSpace>(.init(), state: .isLoading)
+    private(set) var usedSpace = StateValue(UsedSpace())
     private(set) var isCleaning = false
     
     var cleanerStatus: Status {

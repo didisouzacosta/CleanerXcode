@@ -281,6 +281,16 @@
         }
       }
     },
+    "Update" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar"
+          }
+        }
+      }
+    },
     "Version %@" : {
       "localizations" : {
         "pt-BR" : {

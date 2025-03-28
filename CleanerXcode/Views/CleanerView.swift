@@ -13,6 +13,7 @@ struct CleanerView: View {
     // MARK: - Environments
     
     @Environment(\.clearStore) private var clearStore
+    @Environment(\.updateStore) private var updateStore
     @Environment(\.analytics) private var analytics
     @Environment(\.route) private var route
     @Environment(\.openURL) private var openURL
@@ -117,9 +118,24 @@ struct CleanerView: View {
                 }
                 .disabled(clearStore.isCleaning)
                 
-                Text("Version \(NSApplication.fullVersion)")
-                    .font(.footnote)
-                    .foregroundStyle(.placeholder)
+                HStack(alignment: .center) {
+                    Text("Version \(Bundle.main.fullVersion)")
+                        .foregroundStyle(.placeholder)
+                    
+                    if updateStore.hasUpdate.value {
+                        ExpandableButton(radius: 6, fill: .greenAction) {
+                            if let url = updateStore.version?.downloadURL {
+                                openURL(url)
+                            }
+                        } label: {
+                            Text("Update")
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 4)
+                        }
+                    }
+                }
+                .font(.footnote)
                 
                 Spacer()
                 
@@ -140,16 +156,12 @@ struct CleanerView: View {
 
 fileprivate struct CleanerButton: View {
     
-    // MARK: - States
-    
-    @State private var isHover = false
-    
     // MARK: - Private Variables
     
-    private var backgroundColor: Color {
+    private var fillColor: Color {
         switch status {
         case .idle: .blue
-        case .completed, .cleaning: .cleaning
+        case .completed, .cleaning: .greenAction
         case .error: .red
         }
     }
@@ -182,45 +194,31 @@ fileprivate struct CleanerButton: View {
     // MARK: - Public Variables
     
     var body: some View {
-        ZStack {
-            Button {
-                action()
-            } label: {
-                HStack {
-                    switch status {
-                    case .cleaning(let progress, let total):
-                        ProgressView(
-                            value: progress,
-                            total: total
-                        )
-                        .progressViewStyle(CustomCircularProgressViewStyle())
-                        .frame(width: 12, height: 12)
-                    default:
-                        EmptyView()
-                    }
-                    
-                    Text(text)
-                        .contentTransition(.numericText())
+        ExpandableButton(radius: 32, fill: fillColor) {
+            action()
+        } label: {
+            HStack {
+                switch status {
+                case .cleaning(let progress, let total):
+                    ProgressView(
+                        value: progress,
+                        total: total
+                    )
+                    .progressViewStyle(CustomCircularProgressViewStyle())
+                    .frame(width: 12, height: 12)
+                default:
+                    EmptyView()
                 }
-                .font(.title2)
-                .foregroundStyle(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .clipped()
-                .background {
-                    RoundedRectangle(cornerRadius: 32)
-                        .fill(backgroundColor)
-                        .scaleEffect(isHover && allowsHitTesting ? 1.05 : 1)
-                }
-                .animation(.snappy, value: status)
+                
+                Text(text)
+                    .contentTransition(.numericText())
             }
-            .allowsHitTesting(allowsHitTesting)
-            .animation(.bouncy, value: isHover)
-            .buttonStyle(.plain)
-            .onHover { status in
-                isHover = status
-            }
+            .font(.title2)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
+        .animation(.bouncy, value: status)
     }
     
     // MARK: - Private Variables
@@ -246,5 +244,6 @@ fileprivate struct CleanerButton: View {
 #Preview {
     CleanerView()
         .environment(\.clearStore, .init(.init(), analytics: Analytics()))
+        .environment(\.updateStore, .init(Bundle.main))
         .environment(\.route, .init())
 }
