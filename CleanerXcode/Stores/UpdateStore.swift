@@ -48,7 +48,16 @@ final class UpdateStore {
     
     private func compareVersions() {
         guard let version else { return }
-        hasUpdate.state = .success(version.version < applicationInfo.version)
+        let status = applicationInfo.version.toInt() < version.version.toInt()
+        hasUpdate.state = .success(status)
+    }
+    
+}
+
+fileprivate extension String {
+    
+    func toInt() -> Int {
+        Int(self.split(separator: ".").joined()) ?? 0
     }
     
 }

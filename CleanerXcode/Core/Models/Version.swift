@@ -11,15 +11,15 @@ struct Version: Decodable {
     
     // MARK: - Public Variables
     
-    let version: Int
-    let build: Int
+    let version: String
+    let build: String
     let downloadURL: URL
     
     // MARK: - Initializers
     
     init(
-        version: Int,
-        build: Int,
+        version: String,
+        build: String,
         downloadURL: URL
     ) {
         self.version = version
@@ -31,15 +31,6 @@ struct Version: Decodable {
         case version
         case build
         case downloadURL
-    }
-    
-    init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let versionString = try container.decode(String.self, forKey: .version)
-        
-        self.version = Int(versionString.split(separator: ".").joined()) ?? 0
-        self.build = try container.decode(Int.self, forKey: .build)
-        self.downloadURL = try container.decode(URL.self, forKey: .downloadURL)
     }
     
 }

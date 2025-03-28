@@ -9,8 +9,8 @@ import Foundation
 
 protocol ApplicationInfo {
     
-    var version: Double { get }
-    var build: Double { get }
+    var version: String { get }
+    var build: String { get }
     var fullVersion: String { get }
     
 }

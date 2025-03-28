@@ -9,14 +9,12 @@ import SwiftUI
 
 extension Bundle: ApplicationInfo {
     
-    var version: Double {
-        let value = object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String? ?? "0"
-        return Double(value) ?? 0
+    var version: String {
+        object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String? ?? "0"
     }
     
-    var build: Double {
-        let value = object(forInfoDictionaryKey: "CFBundleVersion") as! String? ?? "0"
-        return Double(value) ?? 0
+    var build: String {
+        object(forInfoDictionaryKey: "CFBundleVersion") as! String? ?? "0"
     }
     
     var fullVersion: String {
