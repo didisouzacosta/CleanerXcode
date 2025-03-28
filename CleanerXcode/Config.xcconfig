@@ -8,4 +8,4 @@
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
 
-VERSION_FILE_URL = https:/$()/github.com/didisouzacosta/CleanerXcode/raw/refs/heads/resources/version.json
+VERSION_FILE_URL = https:/$()/github.com/didisouzacosta/CleanerXcode/raw/refs/heads/main/resources/version.json
