@@ -52,6 +52,9 @@ Feel free to contribute and help improve CleanerXcode!
 
 This project is licensed under the MIT License. You are free to use, modify, and distribute it as long as you include the original license terms. See the [LICENSE file](https://github.com/didisouzacosta/CleanerXcode/blob/v0.1.1/LICENSE) for more details.
 
+### Dependencies
+• [LaunchAtLogin](https://github.com/sindresorhus/LaunchAtLogin-Modern)
+
 ### Didication
 
 This simple app was made for anyone who loves developing for Apple technologies.
