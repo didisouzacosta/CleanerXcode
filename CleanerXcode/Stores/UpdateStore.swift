@@ -21,7 +21,7 @@ final class UpdateStore {
     // MARK: - Private Variables
     
     private let applicationInfo: ApplicationInfo
-    private let versionFileURL = URL(string: "https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/check-updates/resources/version.json")!
+    private let versionFileURL = URL(string: "https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/resources/version.json")!
     
     // MARK: - Initializers
     
@@ -48,7 +48,7 @@ final class UpdateStore {
     
     private func compareVersions() {
         guard let version else { return }
-        let status = applicationInfo.version.toInt() < version.version.toInt()
+        let status = applicationInfo.version.toVersionInt() < version.version.toVersionInt()
         hasUpdate.state = .success(status)
     }
     
@@ -56,7 +56,7 @@ final class UpdateStore {
 
 fileprivate extension String {
     
-    func toInt() -> Int {
+    func toVersionInt() -> Int {
         Int(self.split(separator: ".").joined()) ?? 0
     }
     
