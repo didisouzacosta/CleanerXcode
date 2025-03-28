@@ -27,10 +27,4 @@ struct Version: Decodable {
         self.downloadURL = downloadURL
     }
     
-    enum CodingKeys: CodingKey {
-        case version
-        case build
-        case downloadURL
-    }
-    
 }
