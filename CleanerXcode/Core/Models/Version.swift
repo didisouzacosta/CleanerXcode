@@ -11,15 +11,15 @@ struct Version: Decodable {
     
     // MARK: - Public Variables
     
-    let version: Double
-    let build: Double
+    let version: Int
+    let build: Int
     let downloadURL: URL
     
     // MARK: - Initializers
     
     init(
-        version: Double,
-        build: Double,
+        version: Int,
+        build: Int,
         downloadURL: URL
     ) {
         self.version = version
@@ -35,8 +35,10 @@ struct Version: Decodable {
     
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.version = Double(try container.decode(String.self, forKey: .version)) ?? 0
-        self.build = Double(try container.decode(String.self, forKey: .build)) ?? 0
+        let versionString = try container.decode(String.self, forKey: .version)
+        
+        self.version = Int(versionString.split(separator: ".").joined()) ?? 0
+        self.build = try container.decode(Int.self, forKey: .build)
         self.downloadURL = try container.decode(URL.self, forKey: .downloadURL)
     }
     
