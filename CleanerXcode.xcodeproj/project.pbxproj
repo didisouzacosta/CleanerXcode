@@ -26,6 +26,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A902DB6D2D9AD239005321F9 /* CleanerXcode.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = CleanerXcode.xctestplan; sourceTree = "<group>"; };
 		A94471E82D9305470079ED9B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		A94471E92D9305470079ED9B /* RELEASE_NOTES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = RELEASE_NOTES.md; sourceTree = "<group>"; };
 		A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CleanerXcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -83,6 +84,7 @@
 		A9D98E042D8FCBEF000448A2 = {
 			isa = PBXGroup;
 			children = (
+				A902DB6D2D9AD239005321F9 /* CleanerXcode.xctestplan */,
 				A94471E82D9305470079ED9B /* README.md */,
 				A94471E92D9305470079ED9B /* RELEASE_NOTES.md */,
 				A9D98E0F2D8FCBEF000448A2 /* CleanerXcode */,

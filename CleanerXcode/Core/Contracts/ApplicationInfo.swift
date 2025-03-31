@@ -12,6 +12,21 @@ protocol ApplicationInfo {
     var version: String { get }
     var build: String { get }
     var fullVersion: String { get }
-    var versionFileURL: URL? { get }
+    
+    func loadLatestVersionFromRemote() async throws -> Version
+    
+}
+
+extension ApplicationInfo {
+    
+    func loadLatestVersionFromRemote() async throws -> Version {
+        guard let url = Bundle.main.versionFileURL else {
+            throw ""
+        }
+        
+        let (data, _) = try await URLSession.shared.data(from: url)
+        
+        return try data.decoder()
+    }
     
 }

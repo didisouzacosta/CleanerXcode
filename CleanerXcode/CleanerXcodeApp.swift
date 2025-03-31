@@ -61,7 +61,7 @@ struct CleanerXcodeApp: App {
             }
             .onAppear {
                 LaunchAtLogin.isEnabled = preferences.launchAtLogin.value
-                updateStore.checkUpdates()
+//                updateStore.checkUpdates()
             }
         }
         .menuBarExtraStyle(.window)
