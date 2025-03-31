@@ -9,7 +9,12 @@ import Foundation
 
 struct StateValue<T: Equatable> {
     
-    private(set) var value: T
+    var value: T {
+        didSet {
+            guard value != oldValue else { return }
+            state = .success(value)
+        }
+    }
     
     var state: State {
         didSet {
