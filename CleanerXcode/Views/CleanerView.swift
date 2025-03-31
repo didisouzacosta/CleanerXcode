@@ -110,7 +110,7 @@ struct CleanerView: View {
             
             HStack {
                 HighlightButton {
-                    route.isPresentSettings.toggle()
+                    route.path = .preferences
                 } label: {
                     Image(systemName: "gear")
                         .resizable()

@@ -12,11 +12,20 @@ final class Route {
     
     // MARK: - Public Variables
     
-    var isPresentSettings = false
+    var path: Path = .cleaner
     
     // MARK: - Initializers
     
     init() {}
+    
+}
+
+extension Route {
+    
+    enum Path: Int, Hashable {
+        case cleaner = 0
+        case preferences
+    }
     
 }
 

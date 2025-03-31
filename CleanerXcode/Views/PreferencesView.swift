@@ -30,7 +30,7 @@ struct PreferencesView: View {
         
         VStack(alignment: .leading, spacing: 0) {
             HighlightButton {
-                route.isPresentSettings.toggle()
+                route.path = .cleaner
             } label: {
                 Label("Home", systemImage: "chevron.backward")
             }

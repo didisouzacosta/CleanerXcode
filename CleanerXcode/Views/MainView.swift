@@ -17,15 +17,16 @@ struct MainView: View {
     
     var body: some View {
         Group {
-            if route.isPresentSettings {
-                PreferencesView()
-                    .transition(.move(edge: .trailing))
-            } else {
+            switch route.path {
+            case .cleaner:
                 CleanerView()
                     .transition(.move(edge: .leading))
+            case .preferences:
+                PreferencesView()
+                    .transition(.move(edge: .trailing))
             }
         }
-        .animation(.easeInOut, value: route.isPresentSettings)
+        .animation(.easeInOut, value: route.path)
     }
     
 }
