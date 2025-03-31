@@ -247,3 +247,36 @@ fileprivate struct CleanerButton: View {
         .environment(\.updateStore, .init(Bundle.main))
         .environment(\.route, .init())
 }
+
+
+
+
+@Observable
+final class ExamplePreviewableForm {
+    
+    var isEditing = false
+    
+}
+
+struct ExamplePreviewableFormView: View {
+    
+    // MARK: - States
+    
+    @State private var form = ExamplePreviewableForm()
+    
+    // MARK: - Public Variables
+    
+    var body: some View {
+        Form {
+            
+        }
+        .disabled(isFormDisabled)
+    }
+    
+    // MARK: - Private Variables
+    
+    private var isFormDisabled: Bool {
+        !form.isEditing
+    }
+    
+}
