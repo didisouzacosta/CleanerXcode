@@ -80,21 +80,21 @@ struct CleanerView: View {
     private func social() -> some View {
         HStack(spacing: 16) {
             HighlightButton {
-                openURL(.init(string: "https://github.com/didisouzacosta/CleanerXcode")!)
+                openURL(Constants.githubURL)
                 analytics.log(.social(.github))
             } label: {
                 Image("github.fill")
             }
             
             HighlightButton {
-                openURL(.init(string: "https://x.com/didisouzacosta")!)
+                openURL(Constants.xURL)
                 analytics.log(.social(.x))
             } label: {
                 Image("x")
             }
             
             HighlightButton {
-                openURL(.init(string: "https://www.linkedin.com/in/adrianosouzacosta/")!)
+                openURL(Constants.linkedinURL)
                 analytics.log(.social(.linkedin))
             } label: {
                 Image("linkedin")
