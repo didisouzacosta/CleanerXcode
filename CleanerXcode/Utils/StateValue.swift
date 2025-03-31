@@ -9,51 +9,27 @@ import Foundation
 
 struct StateValue<T: Equatable> {
     
+    // MARK: - Public Variables
+    
+    var isLoading = false
+    
     var value: T {
         didSet {
-            guard value != oldValue else { return }
-            state = .success(value)
+            isLoading = false
+            error = nil
         }
-    }
-    
-    var state: State {
-        didSet {
-            switch state {
-            case .success(let value):
-                self.value = value
-            default: return
-            }
-        }
-    }
-    
-    init(_ value: T, state: State = .idle) {
-        self.value = value
-        self.state = state
-    }
-    
-}
-
-extension StateValue {
-    
-    enum State {
-        case idle
-        case isLoading
-        case failure(any Error)
-        case success(T)
     }
     
     var error: Error? {
-        switch state {
-        case .failure(let error): error
-        default: nil
+        didSet {
+            isLoading = false
         }
     }
     
-    var isLoading: Bool {
-        switch state {
-        case .isLoading: true
-        default: false
-        }
+    // MARK: - Initializers
+    
+    init(_ value: T) {
+        self.value = value
     }
     
 }

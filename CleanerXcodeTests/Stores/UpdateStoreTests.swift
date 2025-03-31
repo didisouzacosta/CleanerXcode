@@ -27,17 +27,22 @@ struct UpdateStoreTests {
         
         let store = UpdateStore(applicationInfoStub)
         
+        #expect(store.hasUpdate.isLoading == false)
+        
         store.checkUpdates()
         
         waitUntil {
-            store.version != nil
+            store.version != nil && store.hasUpdate.isLoading == false
+        } whileWaiting: {
+            #expect(store.hasUpdate.isLoading == true)
         }
         
+        #expect(store.hasUpdate.isLoading == false)
         #expect(store.version?.version == "0.0.1")
         #expect(store.version?.build == "1")
     }
     
-    @Test func hasUpdatesShouldNotBeTrueWhenLocalVersionIsGreatherThanRemoteVersion() async throws {
+    @Test func hasUpdatesShouldNotBeTrueWhenLocalVersionIsGreatherThanTheRemoteVersion() async throws {
         let applicationInfoStub = ApplicationInforStub(
             version: "0.1.0",
             build: "100",
@@ -61,7 +66,7 @@ struct UpdateStoreTests {
         #expect(store.hasUpdate.value == false)
     }
     
-    @Test func hasUpdatesShouldNotBeTrueWhenLocalVersionIsEqualThanRemoteVersion() async throws {
+    @Test func hasUpdatesShouldNotBeTrueWhenLocalVersionIsEqualThanTheRemoteVersion() async throws {
         let applicationInfoStub = ApplicationInforStub(
             version: "0.1.0",
             build: "100",
@@ -85,7 +90,7 @@ struct UpdateStoreTests {
         #expect(store.hasUpdate.value == false)
     }
     
-    @Test func hasUpdatesShouldBeTrueWhenLocalVersionIsLessThanRemoteVersion() async throws {
+    @Test func hasUpdatesShouldBeTrueWhenLocalVersionIsLessThanTheRemoteVersion() async throws {
         let applicationInfoStub = ApplicationInforStub(
             version: "0.0.1",
             build: "1",
@@ -107,6 +112,26 @@ struct UpdateStoreTests {
         }
         
         #expect(store.hasUpdate.value == true)
+    }
+    
+    @Test func hasUpdatesShouldBeFalseOnError() async throws {
+        let applicationInfoStub = ApplicationInforStub(
+            version: "0.0.1",
+            build: "1",
+            fullVersion: "0.0.1.100"
+        ) {
+            throw "Failure on load version"
+        }
+        
+        let store = UpdateStore(applicationInfoStub)
+        
+        store.checkUpdates()
+        
+        waitUntil {
+            store.hasUpdate.isLoading == false
+        }
+        
+        #expect(store.hasUpdate.value == false)
     }
 
 }

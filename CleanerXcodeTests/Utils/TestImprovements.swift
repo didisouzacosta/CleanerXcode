@@ -7,9 +7,9 @@
 
 func waitUntil(
     _ condition: @escaping () -> Bool,
-    check: @escaping () -> Void = {}
+    whileWaiting: @escaping () -> Void = {}
 ) {
     repeat {
-        check()
+        whileWaiting()
     } while !condition()
 }
