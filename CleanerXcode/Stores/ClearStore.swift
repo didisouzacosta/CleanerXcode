@@ -135,12 +135,11 @@ final class ClearStore {
     }
     
     private func calculateFreeUpSpace() {
-        usedSpace.state = .isLoading
+        usedSpace.isLoading = true
         
         Task(priority: .background) { @MainActor in
             let value = try? await shell.execute(.calculateFreeUpSpace)
-            let usedSpace: UsedSpace = (try? value?.data(using: .utf8)?.decoder()) ?? .init()
-            self.usedSpace.state = .success(usedSpace)
+            usedSpace.value = (try? value?.data(using: .utf8)?.decoder()) ?? .init()
         }
     }
     
