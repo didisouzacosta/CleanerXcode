@@ -33,14 +33,9 @@ final class UpdateStore {
     func checkUpdates() {
         hasUpdate.state = .isLoading
         
-        guard let versionFileURL = applicationInfo.versionFileURL else {
-            return
-        }
-        
         Task { @MainActor in
             do {
-                let (data, _) = try await URLSession.shared.data(from: versionFileURL)
-                version = try data.decoder()
+                version = try await applicationInfo.loadLatestVersionFromRemote()
             } catch {
                 hasUpdate.state = .failure(error)
             }
@@ -52,7 +47,7 @@ final class UpdateStore {
     private func compareVersions() {
         guard let version else { return }
         let status = applicationInfo.version.toVersionInt() < version.version.toVersionInt()
-        hasUpdate.state = .success(status)
+        hasUpdate.value = status
     }
     
 }
