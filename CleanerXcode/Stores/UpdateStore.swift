@@ -31,13 +31,13 @@ final class UpdateStore {
     // MARK: - Public Methods
     
     func checkUpdates() {
-        hasUpdate.state = .isLoading
+        hasUpdate.isLoading = true
         
         Task { @MainActor in
             do {
                 version = try await applicationInfo.loadLatestVersionFromRemote()
             } catch {
-                hasUpdate.state = .failure(error)
+                hasUpdate.error = error
             }
         }
     }
