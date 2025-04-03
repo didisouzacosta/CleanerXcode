@@ -26,7 +26,7 @@ struct CleanerXcodeApp: App {
     // MARK: - Private Variables
     
     private var route = Route()
-    private var clearStore = ClearStore(.shared, analytics: Analytics.shared)
+    private var clearStore = ClearStore(commandExecutor: Shell(), preferences: .shared, analytics: Analytics.shared)
     private var updateStore = UpdateStore(Bundle.main)
     private var preferences = Preferences.shared
     

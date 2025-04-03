@@ -15,7 +15,9 @@ final class UpdateStore {
     private(set) var hasUpdate = StateValue(false)
     
     private(set) var version: Version? {
-        didSet { compareVersions() }
+        didSet {
+            compareVersions()
+        }
     }
     
     // MARK: - Private Variables

@@ -22,7 +22,11 @@ final class ClearStore {
                 total: cleanerProgressTotal
             )
         } else if isCleanerCompleted {
-            .completed
+            if cleanerSteps.contains(where: { $0.hasError }) {
+                .error
+            } else {
+                .completed
+            }
         } else {
             .idle
         }
@@ -36,13 +40,14 @@ final class ClearStore {
     
     // MARK: - Private Variables
     
-    private let shell = Shell()
+    private let commandExecutor: CommandExecutor
     private let preferences: Preferences
     private let analytics: AnalyticsRepresentable
     
     private var timer: Timer?
     private var isCleanerCompleted = false
     private var cleanerSteps = [CleanerStep]()
+    private var cleanerTask: Task<Void, Error>?
     
     private var cleanerProgress: Double {
         Double(cleanerSteps.count)
@@ -52,7 +57,7 @@ final class ClearStore {
         CGFloat(enabledCommands.count)
     }
     
-    private var enabledCommands: [Shell.Command] {
+    private var enabledCommands: [Command] {
         [
             preferences.canRemoveArchives,
             preferences.canRemoveCaches,
@@ -63,62 +68,73 @@ final class ClearStore {
             preferences.canResertXcodePreferences
         ]
         .filter { $0.value }
-        .compactMap {
-            .init(rawValue: $0.key)
+        .compactMap { preference in
+            Command.commands.first { $0.script == preference.key }
         }
     }
     
     // MARK: - Initializers
     
     init(
-        _ preferences: Preferences,
+        commandExecutor: CommandExecutor = Shell(),
+        preferences: Preferences,
         analytics: AnalyticsRepresentable
     ) {
+        self.commandExecutor = commandExecutor
         self.preferences = preferences
         self.analytics = analytics
         
         defer {
-            setupTimer()
+            startCheckFreeUpSpaceTimer()
             calculateFreeUpSpace()
         }
     }
     
     // MARK: - Public Methods
     
-    @MainActor
-    func cleaner() async throws {
+    func cleaner() {
         isCleaning = true
         isCleanerCompleted = false
         
-        await withTaskGroup(of: CleanerStep.self) { group in
-            enabledCommands.enumerated().forEach { index, command in
-                group.addTask(priority: .background) { [weak self] in
-                    do {
-                        try await self?.shell.execute(command)
-                        return .init(command.id, error: nil)
-                    } catch {
-                        return .init(command.id, error: error)
+        stopCheckFreeUpSpaceTimer()
+        
+        cleanerTask = Task { @MainActor in
+            await withTaskGroup(of: CleanerStep.self) { group in
+                enabledCommands.enumerated().forEach { index, command in
+                    group.addTask(priority: .background) { [weak self] in
+                        do {
+                            try await self?.commandExecutor.run(command)
+                            try Task.checkCancellation()
+                            
+                            self?.calculateFreeUpSpace()
+                            
+                            return .init(command.id)
+                        } catch {
+                            return .init(command.id, error: error)
+                        }
                     }
                 }
+                
+                while let step = await group.next() {
+                    try? await Task.sleep(nanoseconds: 0.5.second)
+                    cleanerSteps.append(step)
+                }
+                
+                analytics.log(.cleaner(enabledCommands))
+                calculateFreeUpSpace()
+                
+                try? await Task.sleep(nanoseconds: 1.second)
+                
+                isCleaning = false
+                isCleanerCompleted = true
+                cleanerSteps = cleanerSteps.filter { $0.hasError }
+                
+                try? await Task.sleep(nanoseconds: 2.second)
+                
+                isCleanerCompleted = false
+                
+                startCheckFreeUpSpaceTimer()
             }
-            
-            while let step = await group.next() {
-                try? await Task.sleep(nanoseconds: 1.second / 2)
-                cleanerSteps.append(step)
-            }
-            
-            calculateFreeUpSpace()
-            analytics.log(.cleaner(enabledCommands))
-            
-            try? await Task.sleep(nanoseconds: 1.second)
-            
-            isCleaning = false
-            isCleanerCompleted = true
-            cleanerSteps = []
-            
-            try? await Task.sleep(nanoseconds: 2.second)
-            
-            isCleanerCompleted = false
         }
     }
     
@@ -126,20 +142,33 @@ final class ClearStore {
         NSApplication.shared.terminate(nil)
     }
     
+    func cancel() {
+        cleanerTask?.cancel()
+    }
+    
     // MARK: - Private Methods
     
-    private func setupTimer() {
+    private func startCheckFreeUpSpaceTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
             self?.calculateFreeUpSpace()
         }
+    }
+    
+    private func stopCheckFreeUpSpaceTimer() {
+        timer?.invalidate()
+        timer = nil
     }
     
     private func calculateFreeUpSpace() {
         usedSpace.isLoading = true
         
         Task(priority: .background) { @MainActor in
-            let value = try? await shell.execute(.calculateFreeUpSpace)
-            usedSpace.value = (try? value?.data(using: .utf8)?.decoder()) ?? .init()
+            do {
+                let value = try await commandExecutor.run(.calculateFreeUpSpace)
+                usedSpace.value = (try value?.data(using: .utf8)?.decoder()) ?? .init()
+            } catch {
+                print(error)
+            }
         }
     }
     
@@ -154,13 +183,18 @@ extension ClearStore {
         case error
     }
     
-    private func size(of command: Shell.Command) -> Int {
+    private func size(of command: Command) -> Int {
         switch command {
-        case .removeArchives: usedSpace.value.archives
-        case .removeCaches: usedSpace.value.cache
-        case .removeDerivedData: usedSpace.value.derivedData
-        case .clearDeviceSupport: usedSpace.value.deviceSupport
-        case .clearSimulatorData: usedSpace.value.simulatorData
+        case .removeArchives:
+            usedSpace.value.archives
+        case .removeCaches:
+            usedSpace.value.cache
+        case .removeDerivedData:
+            usedSpace.value.derivedData
+        case .clearDeviceSupport:
+            usedSpace.value.deviceSupport
+        case .clearSimulatorData:
+            usedSpace.value.simulatorData
         default: 0
         }
     }
@@ -180,7 +214,7 @@ fileprivate struct CleanerStep: Equatable, Identifiable {
     
     // MARK: - Initializers
     
-    init(_ id: String, error: Error?) {
+    init(_ id: String, error: Error? = nil) {
         self.id = id
         self.error = error
     }
@@ -196,7 +230,8 @@ fileprivate struct CleanerStep: Equatable, Identifiable {
 extension EnvironmentValues {
     
     @Entry var clearStore = ClearStore(
-        .init(),
+        commandExecutor: Shell(),
+        preferences: .init(),
         analytics: Analytics()
     )
     

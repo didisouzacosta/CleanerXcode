@@ -13,37 +13,37 @@ final class Preferences {
     static let shared = Preferences()
     
     var canRemoveArchives = StoragedValue(
-        Shell.Command.removeArchives.rawValue,
+        Command.removeArchives.script,
         defaultValue: true
     )
     
     var canRemoveCaches = StoragedValue(
-        Shell.Command.removeCaches.rawValue,
+        Command.removeCaches.script,
         defaultValue: true
     )
     
     var canRemoveDerivedData = StoragedValue(
-        Shell.Command.removeDerivedData.rawValue,
+        Command.removeDerivedData.script,
         defaultValue: true
     )
     
     var canClearDeviceSupport = StoragedValue(
-        Shell.Command.clearDeviceSupport.rawValue,
+        Command.clearDeviceSupport.script,
         defaultValue: false
     )
     
     var canRemoveOldSimulators = StoragedValue(
-        Shell.Command.removeOldSimulators.rawValue,
+        Command.removeOldSimulators.script,
         defaultValue: false
     )
     
     var canClearSimultorData = StoragedValue(
-        Shell.Command.clearSimulatorData.rawValue,
+        Command.clearSimulatorData.script,
         defaultValue: false
     )
     
     var canResertXcodePreferences = StoragedValue(
-        Shell.Command.resetXcodePreferences.rawValue,
+        Command.resetXcodePreferences.script,
         defaultValue: false
     )
     
