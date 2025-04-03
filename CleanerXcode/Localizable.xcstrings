@@ -41,12 +41,12 @@
         }
       }
     },
-    "Calculating..." : {
+    "Calculating" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Calculando..."
+            "value" : "Calculando"
           }
         }
       }
@@ -67,16 +67,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limpando"
-          }
-        }
-      }
-    },
-    "Cleaning..." : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpando..."
           }
         }
       }
