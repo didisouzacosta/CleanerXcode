@@ -12,42 +12,55 @@ import Foundation
 
 struct PreferencesTests {
 
-    private let preferences = Preferences()
+    private let preferences = Preferences(.test)
     
-    @Test func ensureRemoveArchivesPreferenceKeyConsistency() async throws {
+    init() {
+        UserDefaults.test.reset()
+    }
+    
+    @Test func ensureRemoveArchivesPreferenceConsistency() async throws {
         #expect(preferences.removeArchives.key == "remove-archives")
+        #expect(preferences.removeArchives.value == true)
     }
     
-    @Test func ensureRemoveCachesPreferenceKeyConsistency() async throws {
+    @Test func ensureRemoveCachesPreferenceConsistency() async throws {
         #expect(preferences.removeCaches.key == "remove-caches")
+        #expect(preferences.removeCaches.value == true)
     }
     
-    @Test func ensureRemoveDerivedDataPreferenceKeyConsistency() async throws {
+    @Test func ensureRemoveDerivedDataPreferenceConsistency() async throws {
         #expect(preferences.removeDerivedData.key == "remove-derived-data")
+        #expect(preferences.removeDerivedData.value == true)
     }
     
-    @Test func ensureClearDeviceSupportPreferenceKeyConsistency() async throws {
+    @Test func ensureClearDeviceSupportPreferenceConsistency() async throws {
         #expect(preferences.clearDeviceSupport.key == "clear-device-support")
+        #expect(preferences.clearDeviceSupport.value == false)
     }
     
-    @Test func ensureRemoveOldSimulatorsPreferenceKeyConsistency() async throws {
+    @Test func ensureRemoveOldSimulatorsPreferenceConsistency() async throws {
         #expect(preferences.removeOldSimulators.key == "remove-old-simulators")
+        #expect(preferences.removeOldSimulators.value == false)
     }
     
-    @Test func ensureClearSimulatorDataPreferenceKeyConsistency() async throws {
+    @Test func ensureClearSimulatorDataPreferenceConsistency() async throws {
         #expect(preferences.clearSimulatorData.key == "clear-simulator-data")
+        #expect(preferences.clearSimulatorData.value == false)
     }
     
-    @Test func ensureResetXcodePreferencePreferenceKeyConsistency() async throws {
+    @Test func ensureResetXcodePreferencePreferenceConsistency() async throws {
         #expect(preferences.resetXcodePreferences.key == "reset-xcode-preferences")
+        #expect(preferences.resetXcodePreferences.value == false)
     }
     
-    @Test func ensureDisplayFreeUpSpaceInMenuBarPreferenceKeyConsistency() async throws {
+    @Test func ensureDisplayFreeUpSpaceInMenuBarPreferenceConsistency() async throws {
         #expect(preferences.displayFreeUpSpaceInMenuBar.key == "display-free-up-space-in-menu-bar")
+        #expect(preferences.removeArchives.value == true)
     }
     
-    @Test func ensureLaunchAtLoginPreferenceKeyConsistency() async throws {
+    @Test func ensureLaunchAtLoginPreferenceConsistency() async throws {
         #expect(preferences.launchAtLogin.key == "launch-at-login")
+        #expect(preferences.removeArchives.value == true)
     }
 
 }
