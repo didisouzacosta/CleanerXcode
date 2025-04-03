@@ -51,9 +51,9 @@ struct CleanerXcodeApp: App {
                 
                 if preferences.displayFreeUpSpaceInMenuBar.value {
                     if clearStore.isCleaning {
-                        Text("Cleaning...")
+                        Text("Cleaning")
                     } else if clearStore.usedSpace.isLoading && clearStore.usedSpace.value.totalSize == 0 {
-                        Text("Calculating...")
+                        Text("Calculating")
                     } else {
                         Text(clearStore.freeUpSpace.byteFormatter())
                     }
