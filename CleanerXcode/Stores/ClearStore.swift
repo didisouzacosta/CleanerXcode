@@ -42,7 +42,7 @@ final class ClearStore {
     
     private let commandExecutor: CommandExecutor
     private let preferences: Preferences
-    private let analytics: AnalyticsRepresentable
+    private let analytics: Analytics
     
     private var timer: Timer?
     private var isCleanerCompleted = false
@@ -76,7 +76,7 @@ final class ClearStore {
     init(
         commandExecutor: CommandExecutor = Shell(),
         preferences: Preferences,
-        analytics: AnalyticsRepresentable
+        analytics: Analytics
     ) {
         self.commandExecutor = commandExecutor
         self.preferences = preferences
@@ -230,7 +230,7 @@ extension EnvironmentValues {
     @Entry var clearStore = ClearStore(
         commandExecutor: Shell(),
         preferences: .init(),
-        analytics: Analytics()
+        analytics: GoogleAnalytics()
     )
     
 }
