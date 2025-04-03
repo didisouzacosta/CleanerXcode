@@ -24,16 +24,18 @@ final class StoragedValue<T: Codable> {
     
     // MARK: - Private Variables
     
-    private let userDefaults = UserDefaults.standard
+    private let userDefaults: UserDefaults
     
     // MARK: - Initializers
     
     init(
         _ key: String,
         value: T? = nil,
-        defaultValue: T
+        defaultValue: T,
+        userDefaults: UserDefaults = .standard
     ) {
         self.key = key
+        self.userDefaults = userDefaults
         
         if let data = userDefaults.value(forKey: key) as? Data,
            let value = try? JSONDecoder().decode(T.self, from: data) {
