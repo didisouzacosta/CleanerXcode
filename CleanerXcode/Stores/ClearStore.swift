@@ -33,7 +33,7 @@ final class ClearStore {
     }
     
     var freeUpSpace: Double {
-        enabledCommands.reduce(0) { partial, command in
+        commands.reduce(0) { partial, command in
             partial + size(of: command)
         }.toDouble()
     }
@@ -54,23 +54,21 @@ final class ClearStore {
     }
     
     private var cleanerProgressTotal: CGFloat {
-        CGFloat(enabledCommands.count)
+        CGFloat(commands.count)
     }
     
-    private var enabledCommands: [Command] {
+    private var commands: [Command] {
         [
-            preferences.canRemoveArchives,
-            preferences.canRemoveCaches,
-            preferences.canRemoveDerivedData,
-            preferences.canRemoveOldSimulators,
-            preferences.canClearDeviceSupport,
-            preferences.canClearSimultorData,
-            preferences.canResertXcodePreferences
+            preferences.removeArchives,
+            preferences.removeCaches,
+            preferences.removeDerivedData,
+            preferences.removeOldSimulators,
+            preferences.clearDeviceSupport,
+            preferences.clearSimulatorData,
+            preferences.resetXcodePreferences
         ]
         .filter { $0.value }
-        .compactMap { preference in
-            Command.commands.first { $0.script == preference.key }
-        }
+        .compactMap { $0.toCommand() }
     }
     
     // MARK: - Initializers
@@ -100,7 +98,7 @@ final class ClearStore {
         
         cleanerTask = Task { @MainActor in
             await withTaskGroup(of: CleanerStep.self) { group in
-                enabledCommands.enumerated().forEach { index, command in
+                commands.enumerated().forEach { index, command in
                     group.addTask(priority: .background) { [weak self] in
                         do {
                             try await self?.commandExecutor.run(command)
@@ -120,7 +118,7 @@ final class ClearStore {
                     cleanerSteps.append(step)
                 }
                 
-                analytics.log(.cleaner(enabledCommands))
+                analytics.log(.cleaner(commands))
                 calculateFreeUpSpace()
                 
                 try? await Task.sleep(nanoseconds: 1.second)

@@ -41,19 +41,19 @@ struct PreferencesView: View {
                     factoryToggle(
                         "Remove Archives",
                         detail: sizeFormatted(clearStore.usedSpace.value.archives),
-                        isOn: $bindablePreferences.canRemoveArchives.value
+                        isOn: $bindablePreferences.removeArchives.value
                     )
                     
                     factoryToggle(
                         "Remove Caches",
                         detail: sizeFormatted(clearStore.usedSpace.value.cache),
-                        isOn: $bindablePreferences.canRemoveCaches.value
+                        isOn: $bindablePreferences.removeCaches.value
                     )
                     
                     factoryToggle(
                         "Remove Derived Data",
                         detail: sizeFormatted(clearStore.usedSpace.value.derivedData),
-                        isOn: $bindablePreferences.canRemoveDerivedData.value
+                        isOn: $bindablePreferences.removeDerivedData.value
                     )
                 }
                 
@@ -61,23 +61,23 @@ struct PreferencesView: View {
                     factoryToggle(
                         "Clear Device Support",
                         detail: sizeFormatted(clearStore.usedSpace.value.deviceSupport),
-                        isOn: $bindablePreferences.canClearDeviceSupport.value
+                        isOn: $bindablePreferences.clearDeviceSupport.value
                     )
                     
                     factoryToggle(
                         "Clear Simulator Data",
                         detail: sizeFormatted(clearStore.usedSpace.value.simulatorData),
-                        isOn: $bindablePreferences.canClearSimultorData.value
+                        isOn: $bindablePreferences.clearSimulatorData.value
                     )
                     
                     factoryToggle(
                         "Remove Old Simulators",
-                        isOn: $bindablePreferences.canRemoveOldSimulators.value
+                        isOn: $bindablePreferences.removeOldSimulators.value
                     )
                     
                     factoryToggle(
                         "Reset Xcode Preferences",
-                        isOn: $bindablePreferences.canResertXcodePreferences.value
+                        isOn: $bindablePreferences.resetXcodePreferences.value
                     )
                 }
                 
