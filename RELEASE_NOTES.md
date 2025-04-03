@@ -1,6 +1,6 @@
-# v0.4.0 - Build 109
+# v0.3.2 - Build 109
 
-• Implement unit tests for UpdateStore, CleanerStore and Constants.
+• Implement unit tests for UpdateStore, Constants, Preferences and StoragedValue.
 • Improve navigation between screens using enum instead of boolean property.
 • The state management of StateValue rethinked.
 
