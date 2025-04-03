@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-@Observable
 final class StoragedValue<T: Codable> {
     
     // MARK: - Public Variables
