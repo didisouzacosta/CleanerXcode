@@ -158,7 +158,7 @@ struct PreferencesView: View {
 
 #Preview {
     PreferencesView()
-        .environment(\.clearStore, .init(.init(), analytics: Analytics()))
+        .environment(\.clearStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: Analytics()))
         .environment(\.preferences, .init())
         .environment(\.route, .init())
         .environment(\.analytics, .init())

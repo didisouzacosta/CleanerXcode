@@ -36,7 +36,7 @@ struct CleanerView: View {
                     status: clearStore.cleanerStatus,
                     freeUpSpace: clearStore.freeUpSpace
                 ) {
-                    cleaner()
+                    clearStore.cleaner()
                 }
                 
                 social()
@@ -48,26 +48,6 @@ struct CleanerView: View {
         }
         .padding([.top, .leading, .trailing])
         .padding(.bottom, 12)
-    }
-    
-    // MARK: - Private Methods
-    
-    private func quit() {
-        clearStore.quit()
-    }
-    
-    private func cleaner() {
-        guard !clearStore.isCleaning else { return }
-        
-        task?.cancel()
-        
-        task = Task(priority: .background) { @MainActor in
-            do {
-                try await clearStore.cleaner()
-            } catch {
-                print(error)
-            }
-        }
     }
     
     // MARK: - Components
@@ -140,7 +120,7 @@ struct CleanerView: View {
                 Spacer()
                 
                 HighlightButton {
-                    quit()
+                    clearStore.quit()
                 } label: {
                     HStack {
                         Text("Quit")
@@ -243,7 +223,7 @@ fileprivate struct CleanerButton: View {
 
 #Preview {
     CleanerView()
-        .environment(\.clearStore, .init(.init(), analytics: Analytics()))
+        .environment(\.clearStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: Analytics()))
         .environment(\.updateStore, .init(Bundle.main))
         .environment(\.route, .init())
 }
