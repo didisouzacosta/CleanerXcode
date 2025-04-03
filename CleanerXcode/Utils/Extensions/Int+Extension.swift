@@ -16,3 +16,11 @@ extension Int {
     }
     
 }
+
+extension Double {
+    
+    var second: UInt64 {
+        UInt64(self) * UInt64(1_000_000_000)
+    }
+    
+}

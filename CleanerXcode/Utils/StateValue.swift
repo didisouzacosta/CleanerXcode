@@ -13,8 +13,11 @@ struct StateValue<T: Equatable> {
     
     var isLoading = false
     
+    private(set) var isModified = false
+    
     var value: T {
         didSet {
+            isModified = oldValue != value
             isLoading = false
             error = nil
         }
