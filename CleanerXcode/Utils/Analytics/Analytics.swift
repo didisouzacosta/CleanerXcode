@@ -5,8 +5,9 @@
 //  Created by Adriano Costa on 16/03/25.
 //
 
-import SwiftUI
-import FirebaseAnalytics
+protocol Analytics {
+    func log(_ event: AnalyticsEvent)
+}
 
 enum AnalyticsEvent {
     
@@ -26,7 +27,7 @@ enum AnalyticsEvent {
         }
     }
     
-    var paramaters: [String: Any]? {
+    var paramaters: [String:Any]? {
         switch self {
         case .cleaner(let commands):
             ["commands": commands.map { $0.script }.joined(separator: ", ")]
@@ -36,30 +37,5 @@ enum AnalyticsEvent {
             nil
         }
     }
-    
-}
-
-protocol AnalyticsRepresentable {
-    
-    func log(_ event: AnalyticsEvent)
-    
-}
-
-struct Analytics: AnalyticsRepresentable {
-    
-    static let shared = Analytics()
-    
-    func log(_ event: AnalyticsEvent) {
-        FirebaseAnalytics.Analytics.logEvent(
-            event.name,
-            parameters: event.paramaters
-        )
-    }
-    
-}
-
-extension EnvironmentValues {
-    
-    @Entry var analytics = Analytics()
     
 }
