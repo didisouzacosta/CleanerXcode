@@ -1,5 +1,0 @@
-app_identifier("didisouzacosta.CleanerXcode") # The bundle identifier of your app
-apple_id("adrianosouzacostaios@gmail.com") # Your Apple Developer Portal username
-
-itc_team_id("127031136") # App Store Connect Team ID
-team_id("MM4N959BB5") # Developer Portal Team ID
