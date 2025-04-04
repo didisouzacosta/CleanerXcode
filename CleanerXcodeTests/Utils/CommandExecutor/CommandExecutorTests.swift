@@ -112,7 +112,3 @@ fileprivate extension Command {
     static let fake = Command("fake-command")
     
 }
-
-fileprivate struct Person: Codable {
-    let name: String
-}
