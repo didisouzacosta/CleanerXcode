@@ -135,23 +135,18 @@ final class CleanerStore {
     private func calculateFreeUpSpace() {
         usedSpace.isLoading = true
         
-        calculateFreeUpSpaceTask = Task {
+        calculateFreeUpSpaceTask?.cancel()
+        calculateFreeUpSpaceTask = Task { @MainActor in
             let isCancelled = calculateFreeUpSpaceTask?.isCancelled ?? false
-            
-            do {
-                let result: UsedSpace = try await commandExecutor.run(.calculateFreeUpSpace)
-                
-                if !isCancelled {
-                    usedSpace.value = result
-                }
-            } catch {
-                print(error)
-            }
+            let result: UsedSpace? = try? await commandExecutor.runDecoder(.calculateFreeUpSpace)
             
             usedSpace.isLoading = false
             
             if !isCancelled {
+                usedSpace.value = result ?? .init()
+                
                 try? await Task.sleep(nanoseconds: 3.second)
+                
                 calculateFreeUpSpace()
             }
         }

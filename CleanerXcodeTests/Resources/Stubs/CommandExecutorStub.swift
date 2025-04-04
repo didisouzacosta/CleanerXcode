@@ -12,7 +12,8 @@ final class CommandExecutorStub: CommandExecutor {
     var result: String?
     var isCancelled = false
     
-    func runWatingResult(_ command: Command) async throws -> String? {
+    @discardableResult
+    func run(_ command: Command) async throws -> String? {
         result
     }
     
