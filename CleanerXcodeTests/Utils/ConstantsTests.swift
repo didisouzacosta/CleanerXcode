@@ -12,7 +12,8 @@ import Foundation
 
 struct ConstantsTests {
 
-    @Test func ensureSocialURLs() async throws {
+    @Test
+    func ensureSocialURLs() async throws {
         #expect(Constants.githubURL.absoluteString == "https://github.com/didisouzacosta/CleanerXcode")
         #expect(Constants.xURL.absoluteString == "https://x.com/didisouzacosta")
         #expect(Constants.linkedinURL.absoluteString == "https://www.linkedin.com/in/adrianosouzacosta")

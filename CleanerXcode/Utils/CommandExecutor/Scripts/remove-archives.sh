@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
 rm -rf ~/Library/Developer/Xcode/Archives
+
+echo "done"

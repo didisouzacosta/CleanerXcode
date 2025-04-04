@@ -18,7 +18,8 @@ struct StoragedValueTests {
         userDefaults.reset()
     }
     
-    @Test func ensureConsistencyOfStoragedValue() async throws {
+    @Test
+    func ensureConsistencyOfStoragedValue() async throws {
         let storagedValue = StoragedValue(
             "isAgree",
             defaultValue: false,
