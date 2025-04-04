@@ -24,11 +24,7 @@ extension CommandExecutor {
         }
     }
     
-    func run<T: Decodable>(
-        _ command: Command,
-        timeout: TimeInterval = 10,
-        decoder: JSONDecoder = .init()
-    ) async throws -> T {
+    func run<T: Decodable>(_ command: Command, decoder: JSONDecoder = .init()) async throws -> T {
         guard let data = try await runWatingResult(command)?.data(using: .utf8) else {
             throw "Failed command: \(command.id). Error: The response is empty."
         }

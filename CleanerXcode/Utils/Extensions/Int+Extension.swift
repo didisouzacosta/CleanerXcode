@@ -15,6 +15,10 @@ extension Int {
         Double(self)
     }
     
+    func byteFormatted() -> String {
+        Double(self).byteFormatter()
+    }
+    
 }
 
 extension Double {
