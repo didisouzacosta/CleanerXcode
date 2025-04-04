@@ -8,13 +8,13 @@
 import SwiftUI
 
 protocol CommandExecutor {
-    func runWithResult(_ command: Command) async throws -> String?
+    func runWatingResponse(_ command: Command) async throws -> String?
 }
 
 extension CommandExecutor {
     
     func run(_ command: Command) async throws {
-        guard let result = try await runWithResult(command) else {
+        guard let result = try await runWatingResponse(command) else {
             throw "Failed command: \(command.id)"
         }
         

@@ -42,16 +42,16 @@ struct CommandExecutorTests {
         }
         
         await #expect(throws: Error.self) {
-            try await stubbedCommand.runWithResult(.fake)
+            try await stubbedCommand.runWatingResponse(.fake)
         }
     }
     
     @Test
-    func shouldResponseSuccessfullyWhenTheShellResponseAnything() async throws {
+    func shouldResponseSuccessfullyWhenTheShellResponseIsAnything() async throws {
         let stubbedCommand = StubbedCommandExecutor()
         stubbedCommand.result = .success("Orlando")
         
-        let result = try await stubbedCommand.runWithResult(.fake)
+        let result = try await stubbedCommand.runWatingResponse(.fake)
         
         #expect(result == "Orlando")
     }
@@ -68,7 +68,7 @@ fileprivate final class StubbedCommandExecutor: CommandExecutor {
     
     var result: Result = .idle
     
-    func runWithResult(_ command: Command) async throws -> String? {
+    func runWatingResponse(_ command: Command) async throws -> String? {
         switch result {
         case .failure(let error):
             throw error
