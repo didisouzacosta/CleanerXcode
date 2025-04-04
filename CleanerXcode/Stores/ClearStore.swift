@@ -18,11 +18,11 @@ final class ClearStore {
     var cleanerStatus: Status {
         if isCleaning {
             .cleaning(
-                progress: cleanerProgress,
-                total: cleanerProgressTotal
+                progress: progress,
+                total: total
             )
-        } else if isCleanerCompleted {
-            if cleanerSteps.contains(where: { $0.hasError }) {
+        } else if isCompleted {
+            if steps.contains(where: { $0.hasError }) {
                 .error
             } else {
                 .completed
@@ -44,16 +44,16 @@ final class ClearStore {
     private let preferences: Preferences
     private let analytics: Analytics
     
-    private var timer: Timer?
-    private var isCleanerCompleted = false
-    private var cleanerSteps = [CleanerStep]()
+    private var isCompleted = false
+    private var steps = [CleanerStep]()
     private var cleanerTask: Task<Void, Error>?
+    private var calculateFreeUpSpaceTask: Task<Void, Error>?
     
-    private var cleanerProgress: Double {
-        Double(cleanerSteps.count)
+    private var progress: Double {
+        Double(steps.count)
     }
     
-    private var cleanerProgressTotal: CGFloat {
+    private var total: CGFloat {
         CGFloat(commands.count)
     }
     
@@ -83,7 +83,6 @@ final class ClearStore {
         self.analytics = analytics
         
         defer {
-            startCheckFreeUpSpaceTimer()
             calculateFreeUpSpace()
         }
     }
@@ -92,13 +91,13 @@ final class ClearStore {
     
     func cleaner() {
         isCleaning = true
-        isCleanerCompleted = false
+        isCompleted = false
         
-        stopCheckFreeUpSpaceTimer()
+        calculateFreeUpSpaceTask?.cancel()
         
         cleanerTask = Task { @MainActor in
             await withTaskGroup(of: CleanerStep.self) { group in
-                commands.enumerated().forEach { index, command in
+                commands.forEach { command in
                     group.addTask(priority: .background) { [weak self] in
                         do {
                             try await self?.commandExecutor.run(command)
@@ -106,16 +105,16 @@ final class ClearStore {
                             
                             self?.calculateFreeUpSpace()
                             
-                            return .init(command.id)
+                            return .init(command)
                         } catch {
-                            return .init(command.id, error: error)
+                            return .init(command, error: error)
                         }
                     }
                 }
                 
                 while let step = await group.next() {
                     try? await Task.sleep(nanoseconds: 0.5.second)
-                    cleanerSteps.append(step)
+                    steps.append(step)
                 }
                 
                 analytics.log(.cleaner(commands))
@@ -124,14 +123,12 @@ final class ClearStore {
                 try? await Task.sleep(nanoseconds: 1.second)
                 
                 isCleaning = false
-                isCleanerCompleted = true
-                cleanerSteps = cleanerSteps.filter { $0.hasError }
+                isCompleted = true
+                steps = steps.filter { $0.hasError }
                 
                 try? await Task.sleep(nanoseconds: 2.second)
                 
-                isCleanerCompleted = false
-                
-                startCheckFreeUpSpaceTimer()
+                isCompleted = false
             }
         }
     }
@@ -146,25 +143,25 @@ final class ClearStore {
     
     // MARK: - Private Methods
     
-    private func startCheckFreeUpSpaceTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
-            self?.calculateFreeUpSpace()
-        }
-    }
-    
-    private func stopCheckFreeUpSpaceTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-    
     private func calculateFreeUpSpace() {
         usedSpace.isLoading = true
         
-        Task(priority: .background) { @MainActor in
+        calculateFreeUpSpaceTask = Task {
+            let isCancelled = calculateFreeUpSpaceTask?.isCancelled ?? false
+            
             do {
-                usedSpace.value = try await commandExecutor.run(.calculateFreeUpSpace)
+                let result: UsedSpace = try await commandExecutor.run(.calculateFreeUpSpace)
+                
+                if !isCancelled {
+                    usedSpace.value = result
+                }
             } catch {
                 print(error)
+            }
+            
+            if !isCancelled {
+                try? await Task.sleep(nanoseconds: 3.second)
+                calculateFreeUpSpace()
             }
         }
     }
@@ -202,8 +199,12 @@ fileprivate struct CleanerStep: Equatable, Identifiable {
     
     // MARK: - Public Variables
     
-    let id: String
+    let command: Command
     let error: Error?
+    
+    var id: String {
+        command.id
+    }
     
     var hasError: Bool {
         error != nil
@@ -211,8 +212,8 @@ fileprivate struct CleanerStep: Equatable, Identifiable {
     
     // MARK: - Initializers
     
-    init(_ id: String, error: Error? = nil) {
-        self.id = id
+    init(_ command: Command, error: Error? = nil) {
+        self.command = command
         self.error = error
     }
     

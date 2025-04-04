@@ -40,19 +40,19 @@ struct PreferencesView: View {
                 Section("Cache") {
                     factoryToggle(
                         "Remove Archives",
-                        detail: sizeFormatted(clearStore.usedSpace.value.archives),
+                        detail: clearStore.usedSpace.value.archives.byteFormatted(),
                         isOn: $bindablePreferences.removeArchives.value
                     )
                     
                     factoryToggle(
                         "Remove Caches",
-                        detail: sizeFormatted(clearStore.usedSpace.value.cache),
+                        detail: clearStore.usedSpace.value.cache.byteFormatted(),
                         isOn: $bindablePreferences.removeCaches.value
                     )
                     
                     factoryToggle(
                         "Remove Derived Data",
-                        detail: sizeFormatted(clearStore.usedSpace.value.derivedData),
+                        detail: clearStore.usedSpace.value.derivedData.byteFormatted(),
                         isOn: $bindablePreferences.removeDerivedData.value
                     )
                 }
@@ -60,13 +60,13 @@ struct PreferencesView: View {
                 Section("Simulators & Xcode") {
                     factoryToggle(
                         "Clear Device Support",
-                        detail: sizeFormatted(clearStore.usedSpace.value.deviceSupport),
+                        detail: clearStore.usedSpace.value.deviceSupport.byteFormatted(),
                         isOn: $bindablePreferences.clearDeviceSupport.value
                     )
                     
                     factoryToggle(
                         "Clear Simulator Data",
-                        detail: sizeFormatted(clearStore.usedSpace.value.simulatorData),
+                        detail: clearStore.usedSpace.value.simulatorData.byteFormatted(),
                         isOn: $bindablePreferences.clearSimulatorData.value
                     )
                     
@@ -125,10 +125,6 @@ struct PreferencesView: View {
     }
     
     // MARK: - Private Methods
-    
-    private func sizeFormatted(_ size: Int) -> String {
-        Double(size).byteFormatter()
-    }
     
     private func factoryToggle(
         _ text: LocalizedStringKey,
