@@ -22,12 +22,12 @@ final class Shell: CommandExecutor {
     
     // MARK: - Public Methods
     
-    func runWatingResult(_ command: Command, timeout: TimeInterval = 10) async throws -> String? {
+    func runWatingResult(_ command: Command) async throws -> String? {
         guard let scriptPath = command.path else {
             throw "Failed command: \(command.id). Error: Script not found in bundle."
         }
         
-        return try await withThrowingTimeout(seconds: timeout) {
+        return try await withThrowingTimeout(seconds: command.timeout) {
             task = Task(priority: .background) {
                 let process = Process()
                 process.executableURL = URL(fileURLWithPath: "/bin/bash")
