@@ -12,11 +12,17 @@ import Foundation
 
 struct PreferencesTests {
 
+    // MARK: - Private Variables
+    
     private let preferences = Preferences(.test)
+    
+    // MARK: - Initializer
     
     init() {
         UserDefaults.test.reset()
     }
+    
+    // MARK: - Public Methods
     
     @Test
     func ensureRemoveArchivesPreferenceConsistency() async throws {

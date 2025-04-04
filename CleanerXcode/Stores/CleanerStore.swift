@@ -1,5 +1,5 @@
 //
-//  ClearStore.swift
+//  CleanerStore.swift
 //  CleanerXcode
 //
 //  Created by Adriano Costa on 13/03/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @Observable
-final class ClearStore {
+final class CleanerStore {
     
     // MARK: - Public Variables
     
@@ -73,7 +73,7 @@ final class ClearStore {
     // MARK: - Initializers
     
     init(
-        commandExecutor: CommandExecutor = Shell(),
+        commandExecutor: CommandExecutor,
         preferences: Preferences,
         analytics: Analytics
     ) {
@@ -158,7 +158,7 @@ final class ClearStore {
     
 }
 
-extension ClearStore {
+extension CleanerStore {
     
     enum Status: Equatable {
         case idle
@@ -217,7 +217,7 @@ fileprivate struct CleanerStep: Equatable, Identifiable {
 
 extension EnvironmentValues {
     
-    @Entry var clearStore = ClearStore(
+    @Entry var cleanerStore = CleanerStore(
         commandExecutor: Shell(),
         preferences: .init(),
         analytics: GoogleAnalytics()
