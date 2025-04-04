@@ -10,7 +10,7 @@ import Foundation
 final class Shell: CommandExecutor {
     
     @discardableResult
-    func run(_ command: Command) async throws -> String? {
+    func runWithResult(_ command: Command) async throws -> String? {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String?, Error>) -> Void in
             guard let scriptPath = command.path else {
                 continuation.resume(throwing: "Script not found in bundle")

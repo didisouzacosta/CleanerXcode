@@ -14,14 +14,16 @@ struct AnalyticsTests {
 
     private let analytics = StubbedAnalytics()
     
-    @Test func ensureDonateEventConsistency() async throws {
+    @Test
+    func ensureDonateEventConsistency() async throws {
         analytics.log(.donate)
         
         #expect(analytics.event?.name == "donate")
         #expect(analytics.event?.paramaters == nil)
     }
     
-    @Test func ensureSocialEventConsistency() async throws {
+    @Test
+    func ensureSocialEventConsistency() async throws {
         analytics.log(.social(.github))
         
         #expect(analytics.event?.name == "social")

@@ -14,35 +14,43 @@ struct CommandTests {
 
     // MARK: - Public Methods
     
-    @Test func ensureCalculareFreeUpSpaceCommand() async throws {
+    @Test
+    func ensureCalculareFreeUpSpaceCommand() async throws {
         #expect(assert(.calculateFreeUpSpace, script: "calculate-free-up-space"))
     }
     
-    @Test func ensureClearDeviceSupportCommand() async throws {
+    @Test
+    func ensureClearDeviceSupportCommand() async throws {
         #expect(assert(.clearDeviceSupport, script: "clear-device-support"))
     }
     
-    @Test func ensureClearSimulatorDataCommand() async throws {
+    @Test
+    func ensureClearSimulatorDataCommand() async throws {
         #expect(assert(.clearSimulatorData, script: "clear-simulator-data"))
     }
     
-    @Test func ensureRemoveArchivesCommand() async throws {
+    @Test
+    func ensureRemoveArchivesCommand() async throws {
         #expect(assert(.removeArchives, script: "remove-archives"))
     }
     
-    @Test func ensureRemoveCachesCommand() async throws {
+    @Test
+    func ensureRemoveCachesCommand() async throws {
         #expect(assert(.removeCaches, script: "remove-caches"))
     }
     
-    @Test func ensureRemoveDerivedDataCommand() async throws {
+    @Test
+    func ensureRemoveDerivedDataCommand() async throws {
         #expect(assert(.removeDerivedData, script: "remove-derived-data"))
     }
     
-    @Test func ensureRemoveOldSimulatorsCommand() async throws {
+    @Test
+    func ensureRemoveOldSimulatorsCommand() async throws {
         #expect(assert(.removeOldSimulators, script: "remove-old-simulators"))
     }
     
-    @Test func ensureResetXcodePreferencesCommand() async throws {
+    @Test
+    func ensureResetXcodePreferencesCommand() async throws {
         #expect(assert(.resetXcodePreferences, script: "reset-xcode-preferences"))
     }
     
