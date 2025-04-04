@@ -46,7 +46,6 @@ final class ClearStore {
     
     private var isCompleted = false
     private var steps = [CleanerStep]()
-    private var cleanerTask: Task<Void, Error>?
     private var calculateFreeUpSpaceTask: Task<Void, Error>?
     
     private var progress: Double {
@@ -82,9 +81,7 @@ final class ClearStore {
         self.preferences = preferences
         self.analytics = analytics
         
-        defer {
-            calculateFreeUpSpace()
-        }
+        calculateFreeUpSpace()
     }
     
     // MARK: - Public Methods
@@ -95,16 +92,13 @@ final class ClearStore {
         
         calculateFreeUpSpaceTask?.cancel()
         
-        cleanerTask = Task { @MainActor in
+        Task { @MainActor in
             await withTaskGroup(of: CleanerStep.self) { group in
                 commands.forEach { command in
                     group.addTask(priority: .background) { [weak self] in
                         do {
                             try await self?.commandExecutor.run(command)
-                            try Task.checkCancellation()
-                            
                             self?.calculateFreeUpSpace()
-                            
                             return .init(command)
                         } catch {
                             return .init(command, error: error)
@@ -135,10 +129,6 @@ final class ClearStore {
     
     func quit() {
         NSApplication.shared.terminate(nil)
-    }
-    
-    func cancel() {
-        cleanerTask?.cancel()
     }
     
     // MARK: - Private Methods
