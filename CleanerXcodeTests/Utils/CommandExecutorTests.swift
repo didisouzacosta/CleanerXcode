@@ -55,6 +55,26 @@ struct CommandExecutorTests {
         
         #expect(result == "Orlando")
     }
+    
+    @Test
+    func shouldResponseSuccessDecodableObject() async throws {
+        let stubbedCommand = StubbedCommandExecutor()
+        stubbedCommand.result = .success("{\"name\": \"Orlando\"}")
+        
+        let person: Person = try await stubbedCommand.run(.fake)
+        
+        #expect(person.name == "Orlando")
+    }
+    
+    @Test
+    func shouldThrowErrorOnFailDecodable() async throws {
+        let stubbedCommand = StubbedCommandExecutor()
+        stubbedCommand.result = .success("{\"age\": 36}")
+        
+        await #expect(throws: Error.self) {
+            _ = try await stubbedCommand.run(.fake)
+        }
+    }
 
 }
 
@@ -85,4 +105,8 @@ fileprivate extension Command {
     
     static let fake = Command("fake-command")
     
+}
+
+fileprivate struct Person: Codable {
+    let name: String
 }

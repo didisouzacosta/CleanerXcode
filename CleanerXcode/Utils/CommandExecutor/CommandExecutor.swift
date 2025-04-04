@@ -14,13 +14,20 @@ protocol CommandExecutor {
 extension CommandExecutor {
     
     func run(_ command: Command) async throws {
-        guard let result = try await runWatingResponse(command) else {
-            throw "Failed command: \(command.id)"
+        if let result = try await runWatingResponse(command), result.lowercased() != "done" {
+            throw "Failed command: \(command.id). Error: The response not is \"done\"."
+        }
+    }
+    
+    func run<T: Decodable>(
+        _ command: Command,
+        decoder: JSONDecoder = .init()
+    ) async throws -> T {
+        guard let data = try await runWatingResponse(command)?.data(using: .utf8) else {
+            throw "Failed command: \(command.id). Error: The response is empty."
         }
         
-        if result.lowercased() != "done" {
-            throw "Failed command: \(command.id)"
-        }
+        return try decoder.decode(T.self, from: data)
     }
     
 }
