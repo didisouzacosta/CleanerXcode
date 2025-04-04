@@ -24,17 +24,28 @@ struct ShellTests {
     }
     
     @Test
-    func ensureDecoderSuccessfull() async throws {
+    func ensureDecoderSuccessfullExecution() async throws {
         let person: Person = try await shell.run(.decoder)
         
         #expect(person.name == "Orlando")
     }
     
     @Test
-    func ensureFailureExecution() async throws {
-        await #expect(throws: Error.self) {
+    func ensureFailure() async throws {
+        let error = await #expect(throws: Error.self) {
             try await shell.run(.fail)
         }
+        
+        #expect(error?.localizedDescription == "Failed command: fail-command. Error: The response not is \"done\".")
+    }
+    
+    @Test
+    func ensureTimeoutError() async throws {
+        let error = await #expect(throws: Error.self) {
+            try await shell.run(.timeout)
+        }
+        
+        #expect(error?.localizedDescription == "Task timed out before completion. Timeout: 2.0 seconds.")
     }
 
 }
@@ -44,5 +55,6 @@ fileprivate extension Command {
     static let success = Command("success-command", bundle: .test)
     static let decoder = Command("decoder-command", bundle: .test)
     static let fail = Command("fail-command", bundle: .test)
+    static let timeout = Command("timeout-command", timeout: 2, bundle: .test)
     
 }

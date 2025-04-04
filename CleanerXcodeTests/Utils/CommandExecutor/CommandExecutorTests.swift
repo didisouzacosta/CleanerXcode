@@ -94,7 +94,7 @@ fileprivate final class StubbedCommandExecutor: CommandExecutor {
     
     func cancel() {}
     
-    func runWatingResult(_ command: Command, timeout: TimeInterval = 1) async throws -> String? {
+    func runWatingResult(_ command: Command) async throws -> String? {
         switch result {
         case .failure(let error):
             throw error

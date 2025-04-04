@@ -13,6 +13,7 @@ struct Command: Identifiable, Equatable {
     
     let script: String
     let bundle: Bundle
+    let timeout: TimeInterval
     
     var id: String {
         script
@@ -26,9 +27,11 @@ struct Command: Identifiable, Equatable {
     
     init(
         _ script: String,
+        timeout: TimeInterval = 10,
         bundle: Bundle = .main
     ) {
         self.script = script
+        self.timeout = timeout
         self.bundle = bundle
     }
     
