@@ -8,6 +8,7 @@
 import Foundation
 import Testing
 
+@Sendable
 func waitUntil(
     _ condition: @escaping () -> Bool,
     whileWaiting: @escaping () -> Void = {}
