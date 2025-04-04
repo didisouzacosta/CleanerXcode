@@ -162,8 +162,7 @@ final class ClearStore {
         
         Task(priority: .background) { @MainActor in
             do {
-                let value = try await commandExecutor.runWatingResponse(.calculateFreeUpSpace)
-                usedSpace.value = (try value?.data(using: .utf8)?.decoder()) ?? .init()
+                usedSpace.value = try await commandExecutor.run(.calculateFreeUpSpace)
             } catch {
                 print(error)
             }
