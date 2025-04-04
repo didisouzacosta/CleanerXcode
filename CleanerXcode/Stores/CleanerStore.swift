@@ -13,23 +13,13 @@ final class CleanerStore {
     // MARK: - Public Variables
     
     private(set) var usedSpace = StateValue(UsedSpace())
-    private(set) var isCleaning = false
     
-    var cleanerStatus: Status {
-        if isCleaning {
-            .cleaning(
-                progress: progress,
-                total: total
-            )
-        } else if isCompleted {
-            if steps.contains(where: { $0.hasError }) {
-                .error
-            } else {
-                .completed
-            }
-        } else {
-            .idle
-        }
+    var progress: Double {
+        steps.count.toDouble()
+    }
+    
+    var total: CGFloat {
+        commands.count.toDouble()
     }
     
     var freeUpSpace: Double {
@@ -38,23 +28,28 @@ final class CleanerStore {
         }.toDouble()
     }
     
+    var status: CleanerStore.Status {
+        if isCleaning {
+            .isCleaning
+        } else if !errors.isEmpty {
+            .error
+        } else if isCompleted {
+            .isCompleted
+        } else {
+            .idle
+        }
+    }
+    
     // MARK: - Private Variables
     
     private let commandExecutor: CommandExecutor
     private let preferences: Preferences
     private let analytics: Analytics
     
+    private var isCleaning = false
     private var isCompleted = false
     private var steps = [CleanerStep]()
     private var calculateFreeUpSpaceTask: Task<Void, Error>?
-    
-    private var progress: Double {
-        Double(steps.count)
-    }
-    
-    private var total: CGFloat {
-        CGFloat(commands.count)
-    }
     
     private var commands: [Command] {
         [
@@ -68,6 +63,10 @@ final class CleanerStore {
         ]
         .filter { $0.value }
         .compactMap { $0.toCommand() }
+    }
+    
+    private var errors: [Error] {
+        steps.compactMap { $0.error }
     }
     
     // MARK: - Initializers
@@ -86,9 +85,9 @@ final class CleanerStore {
     
     // MARK: - Public Methods
     
-    func cleaner() {
-        isCleaning = true
+    func clear() {
         isCompleted = false
+        isCleaning = true
         
         calculateFreeUpSpaceTask?.cancel()
         
@@ -116,9 +115,9 @@ final class CleanerStore {
                 
                 try? await Task.sleep(nanoseconds: 1.second)
                 
+                steps = steps.filter { $0.hasError }
                 isCleaning = false
                 isCompleted = true
-                steps = steps.filter { $0.hasError }
                 
                 try? await Task.sleep(nanoseconds: 2.second)
                 
@@ -149,6 +148,8 @@ final class CleanerStore {
                 print(error)
             }
             
+            usedSpace.isLoading = false
+            
             if !isCancelled {
                 try? await Task.sleep(nanoseconds: 3.second)
                 calculateFreeUpSpace()
@@ -162,8 +163,8 @@ extension CleanerStore {
     
     enum Status: Equatable {
         case idle
-        case completed
-        case cleaning(progress: Double, total: Double)
+        case isCompleted
+        case isCleaning
         case error
     }
     

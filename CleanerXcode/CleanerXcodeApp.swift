@@ -50,7 +50,7 @@ struct CleanerXcodeApp: App {
                 Image("iconClear")
                 
                 if preferences.displayFreeUpSpaceInMenuBar.value {
-                    if cleanerStore.isCleaning {
+                    if cleanerStore.status == .isCleaning {
                         Text("Cleaning")
                     } else if cleanerStore.isCalculating {
                         Text("Calculating")

@@ -33,10 +33,12 @@ struct CleanerView: View {
             
             VStack(spacing: 16) {
                 CleanerButton(
-                    status: clearStore.cleanerStatus,
+                    status: clearStore.status,
+                    progress: clearStore.progress,
+                    total: clearStore.total,
                     freeUpSpace: clearStore.freeUpSpace
                 ) {
-                    clearStore.cleaner()
+                    clearStore.clear()
                 }
                 
                 social()
@@ -96,7 +98,7 @@ struct CleanerView: View {
                         .resizable()
                         .frame(width: 16, height: 16)
                 }
-                .disabled(clearStore.isCleaning)
+                .disabled(clearStore.status == .isCleaning)
                 
                 HStack(alignment: .center) {
                     Text("Version \(Bundle.main.fullVersion)")
@@ -141,16 +143,16 @@ fileprivate struct CleanerButton: View {
     private var fillColor: Color {
         switch status {
         case .idle: .blue
-        case .completed, .cleaning: .greenAction
+        case .isCompleted, .isCleaning: .greenAction
         case .error: .red
         }
     }
 
     private var text: LocalizedStringKey {
         switch status {
-        case .cleaning: "Cleaning"
+        case .isCleaning: "Cleaning"
         case .error: "Try again"
-        case .completed: "🎉 Success, all clear!"
+        case .isCompleted: "🎉 Success, all clear!"
         case .idle:
             if freeUpSpace.isZero {
                 "Clear"
@@ -162,9 +164,7 @@ fileprivate struct CleanerButton: View {
     
     private var allowsHitTesting: Bool {
         switch status {
-        case .cleaning(_, _):
-            false
-        case .completed:
+        case .isCleaning, .isCompleted:
             false
         default:
             true
@@ -179,10 +179,10 @@ fileprivate struct CleanerButton: View {
         } label: {
             HStack {
                 switch status {
-                case .cleaning(let progress, let total):
+                case .isCleaning:
                     ProgressView(
-                        value: progress,
-                        total: total
+                        value: 0,
+                        total: 0
                     )
                     .progressViewStyle(CustomCircularProgressViewStyle())
                     .frame(width: 12, height: 12)
@@ -206,16 +206,22 @@ fileprivate struct CleanerButton: View {
     private let action: () -> Void
     private let status: CleanerStore.Status
     private let freeUpSpace: Double
+    private let progress: Double
+    private let total: Double
     
     // MARK: - Initializers
     
     init(
         status: CleanerStore.Status,
+        progress: Double,
+        total: Double,
         freeUpSpace: Double,
         action: @escaping () -> Void
     ) {
         self.status = status
         self.freeUpSpace = freeUpSpace
+        self.total = total
+        self.progress = progress
         self.action = action
     }
     
