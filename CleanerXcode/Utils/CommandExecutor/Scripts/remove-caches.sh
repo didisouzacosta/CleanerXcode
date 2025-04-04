@@ -7,3 +7,5 @@ if command -v pod  &> /dev/null
 then
     pod cache clean --all
 fi
+
+echo "done"
