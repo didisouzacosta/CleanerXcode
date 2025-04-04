@@ -12,7 +12,7 @@ import Foundation
 
 struct AnalyticsTests {
 
-    private let analytics = StubbedAnalytics()
+    private let analytics = AnalyticsStub()
     
     @Test
     func ensureDonateEventConsistency() async throws {
@@ -47,14 +47,4 @@ struct AnalyticsTests {
         #expect(analytics.event?.paramaters?["commands"] as? String == "remove-archives, remove-caches, remove-derived-data, clear-device-support, clear-simulator-data, remove-old-simulators, reset-xcode-preferences, calculate-free-up-space")
     }
 
-}
-
-fileprivate final class StubbedAnalytics: Analytics {
-    
-    var event: AnalyticsEvent?
-    
-    func log(_ event: AnalyticsEvent) {
-        self.event = event
-    }
-    
 }

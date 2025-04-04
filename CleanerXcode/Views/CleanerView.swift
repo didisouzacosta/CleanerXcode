@@ -12,7 +12,7 @@ struct CleanerView: View {
     
     // MARK: - Environments
     
-    @Environment(\.clearStore) private var clearStore
+    @Environment(\.cleanerStore) private var clearStore
     @Environment(\.updateStore) private var updateStore
     @Environment(\.analytics) private var analytics
     @Environment(\.route) private var route
@@ -204,13 +204,13 @@ fileprivate struct CleanerButton: View {
     // MARK: - Private Variables
     
     private let action: () -> Void
-    private let status: ClearStore.Status
+    private let status: CleanerStore.Status
     private let freeUpSpace: Double
     
     // MARK: - Initializers
     
     init(
-        status: ClearStore.Status,
+        status: CleanerStore.Status,
         freeUpSpace: Double,
         action: @escaping () -> Void
     ) {
@@ -223,7 +223,7 @@ fileprivate struct CleanerButton: View {
 
 #Preview {
     CleanerView()
-        .environment(\.clearStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: GoogleAnalytics()))
+        .environment(\.cleanerStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: GoogleAnalytics()))
         .environment(\.updateStore, .init(Bundle.main))
         .environment(\.route, .init())
 }
