@@ -8,22 +8,28 @@
 import SwiftUI
 
 protocol CommandExecutor {
-    func runWatingResponse(_ command: Command) async throws -> String?
+    
+    var isCancelled: Bool { get }
+    
+    func runWatingResult(_ command: Command, timeout: TimeInterval) async throws -> String?
+    func cancel()
+    
 }
 
 extension CommandExecutor {
     
-    func run(_ command: Command) async throws {
-        if let result = try await runWatingResponse(command), result.lowercased() != "done" {
+    func run(_ command: Command, timeout: TimeInterval = 10) async throws {
+        if let result = try await runWatingResult(command, timeout: timeout), result.lowercased() != "done" {
             throw "Failed command: \(command.id). Error: The response not is \"done\"."
         }
     }
     
     func run<T: Decodable>(
         _ command: Command,
+        timeout: TimeInterval = 10,
         decoder: JSONDecoder = .init()
     ) async throws -> T {
-        guard let data = try await runWatingResponse(command)?.data(using: .utf8) else {
+        guard let data = try await runWatingResult(command, timeout: timeout)?.data(using: .utf8) else {
             throw "Failed command: \(command.id). Error: The response is empty."
         }
         

@@ -42,7 +42,7 @@ struct CommandExecutorTests {
         }
         
         await #expect(throws: Error.self) {
-            try await stubbedCommand.runWatingResponse(.fake)
+            try await stubbedCommand.runWatingResult(.fake)
         }
     }
     
@@ -51,7 +51,7 @@ struct CommandExecutorTests {
         let stubbedCommand = StubbedCommandExecutor()
         stubbedCommand.result = .success("Orlando")
         
-        let result = try await stubbedCommand.runWatingResponse(.fake)
+        let result = try await stubbedCommand.runWatingResult(.fake)
         
         #expect(result == "Orlando")
     }
@@ -88,7 +88,13 @@ fileprivate final class StubbedCommandExecutor: CommandExecutor {
     
     var result: Result = .idle
     
-    func runWatingResponse(_ command: Command) async throws -> String? {
+    var isCancelled: Bool {
+        false
+    }
+    
+    func cancel() {}
+    
+    func runWatingResult(_ command: Command, timeout: TimeInterval = 1) async throws -> String? {
         switch result {
         case .failure(let error):
             throw error

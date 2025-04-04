@@ -6,26 +6,38 @@
 //
 
 import Foundation
+import Timeout
 
 final class Shell: CommandExecutor {
     
-    @discardableResult
-    func runWatingResponse(_ command: Command) async throws -> String? {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String?, Error>) -> Void in
-            guard let scriptPath = command.path else {
-                continuation.resume(throwing: "Script not found in bundle")
-                return
-            }
+    // MARK: - Public Variables
+    
+    var isCancelled: Bool {
+        task?.isCancelled ?? true
+    }
+    
+    // MARK: - Private Variables
+    
+    private var task: Task<String?, Error>?
+    
+    // MARK: - Public Methods
+    
+    func runWatingResult(_ command: Command, timeout: TimeInterval = 10) async throws -> String? {
+        guard let scriptPath = command.path else {
+            throw "Failed command: \(command.id). Error: Script not found in bundle."
+        }
+        
+        return try await withThrowingTimeout(seconds: timeout) {
+            task = Task(priority: .background) {
+                let process = Process()
+                process.executableURL = URL(fileURLWithPath: "/bin/bash")
+                process.arguments = [scriptPath]
 
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/bin/bash")
-            process.arguments = [scriptPath]
+                let outputPipe = Pipe()
+                process.standardOutput = outputPipe
+                process.standardError = outputPipe
 
-            let outputPipe = Pipe()
-            process.standardOutput = outputPipe
-            process.standardError = outputPipe
-
-            do {
+                try Task.checkCancellation()
                 try process.run()
 
                 var outputString: String?
@@ -37,11 +49,15 @@ final class Shell: CommandExecutor {
 
                 process.waitUntilExit()
                 
-                continuation.resume(with: .success(outputString))
-            } catch {
-                continuation.resume(throwing: error)
+                return outputString
             }
+            
+            return try await task?.value
         }
+    }
+    
+    func cancel() {
+        task?.cancel()
     }
     
 }
