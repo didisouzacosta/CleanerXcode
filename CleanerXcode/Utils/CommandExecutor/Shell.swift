@@ -22,7 +22,8 @@ final class Shell: CommandExecutor {
     
     // MARK: - Public Methods
     
-    func runWatingResult(_ command: Command) async throws -> String? {
+    @discardableResult
+    func run(_ command: Command) async throws -> String? {
         guard let scriptPath = command.path else {
             throw "Failed command: \(command.id). Error: Script not found in bundle."
         }
