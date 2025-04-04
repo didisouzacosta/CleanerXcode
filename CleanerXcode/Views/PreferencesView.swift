@@ -13,7 +13,7 @@ struct PreferencesView: View {
     
     // MARK: - Environments
     
-    @Environment(\.clearStore) private var clearStore
+    @Environment(\.cleanerStore) private var clearStore
     @Environment(\.preferences) private var preferences
     @Environment(\.route) private var route
     @Environment(\.openURL) private var openURL
@@ -154,7 +154,7 @@ struct PreferencesView: View {
 
 #Preview {
     PreferencesView()
-        .environment(\.clearStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: GoogleAnalytics()))
+        .environment(\.cleanerStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: GoogleAnalytics()))
         .environment(\.preferences, .init())
         .environment(\.route, .init())
         .environment(\.analytics, .init())

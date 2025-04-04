@@ -26,7 +26,7 @@ struct CleanerXcodeApp: App {
     // MARK: - Private Variables
     
     private var route = Route()
-    private var clearStore = ClearStore(commandExecutor: Shell(), preferences: .shared, analytics: GoogleAnalytics.shared)
+    private var cleanerStore = CleanerStore(commandExecutor: Shell(), preferences: .shared, analytics: GoogleAnalytics.shared)
     private var updateStore = UpdateStore(Bundle.main)
     private var preferences = Preferences.shared
     
@@ -41,7 +41,7 @@ struct CleanerXcodeApp: App {
             MainView()
                 .frame(width: 340)
                 .environment(\.route, route)
-                .environment(\.clearStore, clearStore)
+                .environment(\.cleanerStore, cleanerStore)
                 .environment(\.updateStore, updateStore)
                 .environment(\.preferences, preferences)
                 .environment(\.analytics, analytics)
@@ -50,12 +50,12 @@ struct CleanerXcodeApp: App {
                 Image("iconClear")
                 
                 if preferences.displayFreeUpSpaceInMenuBar.value {
-                    if clearStore.isCleaning {
+                    if cleanerStore.isCleaning {
                         Text("Cleaning")
-                    } else if clearStore.usedSpace.isLoading && clearStore.usedSpace.value.totalSize == 0 {
+                    } else if cleanerStore.isCalculating {
                         Text("Calculating")
                     } else {
-                        Text(clearStore.freeUpSpace.byteFormatter())
+                        Text(cleanerStore.freeUpSpace.byteFormatter())
                     }
                 }
             }
@@ -65,6 +65,14 @@ struct CleanerXcodeApp: App {
             }
         }
         .menuBarExtraStyle(.window)
+    }
+    
+}
+
+fileprivate extension CleanerStore {
+    
+    var isCalculating: Bool {
+        usedSpace.isLoading && usedSpace.value.totalSize == 0
     }
     
 }
