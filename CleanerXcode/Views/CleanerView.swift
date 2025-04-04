@@ -181,8 +181,8 @@ fileprivate struct CleanerButton: View {
                 switch status {
                 case .isCleaning:
                     ProgressView(
-                        value: 0,
-                        total: 0
+                        value: progress,
+                        total: total
                     )
                     .progressViewStyle(CustomCircularProgressViewStyle())
                     .frame(width: 12, height: 12)

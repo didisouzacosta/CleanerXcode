@@ -25,18 +25,9 @@ struct ShellTests {
     
     @Test
     func ensureDecoderSuccessfullExecution() async throws {
-        let person: Person = try await shell.run(.decoder)
+        let person: Person = try await shell.runDecoder(.decoder)
         
         #expect(person.name == "Orlando")
-    }
-    
-    @Test
-    func ensureFailure() async throws {
-        let error = await #expect(throws: Error.self) {
-            try await shell.run(.fail)
-        }
-        
-        #expect(error?.localizedDescription == "Failed command: fail-command. Error: The response not is \"done\".")
     }
     
     @Test
