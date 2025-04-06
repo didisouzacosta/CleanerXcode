@@ -193,6 +193,7 @@ fileprivate struct CleanerButton: View {
                 
                 Text(text)
                     .contentTransition(.numericText())
+                    .animation(.bouncy, value: text)
             }
             .font(.title2)
             .foregroundStyle(.white)
