@@ -12,6 +12,7 @@
 		A94471EB2D9305470079ED9B /* RELEASE_NOTES.md in Resources */ = {isa = PBXBuildFile; fileRef = A94471E92D9305470079ED9B /* RELEASE_NOTES.md */; };
 		A9D297D22D95A32C00C8B54A /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = A9D297D12D95A32C00C8B54A /* LaunchAtLogin */; };
 		A9F95FF92D95938800B10A82 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = A9F95FF82D95938800B10A82 /* LaunchAtLogin */; };
+		A9FBBDE52DA22F2400246E77 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = A9FBBDE42DA22F2400246E77 /* Mixpanel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +66,7 @@
 			files = (
 				A9D297D22D95A32C00C8B54A /* LaunchAtLogin in Frameworks */,
 				A90EBEE42DA0443D00A608BB /* Timeout in Frameworks */,
+				A9FBBDE52DA22F2400246E77 /* Mixpanel in Frameworks */,
 				A9F95FF92D95938800B10A82 /* LaunchAtLogin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -123,6 +125,7 @@
 				A9F95FF82D95938800B10A82 /* LaunchAtLogin */,
 				A9D297D12D95A32C00C8B54A /* LaunchAtLogin */,
 				A90EBEE32DA0443D00A608BB /* Timeout */,
+				A9FBBDE42DA22F2400246E77 /* Mixpanel */,
 			);
 			productName = CleanerXcode;
 			productReference = A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */;
@@ -182,6 +185,7 @@
 			packageReferences = (
 				A9D297D02D95A32C00C8B54A /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 				A90EBEE22DA0443D00A608BB /* XCRemoteSwiftPackageReference "swift-timeout" */,
+				A9FBBDE32DA22F2400246E77 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A9D98E0E2D8FCBEF000448A2 /* Products */;
@@ -516,6 +520,14 @@
 				kind = branch;
 			};
 		};
+		A9FBBDE32DA22F2400246E77 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -532,6 +544,11 @@
 		A9F95FF82D95938800B10A82 /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LaunchAtLogin;
+		};
+		A9FBBDE42DA22F2400246E77 /* Mixpanel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A9FBBDE32DA22F2400246E77 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
+			productName = Mixpanel;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

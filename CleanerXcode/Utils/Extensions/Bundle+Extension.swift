@@ -17,6 +17,10 @@ extension Bundle {
         return .init(string: stringURL)
     }
     
+    var mixpanelToken: String {
+        infoDictionary?["MIXPANEL_TOKEN"] as? String ?? ""
+    }
+    
 }
 
 extension Bundle: ApplicationInfo {

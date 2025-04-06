@@ -231,7 +231,7 @@ fileprivate struct CleanerButton: View {
 
 #Preview {
     CleanerView()
-        .environment(\.cleanerStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: GoogleAnalytics()))
+        .environment(\.cleanerStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: MixpanelAnalytics()))
         .environment(\.updateStore, .init(Bundle.main))
         .environment(\.route, .init())
 }
