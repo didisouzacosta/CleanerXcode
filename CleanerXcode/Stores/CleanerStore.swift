@@ -49,7 +49,7 @@ final class CleanerStore {
     private var isCleaning = false
     private var isCompleted = false
     private var steps = [CleanerStep]()
-    private var calculateFreeUpSpaceTask: Task<Void, Error>?
+    private var timer: Timer?
     
     private var commands: [Command] {
         [
@@ -89,7 +89,7 @@ final class CleanerStore {
         isCompleted = false
         isCleaning = true
         
-        calculateFreeUpSpaceTask?.cancel()
+        stopTimer()
         
         Task { @MainActor in
             await withTaskGroup(of: CleanerStep.self) { group in
@@ -130,25 +130,33 @@ final class CleanerStore {
         NSApplication.shared.terminate(nil)
     }
     
-    // MARK: - Private Methods
+    // MARK: - Private Methos
+    
+    private func startTimer() {
+        timer = Timer(
+            fire: .now.addingTimeInterval(6),
+            interval: 0,
+            repeats: false
+        ) { [weak self] _ in
+            self?.calculateFreeUpSpace()
+        }
+        
+        RunLoop.main.add(timer!, forMode: .common)
+    }
+    
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
     
     private func calculateFreeUpSpace() {
         usedSpace.isLoading = true
         
-        calculateFreeUpSpaceTask?.cancel()
-        calculateFreeUpSpaceTask = Task { @MainActor in
-            let isCancelled = calculateFreeUpSpaceTask?.isCancelled ?? false
-            let result: UsedSpace? = try? await commandExecutor.runDecoder(.calculateFreeUpSpace)
-            
-            usedSpace.isLoading = false
-            
-            if !isCancelled {
-                usedSpace.value = result ?? .init()
-                
-                try? await Task.sleep(nanoseconds: 3.second)
-                
-                calculateFreeUpSpace()
-            }
+        stopTimer()
+        
+        Task { @MainActor in
+            usedSpace.value = (try? await commandExecutor.runDecoder(.calculateFreeUpSpace)) ?? .init()
+            startTimer()
         }
     }
     
@@ -208,15 +216,5 @@ fileprivate struct CleanerStep: Equatable, Identifiable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.id == rhs.id
     }
-    
-}
-
-extension EnvironmentValues {
-    
-    @Entry var cleanerStore = CleanerStore(
-        commandExecutor: Shell(),
-        preferences: .init(),
-        analytics: MixpanelAnalytics()
-    )
     
 }

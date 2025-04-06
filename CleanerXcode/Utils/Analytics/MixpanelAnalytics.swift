@@ -8,7 +8,8 @@
 import SwiftUI
 import Mixpanel
 
-struct MixpanelAnalytics: Analytics {
+@Observable
+final class MixpanelAnalytics: Analytics {
     
     static let shared = MixpanelAnalytics()
     
@@ -18,12 +19,6 @@ struct MixpanelAnalytics: Analytics {
             properties: event.properties.toMixpanelProperties()
         )
     }
-    
-}
-
-extension EnvironmentValues {
-    
-    @Entry var analytics = MixpanelAnalytics()
     
 }
 

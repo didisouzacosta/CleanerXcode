@@ -11,7 +11,7 @@ struct MainView: View {
     
     // MARK: - Environments
     
-    @Environment(\.route) private var route
+    @Environment(Route.self) private var route
     
     // MARK: - Public Variables
     
@@ -29,10 +29,4 @@ struct MainView: View {
         .animation(.easeInOut, value: route.path)
     }
     
-}
-
-#Preview {
-    MainView()
-        .environment(\.preferences, .init())
-        .environment(\.route, .init())
 }

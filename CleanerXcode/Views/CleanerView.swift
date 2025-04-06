@@ -12,10 +12,10 @@ struct CleanerView: View {
     
     // MARK: - Environments
     
-    @Environment(\.cleanerStore) private var clearStore
-    @Environment(\.updateStore) private var updateStore
-    @Environment(\.analytics) private var analytics
-    @Environment(\.route) private var route
+    @Environment(CleanerStore.self) private var clearStore
+    @Environment(UpdateStore.self) private var updateStore
+    @Environment(MixpanelAnalytics.self) private var analytics
+    @Environment(Route.self) private var route
     @Environment(\.openURL) private var openURL
     
     // MARK: - States
@@ -224,46 +224,6 @@ fileprivate struct CleanerButton: View {
         self.total = total
         self.progress = progress
         self.action = action
-    }
-    
-}
-
-#Preview {
-    CleanerView()
-        .environment(\.cleanerStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: MixpanelAnalytics()))
-        .environment(\.updateStore, .init(Bundle.main))
-        .environment(\.route, .init())
-}
-
-
-
-
-@Observable
-final class ExamplePreviewableForm {
-    
-    var isEditing = false
-    
-}
-
-struct ExamplePreviewableFormView: View {
-    
-    // MARK: - States
-    
-    @State private var form = ExamplePreviewableForm()
-    
-    // MARK: - Public Variables
-    
-    var body: some View {
-        Form {
-            
-        }
-        .disabled(isFormDisabled)
-    }
-    
-    // MARK: - Private Variables
-    
-    private var isFormDisabled: Bool {
-        !form.isEditing
     }
     
 }

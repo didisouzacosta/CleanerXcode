@@ -1,3 +1,7 @@
+# v0.5.1 - Build 112
+
+• Fixing calculating free up space error.
+
 # v0.5.0 - Build 111
 
 • Remove Firebase and integrate with Mixpanel.

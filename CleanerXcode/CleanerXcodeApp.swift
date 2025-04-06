@@ -27,13 +27,10 @@ struct CleanerXcodeApp: App {
     // MARK: - States
     
     @State private var isFirstOpen = true
-    
-    // MARK: - Private Variables
-    
-    private var route = Route()
-    private var cleanerStore = CleanerStore(commandExecutor: Shell(), preferences: .shared, analytics: MixpanelAnalytics.shared)
-    private var updateStore = UpdateStore(Bundle.main)
-    private var preferences = Preferences.shared
+    @State private var route = Route()
+    @State private var cleanerStore = CleanerStore(commandExecutor: Shell(), preferences: .shared, analytics: MixpanelAnalytics.shared)
+    @State private var updateStore = UpdateStore(Bundle.main)
+    @State private var preferences = Preferences.shared
     
     // MARK: - Private Variables
     
@@ -45,11 +42,11 @@ struct CleanerXcodeApp: App {
         MenuBarExtra {
             MainView()
                 .frame(width: 340)
-                .environment(\.route, route)
-                .environment(\.cleanerStore, cleanerStore)
-                .environment(\.updateStore, updateStore)
-                .environment(\.preferences, preferences)
-                .environment(\.analytics, analytics)
+                .environment(route)
+                .environment(cleanerStore)
+                .environment(updateStore)
+                .environment(preferences)
+                .environment(analytics)
         } label: {
             HStack {
                 Image("iconClear")

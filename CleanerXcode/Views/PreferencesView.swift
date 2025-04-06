@@ -13,11 +13,11 @@ struct PreferencesView: View {
     
     // MARK: - Environments
     
-    @Environment(\.cleanerStore) private var clearStore
-    @Environment(\.preferences) private var preferences
-    @Environment(\.route) private var route
+    @Environment(CleanerStore.self) private var clearStore
+    @Environment(Preferences.self) private var preferences
+    @Environment(Route.self) private var route
+    @Environment(MixpanelAnalytics.self) private var analytics
     @Environment(\.openURL) private var openURL
-    @Environment(\.analytics) private var analytics
     
     // MARK: - States
     
@@ -150,13 +150,5 @@ struct PreferencesView: View {
         }
     }
     
-}
-
-#Preview {
-    PreferencesView()
-        .environment(\.cleanerStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: MixpanelAnalytics()))
-        .environment(\.preferences, .init())
-        .environment(\.route, .init())
-        .environment(\.analytics, .init())
 }
 
