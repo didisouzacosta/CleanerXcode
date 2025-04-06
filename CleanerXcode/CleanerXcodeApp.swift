@@ -23,6 +23,10 @@ struct CleanerXcodeApp: App {
     
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     
+    // MARK: - States
+    
+    @State private var isFirstOpen = true
+    
     // MARK: - Private Variables
     
     private var route = Route()
@@ -52,8 +56,11 @@ struct CleanerXcodeApp: App {
                 if preferences.displayFreeUpSpaceInMenuBar.value {
                     if cleanerStore.status == .isCleaning {
                         Text("Cleaning")
-                    } else if cleanerStore.isCalculating {
+                    } else if cleanerStore.isCalculating && isFirstOpen {
                         Text("Calculating")
+                            .onAppear {
+                                isFirstOpen = false
+                            }
                     } else {
                         Text(cleanerStore.freeUpSpace.byteFormatter())
                     }
