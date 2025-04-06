@@ -10,10 +10,14 @@ import Testing
 
 @Sendable
 func waitUntil(
-    _ condition: @escaping () -> Bool,
+    _ timeout: TimeInterval = 3,
+    condition: @escaping () -> Bool,
     whileWaiting: @escaping () -> Void = {}
 ) throws {
+    let startTime = Date()
+    
     repeat {
         whileWaiting()
-    } while !condition()
+        Thread.sleep(forTimeInterval: 0.1)
+    } while !condition() && Date().timeIntervalSince(startTime) < timeout
 }

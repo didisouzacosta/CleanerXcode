@@ -32,7 +32,7 @@ struct UpdateStoreTests {
         store.checkUpdates()
         
         try waitUntil {
-            store.version != nil && store.hasUpdate.isLoading == false
+            store.version != nil
         } whileWaiting: {
             #expect(store.hasUpdate.isLoading == true)
         }
@@ -129,6 +129,8 @@ struct UpdateStoreTests {
         
         try waitUntil {
             store.hasUpdate.isLoading == false
+        } whileWaiting: {
+            #expect(store.hasUpdate.isLoading == true)
         }
         
         #expect(store.hasUpdate.value == false)
