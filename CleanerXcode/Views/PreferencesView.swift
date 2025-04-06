@@ -154,7 +154,7 @@ struct PreferencesView: View {
 
 #Preview {
     PreferencesView()
-        .environment(\.cleanerStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: GoogleAnalytics()))
+        .environment(\.cleanerStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: MixpanelAnalytics()))
         .environment(\.preferences, .init())
         .environment(\.route, .init())
         .environment(\.analytics, .init())

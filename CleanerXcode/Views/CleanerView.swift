@@ -193,14 +193,13 @@ fileprivate struct CleanerButton: View {
                 
                 Text(text)
                     .contentTransition(.numericText())
-                    .animation(.bouncy, value: text)
             }
             .font(.title2)
             .foregroundStyle(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
         }
-        .animation(.bouncy, value: status)
+        .animation(.snappy, value: status)
     }
     
     // MARK: - Private Variables
@@ -231,7 +230,7 @@ fileprivate struct CleanerButton: View {
 
 #Preview {
     CleanerView()
-        .environment(\.cleanerStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: GoogleAnalytics()))
+        .environment(\.cleanerStore, .init(commandExecutor: Shell(), preferences: .init(), analytics: MixpanelAnalytics()))
         .environment(\.updateStore, .init(Bundle.main))
         .environment(\.route, .init())
 }

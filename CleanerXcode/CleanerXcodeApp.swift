@@ -6,14 +6,15 @@
 //
 
 import SwiftUI
-import FirebaseCore
+import Mixpanel
 import LaunchAtLogin
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        FirebaseConfiguration.shared.setLoggerLevel(.min)
-        FirebaseApp.configure()
+        #if !DEBUG
+        Mixpanel.initialize(token: Bundle.main.mixpanelToken)
+        #endif
     }
     
 }
@@ -30,13 +31,13 @@ struct CleanerXcodeApp: App {
     // MARK: - Private Variables
     
     private var route = Route()
-    private var cleanerStore = CleanerStore(commandExecutor: Shell(), preferences: .shared, analytics: GoogleAnalytics.shared)
+    private var cleanerStore = CleanerStore(commandExecutor: Shell(), preferences: .shared, analytics: MixpanelAnalytics.shared)
     private var updateStore = UpdateStore(Bundle.main)
     private var preferences = Preferences.shared
     
     // MARK: - Private Variables
     
-    private let analytics = GoogleAnalytics.shared
+    private let analytics = MixpanelAnalytics.shared
     
     // MARK: - Public Variables
     

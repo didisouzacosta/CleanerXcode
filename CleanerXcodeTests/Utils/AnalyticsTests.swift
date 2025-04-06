@@ -19,7 +19,7 @@ struct AnalyticsTests {
         analytics.log(.donate)
         
         #expect(analytics.event?.name == "donate")
-        #expect(analytics.event?.paramaters == nil)
+        #expect(analytics.event?.properties.values.first == nil)
     }
     
     @Test
@@ -27,24 +27,24 @@ struct AnalyticsTests {
         analytics.log(.social(.github))
         
         #expect(analytics.event?.name == "social")
-        #expect(analytics.event?.paramaters?["platform"] as? String == "github")
+        #expect(analytics.event?.properties["platform"] as? String == "github")
         
         analytics.log(.social(.linkedin))
         
         #expect(analytics.event?.name == "social")
-        #expect(analytics.event?.paramaters?["platform"] as? String == "linkedin")
+        #expect(analytics.event?.properties["platform"] as? String == "linkedin")
         
         analytics.log(.social(.x))
         
         #expect(analytics.event?.name == "social")
-        #expect(analytics.event?.paramaters?["platform"] as? String == "x")
+        #expect(analytics.event?.properties["platform"] as? String == "x")
     }
     
     @Test func ensureCleanerEventConsistency() async throws {
         analytics.log(.cleaner(Command.commands))
         
         #expect(analytics.event?.name == "cleaner")
-        #expect(analytics.event?.paramaters?["commands"] as? String == "remove-archives, remove-caches, remove-derived-data, clear-device-support, clear-simulator-data, remove-old-simulators, reset-xcode-preferences, calculate-free-up-space")
+        #expect(analytics.event?.properties["commands"] as? String == "remove-archives, remove-caches, remove-derived-data, clear-device-support, clear-simulator-data, remove-old-simulators, reset-xcode-preferences, calculate-free-up-space")
     }
 
 }

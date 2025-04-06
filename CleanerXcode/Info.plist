@@ -4,5 +4,7 @@
 <dict>
 	<key>VERSION_FILE_URL</key>
 	<string>$(VERSION_FILE_URL)</string>
+	<key>MIXPANEL_TOKEN</key>
+	<string>$(MIXPANEL_TOKEN)</string>
 </dict>
 </plist>

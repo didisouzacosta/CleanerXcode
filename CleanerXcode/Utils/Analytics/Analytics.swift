@@ -27,14 +27,14 @@ enum AnalyticsEvent {
         }
     }
     
-    var paramaters: [String:Any]? {
+    var properties: [String:Any] {
         switch self {
         case .cleaner(let commands):
             ["commands": commands.map { $0.script }.joined(separator: ", ")]
         case .social(let social):
             ["platform": social.rawValue]
         case .donate:
-            nil
+            [:]
         }
     }
     

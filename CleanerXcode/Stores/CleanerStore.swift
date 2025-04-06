@@ -216,7 +216,7 @@ extension EnvironmentValues {
     @Entry var cleanerStore = CleanerStore(
         commandExecutor: Shell(),
         preferences: .init(),
-        analytics: GoogleAnalytics()
+        analytics: MixpanelAnalytics()
     )
     
 }

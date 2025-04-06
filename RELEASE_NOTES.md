@@ -1,3 +1,7 @@
+# v0.5.0 - Build 111
+
+• Remove Firebase and integrate with Mixpanel.
+
 # v0.4.0 - Build 110
 
 • Implement unit tests for CleanerStore, UpdateStore, Constants, Preferences, Analytics, StoragedValue and more.
