@@ -66,6 +66,7 @@ This project is licensed under the MIT License. You are free to use, modify, and
 
 ### Dependencies
 • [LaunchAtLogin](https://github.com/sindresorhus/LaunchAtLogin-Modern)
+• [Timeout](https://github.com/swhitty/swift-timeout)
 
 ### Didication
 
