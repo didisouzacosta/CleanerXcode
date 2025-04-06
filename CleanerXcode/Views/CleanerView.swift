@@ -186,6 +186,7 @@ fileprivate struct CleanerButton: View {
                     )
                     .progressViewStyle(CustomCircularProgressViewStyle())
                     .frame(width: 12, height: 12)
+                    .animation(.bouncy, value: progress)
                 default:
                     EmptyView()
                 }

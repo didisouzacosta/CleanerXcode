@@ -55,16 +55,18 @@ struct CleanerStoreTests {
         
         cleanerStore.clear()
         
-        var stepsTotal: Double = 0
+        var total: Double = 0
+        var progress: Double = 0
         
         try waitUntil {
             cleanerStore.status == .isCompleted
         } whileWaiting: {
-            stepsTotal = cleanerStore.total
+            total = cleanerStore.total
+            progress = cleanerStore.progress
         }
         
-        #expect(stepsTotal == 3)
-        #expect(cleanerStore.status == .isCompleted)
+        #expect(total == 3)
+        #expect(progress == 3)
     }
 
 }
