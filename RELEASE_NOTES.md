@@ -2,6 +2,7 @@
 
 • Returning with Firebase Analytics.
 • Improving Cleaner and Free Up Space calculation tasks.
+• Fixing bug for cleanup action not working after any error.
 
 # v0.5.1 - Build 112
 

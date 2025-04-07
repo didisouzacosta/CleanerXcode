@@ -90,6 +90,7 @@ final class CleanerStore {
     func clear() {
         isCompleted = false
         isCleaning = true
+        steps = []
         
         stopTimer()
         
