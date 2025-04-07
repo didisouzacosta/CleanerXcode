@@ -61,9 +61,3 @@ fileprivate extension String {
     }
     
 }
-
-extension EnvironmentValues {
-    
-    @Entry var updateStore = UpdateStore(Bundle.main)
-    
-}

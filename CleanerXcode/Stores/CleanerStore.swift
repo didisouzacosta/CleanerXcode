@@ -50,6 +50,8 @@ final class CleanerStore {
     private var isCompleted = false
     private var steps = [CleanerStep]()
     private var timer: Timer?
+    private var calculateFreeUpSpaceTask: Task<Void, Error>?
+    private var cleanerTask: Task<Void, Error>?
     
     private var commands: [Command] {
         [
@@ -91,8 +93,11 @@ final class CleanerStore {
         
         stopTimer()
         
-        Task { @MainActor in
+        cleanerTask?.cancel()
+        cleanerTask = Task { @MainActor in
             await withTaskGroup(of: CleanerStep.self) { group in
+                guard !Task.isCancelled else { return }
+                
                 commands.forEach { command in
                     group.addTask(priority: .background) { [weak self] in
                         do {
@@ -122,6 +127,8 @@ final class CleanerStore {
                 try? await Task.sleep(nanoseconds: 2.second)
                 
                 isCompleted = false
+                
+                await Task.yield()
             }
         }
     }
@@ -145,6 +152,7 @@ final class CleanerStore {
     }
     
     private func stopTimer() {
+        calculateFreeUpSpaceTask?.cancel()
         timer?.invalidate()
         timer = nil
     }
@@ -154,8 +162,11 @@ final class CleanerStore {
         
         stopTimer()
         
-        Task { @MainActor in
+        calculateFreeUpSpaceTask?.cancel()
+        calculateFreeUpSpaceTask = Task { @MainActor in
+            guard !Task.isCancelled else { return }
             usedSpace.value = (try? await commandExecutor.runDecoder(.calculateFreeUpSpace)) ?? .init()
+            await Task.yield()
             startTimer()
         }
     }
