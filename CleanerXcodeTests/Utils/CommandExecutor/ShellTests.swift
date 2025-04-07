@@ -45,7 +45,6 @@ fileprivate extension Command {
     
     static let success = Command("success-command", bundle: .test)
     static let decoder = Command("decoder-command", bundle: .test)
-    static let fail = Command("fail-command", bundle: .test)
     static let timeout = Command("timeout-command", timeout: 2, bundle: .test)
     
 }
