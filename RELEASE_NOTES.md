@@ -1,6 +1,7 @@
 # v0.7.0 - Build 114
 
-• Run application with agent.
+• Run application like agent.
+• Improve status logic in cleanerStore.
 
 # v0.6.0 - Build 113
 
