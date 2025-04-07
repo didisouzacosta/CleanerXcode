@@ -2,9 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>VERSION_FILE_URL</key>
-	<string>$(VERSION_FILE_URL)</string>
 	<key>MIXPANEL_TOKEN</key>
 	<string>$(MIXPANEL_TOKEN)</string>
+	<key>VERSION_FILE_URL</key>
+	<string>$(VERSION_FILE_URL)</string>
 </dict>
 </plist>

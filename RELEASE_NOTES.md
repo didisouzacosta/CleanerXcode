@@ -1,3 +1,7 @@
+# v0.7.0 - Build 114
+
+• Run application with agent.
+
 # v0.6.0 - Build 113
 
 • Returning with Firebase Analytics.
