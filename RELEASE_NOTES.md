@@ -1,6 +1,7 @@
 # v0.6.0 - Build 113
 
 • Returning with Firebase Analytics.
+• Improving Cleaner and Free Up Space calculation tasks.
 
 # v0.5.1 - Build 112
 
