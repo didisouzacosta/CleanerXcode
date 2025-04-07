@@ -11,8 +11,6 @@ import FirebaseAnalytics
 @Observable
 final class GoogleAnalytics: Analytics {
     
-    static let shared = GoogleAnalytics()
-    
     func log(_ event: AnalyticsEvent) {
         #if !DEBUG
         FirebaseAnalytics.Analytics.logEvent(
