@@ -12,8 +12,6 @@ final class Preferences {
     
     // MARK: - Public Variables
     
-    static let shared = Preferences()
-    
     var removeArchives: StoragedValue<Bool>
     var removeCaches: StoragedValue<Bool>
     var removeDerivedData: StoragedValue<Bool>

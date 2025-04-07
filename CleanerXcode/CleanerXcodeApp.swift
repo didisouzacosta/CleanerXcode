@@ -6,14 +6,14 @@
 //
 
 import SwiftUI
-import Mixpanel
+import Firebase
 import LaunchAtLogin
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         #if !DEBUG
-        Mixpanel.initialize(token: Bundle.main.mixpanelToken)
+        FirebaseApp.configure()
         #endif
     }
     
@@ -28,13 +28,13 @@ struct CleanerXcodeApp: App {
     
     @State private var isFirstOpen = true
     @State private var route = Route()
-    @State private var cleanerStore = CleanerStore(commandExecutor: Shell(), preferences: .shared, analytics: MixpanelAnalytics.shared)
-    @State private var updateStore = UpdateStore(Bundle.main)
-    @State private var preferences = Preferences.shared
+    
+    @State private var analytics: GoogleAnalytics
+    @State private var updateStore: UpdateStore
+    @State private var preferences: Preferences
+    @State private var cleanerStore: CleanerStore
     
     // MARK: - Private Variables
-    
-    private let analytics = MixpanelAnalytics.shared
     
     // MARK: - Public Variables
     
@@ -70,6 +70,23 @@ struct CleanerXcodeApp: App {
             }
         }
         .menuBarExtraStyle(.window)
+    }
+    
+    // MARK: - Initializers
+    
+    init() {
+        let commander = Shell()
+        let preferences = Preferences()
+        let analytics = GoogleAnalytics()
+        
+        _analytics = .init(initialValue: analytics)
+        _updateStore = .init(initialValue: .init(Bundle.main))
+        _preferences = .init(initialValue: preferences)
+        _cleanerStore = .init(initialValue: .init(
+            commandExecutor: commander,
+            preferences: preferences,
+            analytics: analytics
+        ))
     }
     
 }
