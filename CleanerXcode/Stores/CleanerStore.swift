@@ -13,6 +13,7 @@ final class CleanerStore {
     // MARK: - Public Variables
     
     private(set) var usedSpace = StateValue(UsedSpace())
+    private(set) var status: CleanerStore.Status = .idle
     
     var progress: Double {
         steps.count.toDouble()
@@ -28,26 +29,12 @@ final class CleanerStore {
         }.toDouble()
     }
     
-    var status: CleanerStore.Status {
-        if isCleaning {
-            .isCleaning
-        } else if !errors.isEmpty {
-            .error
-        } else if isCompleted {
-            .isCompleted
-        } else {
-            .idle
-        }
-    }
-    
     // MARK: - Private Variables
     
     private let commandExecutor: CommandExecutor
     private let preferences: Preferences
     private let analytics: Analytics
     
-    private var isCleaning = false
-    private var isCompleted = false
     private var steps = [CleanerStep]()
     private var timer: Timer?
     private var calculateFreeUpSpaceTask: Task<Void, Error>?
@@ -88,8 +75,7 @@ final class CleanerStore {
     // MARK: - Public Methods
     
     func clear() {
-        isCompleted = false
-        isCleaning = true
+        status = .isCleaning
         steps = []
         
         stopTimer()
@@ -122,12 +108,11 @@ final class CleanerStore {
                 try? await Task.sleep(nanoseconds: 1.second)
                 
                 steps = steps.filter { $0.hasError }
-                isCleaning = false
-                isCompleted = true
+                status = .isCompleted
                 
                 try? await Task.sleep(nanoseconds: 2.second)
                 
-                isCompleted = false
+                status = .idle
                 
                 await Task.yield()
             }
