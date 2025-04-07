@@ -1,3 +1,7 @@
+# v0.6.0 - Build 113
+
+• Returning with Firebase Analytics.
+
 # v0.5.1 - Build 112
 
 • Fixing calculating free up space error.

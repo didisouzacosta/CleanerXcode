@@ -10,7 +10,9 @@
 		A90EBEE42DA0443D00A608BB /* Timeout in Frameworks */ = {isa = PBXBuildFile; productRef = A90EBEE32DA0443D00A608BB /* Timeout */; };
 		A94471EA2D9305470079ED9B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A94471E82D9305470079ED9B /* README.md */; };
 		A94471EB2D9305470079ED9B /* RELEASE_NOTES.md in Resources */ = {isa = PBXBuildFile; fileRef = A94471E92D9305470079ED9B /* RELEASE_NOTES.md */; };
-		A9B6B3E12DA2397900146B7E /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = A9B6B3E02DA2397900146B7E /* Mixpanel */; };
+		A9C4E01C2DA3FA2E00F8224A /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A9C4E01B2DA3FA2E00F8224A /* FirebaseAnalytics */; };
+		A9C4E01E2DA3FA2E00F8224A /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A9C4E01D2DA3FA2E00F8224A /* FirebaseCore */; };
+		A9C4E0202DA3FA2E00F8224A /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A9C4E01F2DA3FA2E00F8224A /* FirebaseCrashlytics */; };
 		A9D297D22D95A32C00C8B54A /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = A9D297D12D95A32C00C8B54A /* LaunchAtLogin */; };
 		A9F95FF92D95938800B10A82 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = A9F95FF82D95938800B10A82 /* LaunchAtLogin */; };
 /* End PBXBuildFile section */
@@ -65,8 +67,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				A9D297D22D95A32C00C8B54A /* LaunchAtLogin in Frameworks */,
+				A9C4E01E2DA3FA2E00F8224A /* FirebaseCore in Frameworks */,
 				A90EBEE42DA0443D00A608BB /* Timeout in Frameworks */,
-				A9B6B3E12DA2397900146B7E /* Mixpanel in Frameworks */,
+				A9C4E0202DA3FA2E00F8224A /* FirebaseCrashlytics in Frameworks */,
+				A9C4E01C2DA3FA2E00F8224A /* FirebaseAnalytics in Frameworks */,
 				A9F95FF92D95938800B10A82 /* LaunchAtLogin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -125,7 +129,9 @@
 				A9F95FF82D95938800B10A82 /* LaunchAtLogin */,
 				A9D297D12D95A32C00C8B54A /* LaunchAtLogin */,
 				A90EBEE32DA0443D00A608BB /* Timeout */,
-				A9B6B3E02DA2397900146B7E /* Mixpanel */,
+				A9C4E01B2DA3FA2E00F8224A /* FirebaseAnalytics */,
+				A9C4E01D2DA3FA2E00F8224A /* FirebaseCore */,
+				A9C4E01F2DA3FA2E00F8224A /* FirebaseCrashlytics */,
 			);
 			productName = CleanerXcode;
 			productReference = A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */;
@@ -185,7 +191,7 @@
 			packageReferences = (
 				A9D297D02D95A32C00C8B54A /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 				A90EBEE22DA0443D00A608BB /* XCRemoteSwiftPackageReference "swift-timeout" */,
-				A9B6B3DF2DA2397800146B7E /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
+				A9C4E01A2DA3FA2E00F8224A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A9D98E0E2D8FCBEF000448A2 /* Products */;
@@ -373,7 +379,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 112;
+				CURRENT_PROJECT_VERSION = 113;
 				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = MM4N959BB5;
@@ -388,7 +394,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.5.1;
+				MARKETING_VERSION = 0.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -410,7 +416,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 112;
+				CURRENT_PROJECT_VERSION = 113;
 				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = MM4N959BB5;
@@ -425,7 +431,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.5.1;
+				MARKETING_VERSION = 0.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -512,12 +518,12 @@
 				minimumVersion = 0.2.1;
 			};
 		};
-		A9B6B3DF2DA2397800146B7E /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
+		A9C4E01A2DA3FA2E00F8224A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
 			requirement = {
-				branch = master;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.11.0;
 			};
 		};
 		A9D297D02D95A32C00C8B54A /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
@@ -536,10 +542,20 @@
 			package = A90EBEE22DA0443D00A608BB /* XCRemoteSwiftPackageReference "swift-timeout" */;
 			productName = Timeout;
 		};
-		A9B6B3E02DA2397900146B7E /* Mixpanel */ = {
+		A9C4E01B2DA3FA2E00F8224A /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A9B6B3DF2DA2397800146B7E /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
-			productName = Mixpanel;
+			package = A9C4E01A2DA3FA2E00F8224A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		A9C4E01D2DA3FA2E00F8224A /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A9C4E01A2DA3FA2E00F8224A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		A9C4E01F2DA3FA2E00F8224A /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A9C4E01A2DA3FA2E00F8224A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
 		};
 		A9D297D12D95A32C00C8B54A /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;

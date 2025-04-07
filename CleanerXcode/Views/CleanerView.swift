@@ -14,7 +14,7 @@ struct CleanerView: View {
     
     @Environment(CleanerStore.self) private var clearStore
     @Environment(UpdateStore.self) private var updateStore
-    @Environment(MixpanelAnalytics.self) private var analytics
+    @Environment(GoogleAnalytics.self) private var analytics
     @Environment(Route.self) private var route
     @Environment(\.openURL) private var openURL
     

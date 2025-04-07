@@ -16,7 +16,7 @@ struct PreferencesView: View {
     @Environment(CleanerStore.self) private var clearStore
     @Environment(Preferences.self) private var preferences
     @Environment(Route.self) private var route
-    @Environment(MixpanelAnalytics.self) private var analytics
+    @Environment(GoogleAnalytics.self) private var analytics
     @Environment(\.openURL) private var openURL
     
     // MARK: - States
