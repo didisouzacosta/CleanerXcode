@@ -46,6 +46,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		A9D635862DA4423700C59CF5 /* resources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = resources;
+			sourceTree = "<group>";
+		};
 		A9D98E0F2D8FCBEF000448A2 /* CleanerXcode */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -88,6 +93,7 @@
 		A9D98E042D8FCBEF000448A2 = {
 			isa = PBXGroup;
 			children = (
+				A9D635862DA4423700C59CF5 /* resources */,
 				A902DB6D2D9AD239005321F9 /* CleanerXcode.xctestplan */,
 				A94471E82D9305470079ED9B /* README.md */,
 				A94471E92D9305470079ED9B /* RELEASE_NOTES.md */,
@@ -122,6 +128,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				A9D635862DA4423700C59CF5 /* resources */,
 				A9D98E0F2D8FCBEF000448A2 /* CleanerXcode */,
 			);
 			name = CleanerXcode;
