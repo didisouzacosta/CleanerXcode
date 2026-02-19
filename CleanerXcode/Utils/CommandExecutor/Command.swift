@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 struct Command: Identifiable, Equatable {
     
     // MARK: - Public Variables
@@ -15,7 +16,7 @@ struct Command: Identifiable, Equatable {
     let bundle: Bundle
     let timeout: TimeInterval
     
-    var id: String {
+    nonisolated var id: String {
         script
     }
     

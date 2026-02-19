@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-protocol CommandExecutor {
+protocol CommandExecutor: Sendable {
     
     var isCancelled: Bool { get }
     

@@ -8,7 +8,8 @@
 import Foundation
 import Timeout
 
-final class Shell: CommandExecutor {
+@MainActor
+final class Shell: @preconcurrency CommandExecutor {
     
     // MARK: - Public Variables
     

@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol ApplicationInfo {
+protocol ApplicationInfo: Sendable {
     
     var version: String { get }
     var build: String { get }

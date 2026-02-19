@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 @Observable
 final class CleanerStore {
     
@@ -89,7 +90,7 @@ final class CleanerStore {
                     group.addTask(priority: .background) { [weak self] in
                         do {
                             try await self?.commandExecutor.run(command)
-                            self?.calculateFreeUpSpace()
+                            await self?.calculateFreeUpSpace()
                             return .init(command)
                         } catch {
                             return .init(command, error: error)

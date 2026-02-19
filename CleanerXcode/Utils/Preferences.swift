@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 @Observable
 final class Preferences {
     
@@ -85,11 +86,5 @@ final class Preferences {
             userDefaults: userDefaults
         )
     }
-    
-}
-
-extension EnvironmentValues {
-    
-    @Entry var preferences = Preferences()
     
 }

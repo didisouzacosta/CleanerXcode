@@ -7,6 +7,7 @@
 
 extension StoragedValue {
     
+    @MainActor
     func toCommand() -> Command? {
         Command.commands.first { $0.script == key }
     }
