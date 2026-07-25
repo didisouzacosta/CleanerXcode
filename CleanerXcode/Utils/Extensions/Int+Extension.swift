@@ -5,6 +5,8 @@
 //  Created by Adriano Costa on 19/03/25.
 //
 
+import Foundation
+
 extension Int {
     
     var second: UInt64 {
@@ -19,6 +21,19 @@ extension Int {
         Double(self).byteFormatter()
     }
     
+}
+
+extension Int64 {
+
+    // MARK: - Public Methods
+
+    func toDouble() -> Double {
+        Double(self)
+    }
+
+    func byteFormatted() -> String {
+        ByteCountFormatter.string(fromByteCount: self, countStyle: .file)
+    }
 }
 
 extension Double {

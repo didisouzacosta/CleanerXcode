@@ -16,7 +16,7 @@ extension Double {
         formatter.includesUnit = true
         formatter.isAdaptive = true
         
-        return formatter.string(from: .init(value: self, unit: .kilobytes))
+        return formatter.string(fromByteCount: Int64(self))
     }
     
 }

@@ -33,43 +33,43 @@ final class Preferences {
         self.userDefaults = userDefaults
         
         removeArchives = .init(
-            Command.removeArchives.script,
+            CleanupAction.removeArchives.id,
             defaultValue: true,
             userDefaults: userDefaults
         )
         
         removeCaches = .init(
-            Command.removeCaches.script,
+            CleanupAction.removeCaches.id,
             defaultValue: true,
             userDefaults: userDefaults
         )
         
         removeDerivedData = StoragedValue(
-            Command.removeDerivedData.script,
+            CleanupAction.removeDerivedData.id,
             defaultValue: true,
             userDefaults: userDefaults
         )
         
         clearDeviceSupport = StoragedValue(
-            Command.clearDeviceSupport.script,
+            CleanupAction.clearDeviceSupport.id,
             defaultValue: false,
             userDefaults: userDefaults
         )
         
         removeOldSimulators = StoragedValue(
-            Command.removeOldSimulators.script,
+            CleanupAction.removeOldSimulators.id,
             defaultValue: false,
             userDefaults: userDefaults
         )
         
         clearSimulatorData = StoragedValue(
-            Command.clearSimulatorData.script,
+            CleanupAction.clearSimulatorData.id,
             defaultValue: false,
             userDefaults: userDefaults
         )
         
         resetXcodePreferences = StoragedValue(
-            Command.resetXcodePreferences.script,
+            CleanupAction.resetXcodePreferences.id,
             defaultValue: false,
             userDefaults: userDefaults
         )

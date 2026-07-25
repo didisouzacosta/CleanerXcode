@@ -46,7 +46,7 @@ struct CleanerStoreTests {
             #expect(cleanerStore.usedSpace.isLoading == true)
         }
 
-        #expect(cleanerStore.freeUpSpace == 4511408.0)
+        #expect(cleanerStore.freeUpSpace == 4_619_681_792.0)
         #expect(cleanerStore.usedSpace.isLoading == false)
     }
 

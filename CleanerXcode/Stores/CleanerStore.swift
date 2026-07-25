@@ -25,7 +25,7 @@ final class CleanerStore {
     }
     
     var freeUpSpace: Double {
-        commands.reduce(0) { partial, command in
+        commands.reduce(Int64.zero) { partial, command in
             partial + size(of: command)
         }.toDouble()
     }
@@ -178,7 +178,7 @@ extension CleanerStore {
         case error
     }
     
-    private func size(of command: Command) -> Int {
+    private func size(of command: Command) -> Int64 {
         switch command {
         case .removeArchives:
             usedSpace.value.archives
