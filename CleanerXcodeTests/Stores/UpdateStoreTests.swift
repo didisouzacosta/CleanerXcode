@@ -10,6 +10,8 @@ import Foundation
 
 @testable import CleanerXcode
 
+@MainActor
+@Suite(.serialized)
 struct UpdateStoreTests {
 
     @Test func ensureUpdateVersionAfterCheckUpdates() async throws {
@@ -31,7 +33,7 @@ struct UpdateStoreTests {
         
         store.checkUpdates()
         
-        try waitUntil {
+        try await waitUntil {
             store.version != nil
         } whileWaiting: {
             #expect(store.hasUpdate.isLoading == true)
@@ -59,7 +61,7 @@ struct UpdateStoreTests {
         
         store.checkUpdates()
         
-        try waitUntil {
+        try await waitUntil {
             store.version != nil
         }
         
@@ -83,7 +85,7 @@ struct UpdateStoreTests {
         
         store.checkUpdates()
         
-        try waitUntil {
+        try await waitUntil {
             store.version != nil
         }
         
@@ -107,7 +109,7 @@ struct UpdateStoreTests {
         
         store.checkUpdates()
         
-        try waitUntil { store.version != nil && store.hasUpdate.isModified }
+        try await waitUntil { store.version != nil && store.hasUpdate.isModified }
         
         #expect(store.hasUpdate.value == true)
     }
@@ -127,7 +129,7 @@ struct UpdateStoreTests {
         
         store.checkUpdates()
         
-        try waitUntil {
+        try await waitUntil {
             store.hasUpdate.isLoading == false
         } whileWaiting: {
             #expect(store.hasUpdate.isLoading == true)
@@ -140,7 +142,7 @@ struct UpdateStoreTests {
 
 fileprivate struct ApplicationInforStub: ApplicationInfo {
     
-    typealias Handler = () throws -> Version
+    typealias Handler = @Sendable () throws -> Version
     
     var version: String
     var build: String

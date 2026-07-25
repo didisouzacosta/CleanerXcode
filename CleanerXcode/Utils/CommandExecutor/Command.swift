@@ -7,8 +7,7 @@
 
 import Foundation
 
-@MainActor
-struct Command: Identifiable, Equatable {
+struct Command: Identifiable, Equatable, Sendable {
     
     // MARK: - Public Variables
     
@@ -16,7 +15,7 @@ struct Command: Identifiable, Equatable {
     let bundle: Bundle
     let timeout: TimeInterval
     
-    nonisolated var id: String {
+    var id: String {
         script
     }
     
@@ -40,14 +39,14 @@ struct Command: Identifiable, Equatable {
 
 extension Command {
     
-    static var removeArchives = Command("remove-archives")
-    static var removeCaches = Command("remove-caches")
-    static var removeDerivedData = Command("remove-derived-data")
-    static var clearDeviceSupport = Command("clear-device-support")
-    static var clearSimulatorData = Command("clear-simulator-data")
-    static var removeOldSimulators = Command("remove-old-simulators")
-    static var resetXcodePreferences = Command("reset-xcode-preferences")
-    static var calculateFreeUpSpace = Command("calculate-free-up-space")
+    static let removeArchives = Command("remove-archives")
+    static let removeCaches = Command("remove-caches")
+    static let removeDerivedData = Command("remove-derived-data")
+    static let clearDeviceSupport = Command("clear-device-support")
+    static let clearSimulatorData = Command("clear-simulator-data")
+    static let removeOldSimulators = Command("remove-old-simulators")
+    static let resetXcodePreferences = Command("reset-xcode-preferences")
+    static let calculateFreeUpSpace = Command("calculate-free-up-space")
     
     static var commands: [Command] {
         [

@@ -10,6 +10,7 @@ import Foundation
 
 @testable import CleanerXcode
 
+@MainActor
 struct StoragedValueTests {
 
     private let userDefaults = UserDefaults.test

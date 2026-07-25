@@ -10,6 +10,8 @@ import Foundation
 
 @testable import CleanerXcode
 
+@MainActor
+@Suite(.serialized)
 struct PreferencesTests {
 
     // MARK: - Private Variables

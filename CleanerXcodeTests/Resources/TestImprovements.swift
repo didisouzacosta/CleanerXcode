@@ -8,16 +8,16 @@
 import Foundation
 import Testing
 
-@Sendable
+@MainActor
 func waitUntil(
     _ timeout: TimeInterval = 3,
-    condition: @escaping () -> Bool,
-    whileWaiting: @escaping () -> Void = {}
-) throws {
+    condition: @escaping @MainActor () -> Bool,
+    whileWaiting: @escaping @MainActor () -> Void = {}
+) async throws {
     let startTime = Date()
     
     repeat {
         whileWaiting()
-        Thread.sleep(forTimeInterval: 0.1)
+        try await Task.sleep(for: .milliseconds(25))
     } while !condition() && Date().timeIntervalSince(startTime) < timeout
 }

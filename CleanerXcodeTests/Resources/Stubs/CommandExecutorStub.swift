@@ -7,7 +7,7 @@
 
 @testable import CleanerXcode
 
-final class CommandExecutorStub: CommandExecutor {
+final class CommandExecutorStub: CommandExecutor, @unchecked Sendable {
     
     var result: String?
     var isCancelled = false

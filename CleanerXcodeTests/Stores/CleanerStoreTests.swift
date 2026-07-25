@@ -10,12 +10,22 @@ import Foundation
 
 @testable import CleanerXcode
 
+@MainActor
+@Suite(.serialized)
 struct CleanerStoreTests {
     
     // MARK: - Private Variables
     
     private let analytics = AnalyticsStub()
-    private let preferences = Preferences(.test)
+    private let preferences: Preferences
+
+    // MARK: - Initializer
+
+    init() {
+        let userDefaults = UserDefaults(suiteName: "CleanerStoreTests")!
+        userDefaults.removePersistentDomain(forName: "CleanerStoreTests")
+        preferences = Preferences(userDefaults)
+    }
     
     // MARK: - Public Methods
 
@@ -30,7 +40,7 @@ struct CleanerStoreTests {
             analytics: analytics
         )
         
-        try waitUntil {
+        try await waitUntil {
             cleanerStore.freeUpSpace != 0
         } whileWaiting: {
             #expect(cleanerStore.usedSpace.isLoading == true)
@@ -58,7 +68,7 @@ struct CleanerStoreTests {
         var total: Double = 0
         var progress: Double = 0
         
-        try waitUntil {
+        try await waitUntil {
             cleanerStore.status == .isCompleted
         } whileWaiting: {
             total = cleanerStore.total
@@ -68,5 +78,114 @@ struct CleanerStoreTests {
         #expect(total == 3)
         #expect(progress == 3)
     }
+
+    @Test
+    func cancellationStopsExecutorAndRestoresIdleState() async throws {
+        let commandExecutor = BlockingCommandExecutor()
+        let cleanerStore = CleanerStore(
+            commandExecutor: commandExecutor,
+            preferences: preferences,
+            analytics: analytics
+        )
+
+        cleanerStore.clear()
+        cleanerStore.cancelCleaning()
+
+        #expect(commandExecutor.isCancelled)
+        #expect(cleanerStore.status == .idle)
+    }
+
+    @Test
+    func partialCommandFailureProducesErrorState() async throws {
+        let commandExecutor = FailingCommandExecutor()
+        let cleanerStore = CleanerStore(
+            commandExecutor: commandExecutor,
+            preferences: preferences,
+            analytics: analytics
+        )
+
+        cleanerStore.clear()
+
+        try await waitUntil {
+            cleanerStore.status == .error
+        }
+
+        #expect(cleanerStore.status == .error)
+    }
+
+    @Test
+    func refreshesUsedSpacePeriodically() async throws {
+        let commandExecutor = RefreshCountingCommandExecutor()
+        let cleanerStore = CleanerStore(
+            commandExecutor: commandExecutor,
+            preferences: preferences,
+            analytics: analytics,
+            refreshInterval: 0.05
+        )
+
+        try await waitUntil {
+            commandExecutor.calculationCount >= 2
+        }
+
+        #expect(commandExecutor.calculationCount >= 2)
+        cleanerStore.cancelCleaning()
+    }
+
+}
+
+private final class BlockingCommandExecutor: CommandExecutor, @unchecked Sendable {
+
+    private(set) var isCancelled = false
+
+    func run(_ command: Command) async throws -> String? {
+        if command == .calculateFreeUpSpace {
+            return "{}"
+        }
+
+        try await Task.sleep(for: .seconds(5))
+
+        return nil
+    }
+
+    func cancel() {
+        isCancelled = true
+    }
+
+}
+
+private struct FailingCommandExecutor: CommandExecutor {
+
+    let isCancelled = false
+
+    func run(_ command: Command) async throws -> String? {
+        if command == .calculateFreeUpSpace {
+            return "{}"
+        }
+
+        if command == .removeCaches {
+            throw "Expected command failure"
+        }
+
+        return "done"
+    }
+
+    func cancel() {}
+
+}
+
+private final class RefreshCountingCommandExecutor: CommandExecutor, @unchecked Sendable {
+
+    private(set) var calculationCount = 0
+    let isCancelled = false
+
+    func run(_ command: Command) async throws -> String? {
+        guard command == .calculateFreeUpSpace else { return "done" }
+
+        calculationCount += 1
+
+        return "{}"
+    }
+
+    func cancel() {}
 
 }

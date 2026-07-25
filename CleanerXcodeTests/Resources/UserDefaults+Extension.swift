@@ -9,7 +9,7 @@ import Foundation
 
 extension UserDefaults {
     
-    static let test = UserDefaults(suiteName: "test")!
+    @MainActor static let test = UserDefaults(suiteName: "test")!
     
     func reset() {
         dictionaryRepresentation().keys.forEach { key in

@@ -12,6 +12,7 @@
       }
     },
     "%@Q" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -22,6 +23,7 @@
       }
     },
     "🎉 Success, all clear!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -30,6 +32,9 @@
           }
         }
       }
+    },
+    "About" : {
+
     },
     "Cache" : {
       "localizations" : {
@@ -42,6 +47,7 @@
       }
     },
     "Calculating" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -62,6 +68,7 @@
       }
     },
     "Cleaning" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -72,6 +79,7 @@
       }
     },
     "Clear" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -82,6 +90,7 @@
       }
     },
     "Clear %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -112,6 +121,7 @@
       }
     },
     "Dedication" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -121,7 +131,11 @@
         }
       }
     },
+    "Display Free Space in Menu Bar" : {
+
+    },
     "Display Free Up Space In Menu Bar" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -152,6 +166,7 @@
       }
     },
     "If you like it tool, consider make a donation." : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -161,7 +176,11 @@
         }
       }
     },
+    "Launch at Login" : {
+
+    },
     "Launch At Login" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -170,6 +189,9 @@
           }
         }
       }
+    },
+    "Made for developers who want to keep Xcode fast and disk usage under control." : {
+
     },
     "Preferences" : {
       "localizations" : {
@@ -190,6 +212,9 @@
           }
         }
       }
+    },
+    "Reclaim space used by Xcode" : {
+
     },
     "Remove Archives" : {
       "localizations" : {
@@ -252,6 +277,7 @@
       }
     },
     "This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele." : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -262,6 +288,7 @@
       }
     },
     "Try again" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -272,6 +299,7 @@
       }
     },
     "Update" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -282,6 +310,7 @@
       }
     },
     "Version %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {

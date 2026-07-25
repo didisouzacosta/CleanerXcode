@@ -10,21 +10,21 @@ import Foundation
 
 @testable import CleanerXcode
 
+@MainActor
 struct ShellTests {
 
-    // MARK: - Private Variables
-    
-    private let shell = Shell()
-    
     // MARK: - Public Methods
     
     @Test
     func ensureSuccessfullyExecution() async throws {
+        let shell = Shell()
+
         try await shell.run(.success)
     }
     
     @Test
     func ensureDecoderSuccessfullExecution() async throws {
+        let shell = Shell()
         let person: Person = try await shell.runDecoder(.decoder)
         
         #expect(person.name == "Orlando")
@@ -32,6 +32,7 @@ struct ShellTests {
     
     @Test
     func ensureTimeoutError() async throws {
+        let shell = Shell()
         let error = await #expect(throws: Error.self) {
             try await shell.run(.timeout)
         }

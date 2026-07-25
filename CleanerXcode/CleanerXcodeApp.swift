@@ -1,100 +1,74 @@
-//
-//  CleanerXcodeApp.swift
-//  CleanerXcode
-//
-//  Created by Adriano Costa on 13/03/25.
-//
-
-import SwiftUI
 import Firebase
-import LaunchAtLogin
+import SwiftUI
 
-class AppDelegate: NSObject, NSApplicationDelegate {
-    
+final class AppDelegate: NSObject, NSApplicationDelegate {
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         #if !DEBUG
         FirebaseApp.configure()
         #endif
     }
-    
+
 }
 
 @main
 struct CleanerXcodeApp: App {
-    
+
+    // MARK: - App Delegate
+
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-    
+
     // MARK: - States
-    
-    @State private var isFirstOpen = true
-    @State private var route = Route()
-    
-    @State private var analytics: GoogleAnalytics
-    @State private var updateStore: UpdateStore
-    @State private var preferences: Preferences
-    @State private var cleanerStore: CleanerStore
-    
-    // MARK: - Private Variables
-    
-    // MARK: - Public Variables
-    
+
+    @State private var container: AppContainer
+
+    // MARK: - Body
+
     var body: some Scene {
         MenuBarExtra {
-            MainView()
-                .frame(width: 340)
-                .environment(route)
-                .environment(cleanerStore)
-                .environment(updateStore)
-                .environment(preferences)
-                .environment(analytics)
+            AppRootView(
+                container.router,
+                cleanerViewModel: container.cleanerViewModel,
+                preferencesViewModel: container.preferencesViewModel
+            )
+            .frame(width: 340)
         } label: {
-            HStack {
-                Image("iconClear")
-                
-                if preferences.displayFreeUpSpaceInMenuBar.value {
-                    if cleanerStore.status == .isCleaning {
-                        Text("Cleaning")
-                    } else if cleanerStore.isCalculating && isFirstOpen {
-                        Text("Calculating")
-                            .onAppear {
-                                isFirstOpen = false
-                            }
-                    } else {
-                        Text(cleanerStore.freeUpSpace.byteFormatter())
-                    }
-                }
-            }
-            .onAppear {
-                LaunchAtLogin.isEnabled = preferences.launchAtLogin.value
-                updateStore.checkUpdates()
-            }
+            MenuBarLabel(container.menuBarViewModel)
         }
         .menuBarExtraStyle(.window)
     }
-    
-    // MARK: - Initializers
-    
+
+    // MARK: - Initializer
+
     init() {
-        let commander = Shell()
-        let preferences = Preferences()
-        let analytics = GoogleAnalytics()
-        
-        _analytics = .init(initialValue: analytics)
-        _updateStore = .init(initialValue: .init(Bundle.main))
-        _preferences = .init(initialValue: preferences)
-        _cleanerStore = .init(initialValue: .init(
-            commandExecutor: commander,
-            preferences: preferences,
-            analytics: analytics
-        ))
+        _container = State(initialValue: AppContainer())
     }
-    
+
 }
 
-fileprivate extension CleanerStore {
-    
-    var isCalculating: Bool {
-        usedSpace.isLoading && usedSpace.value.totalSize == 0
+private struct MenuBarLabel: View {
+
+    // MARK: - Private Properties
+
+    private let viewModel: MenuBarViewModel
+
+    // MARK: - Body
+
+    var body: some View {
+        HStack {
+            Image("iconClear")
+
+            if let statusTitle = viewModel.statusTitle {
+                Text(statusTitle)
+            }
+        }
+        .onAppear(perform: viewModel.start)
     }
-    
+
+    // MARK: - Initializer
+
+    init(_ viewModel: MenuBarViewModel) {
+        self.viewModel = viewModel
+    }
+
 }

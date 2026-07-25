@@ -57,7 +57,7 @@ struct CommandExecutorTests {
 
 }
 
-fileprivate final class StubbedCommandExecutor: CommandExecutor {
+fileprivate final class StubbedCommandExecutor: CommandExecutor, @unchecked Sendable {
     
     enum Result {
         case idle

@@ -35,6 +35,7 @@ final class CleanerStore {
     private let commandExecutor: CommandExecutor
     private let preferences: Preferences
     private let analytics: Analytics
+    private let refreshInterval: TimeInterval
     
     private var steps = [CleanerStep]()
     private var timer: Timer?
@@ -64,11 +65,13 @@ final class CleanerStore {
     init(
         commandExecutor: CommandExecutor,
         preferences: Preferences,
-        analytics: Analytics
+        analytics: Analytics,
+        refreshInterval: TimeInterval = 6
     ) {
         self.commandExecutor = commandExecutor
         self.preferences = preferences
         self.analytics = analytics
+        self.refreshInterval = refreshInterval
         
         calculateFreeUpSpace()
     }
@@ -109,7 +112,7 @@ final class CleanerStore {
                 try? await Task.sleep(nanoseconds: 1.second)
                 
                 steps = steps.filter { $0.hasError }
-                status = .isCompleted
+                status = errors.isEmpty ? .isCompleted : .error
                 
                 try? await Task.sleep(nanoseconds: 2.second)
                 
@@ -119,20 +122,26 @@ final class CleanerStore {
             }
         }
     }
-    
-    func quit() {
-        NSApplication.shared.terminate(nil)
+
+    func cancelCleaning() {
+        cleanerTask?.cancel()
+        commandExecutor.cancel()
+        steps = []
+        status = .idle
+        calculateFreeUpSpace()
     }
     
     // MARK: - Private Methos
     
     private func startTimer() {
         timer = Timer(
-            fire: .now.addingTimeInterval(6),
+            fire: .now.addingTimeInterval(refreshInterval),
             interval: 0,
             repeats: false
         ) { [weak self] _ in
-            self?.calculateFreeUpSpace()
+            Task { @MainActor in
+                self?.calculateFreeUpSpace()
+            }
         }
         
         RunLoop.main.add(timer!, forMode: .common)
@@ -183,6 +192,10 @@ extension CleanerStore {
             usedSpace.value.simulatorData
         default: 0
         }
+    }
+
+    var isCalculating: Bool {
+        usedSpace.isLoading && usedSpace.value.totalSize == 0
     }
     
 }

@@ -12,5 +12,6 @@ struct Constants {
     static let githubURL = URL(string: "https://github.com/didisouzacosta/CleanerXcode")!
     static let xURL = URL(string: "https://x.com/didisouzacosta")!
     static let linkedinURL = URL(string: "https://www.linkedin.com/in/adrianosouzacosta")!
+    static let donateURL = URL(string: "https://buy.stripe.com/00gcN772R2ns3wA9AA")!
     
 }

@@ -7,6 +7,7 @@
 
 @testable import CleanerXcode
 
+@MainActor
 final class AnalyticsStub: Analytics {
     
     var event: AnalyticsEvent?

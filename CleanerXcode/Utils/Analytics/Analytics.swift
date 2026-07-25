@@ -5,6 +5,7 @@
 //  Created by Adriano Costa on 16/03/25.
 //
 
+@MainActor
 protocol Analytics {
     func log(_ event: AnalyticsEvent)
 }
