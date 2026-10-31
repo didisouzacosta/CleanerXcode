@@ -9,17 +9,16 @@ import Foundation
 import Testing
 @testable import CleanerXcode
 
-/// Only ever resets domains the test creates; the real Xcode domain is never touched. The names
-/// are fixed and distinct per test (they run in parallel), and their plist files are removed
-/// afterwards, so no run leaves anything in `~/Library/Preferences`.
+/// Only ever resets domains the test creates, through `TestPreferencesDomain`; the real Xcode
+/// domain is never touched. The names are fixed and distinct per test (they run in parallel).
 struct UserDefaultsPreferencesResetterTests {
 
     // MARK: - Public Methods
 
     @Test
     func removesEveryValueOfItsDomainAndNothingElse() throws {
-        let domain = "didisouzacosta.CleanerXcodeTests.reset.removesEveryValue"
-        let neighbor = "didisouzacosta.CleanerXcodeTests.keep.neighbor"
+        let domain = TestPreferencesDomain.prefix + "reset.removesEveryValue"
+        let neighbor = TestPreferencesDomain.prefix + "keep.neighbor"
 
         UserDefaults.standard.setPersistentDomain(
             ["IDECustomDerivedDataLocation": "/Volumes/Fast/DerivedData", "DVTTextShowLineNumbers": true],
@@ -28,8 +27,8 @@ struct UserDefaultsPreferencesResetterTests {
         UserDefaults.standard.setPersistentDomain(["kept": true], forName: neighbor)
 
         defer {
-            removeTestDomain(domain)
-            removeTestDomain(neighbor)
+            TestPreferencesDomain.remove(named: "reset.removesEveryValue")
+            TestPreferencesDomain.remove(named: "keep.neighbor")
         }
 
         try UserDefaultsPreferencesResetter(domain: domain).reset()
@@ -40,9 +39,9 @@ struct UserDefaultsPreferencesResetterTests {
 
     @Test
     func resettingAnEmptyDomainSucceeds() throws {
-        let domain = "didisouzacosta.CleanerXcodeTests.reset.empty"
+        let domain = TestPreferencesDomain.prefix + "reset.empty"
 
-        defer { removeTestDomain(domain) }
+        defer { TestPreferencesDomain.remove(named: "reset.empty") }
 
         try UserDefaultsPreferencesResetter(domain: domain).reset()
 
@@ -53,21 +52,6 @@ struct UserDefaultsPreferencesResetterTests {
     func targetsTheXcodeDomainByDefault() {
         #expect(UserDefaultsPreferencesResetter.xcodeDomain == "com.apple.dt.Xcode")
         #expect(UserDefaultsPreferencesResetter().domain == "com.apple.dt.Xcode")
-    }
-
-    // MARK: - Private Methods
-
-    /// Only domains with the tests' own prefix: removing a domain leaves an empty plist behind.
-    private func removeTestDomain(_ domain: String) {
-        precondition(domain.hasPrefix("didisouzacosta.CleanerXcodeTests."), "Tests only remove their own domains.")
-
-        UserDefaults.standard.removePersistentDomain(forName: domain)
-        // Flushes cfprefsd's pending write first, or it recreates the empty plist after the removal.
-        CFPreferencesAppSynchronize(domain as CFString)
-
-        let file = URL(filePath: NSHomeDirectory())
-            .appending(path: "Library/Preferences/\(domain).plist", directoryHint: .notDirectory)
-        try? FileManager.default.removeItem(at: file)
     }
 
 }

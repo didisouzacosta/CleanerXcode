@@ -1628,3 +1628,69 @@ Nenhuma categoria nova é proposta:
     relatório;
   - o evento `cleaner` com `result = cancelled` sai do relatório
     `cancelled`.
+
+## Adendo da implementação do C18 (2026-10-31)
+
+- **`Core/Persistence`:**
+  - `PreferencesStoring` distingue chave ausente, valor e valor ilegível
+    (`StoredBool`). As extensões `bool(for:)`, `isSelected(_:)` e
+    `setSelected(_:_:)` usam os IDs do catálogo, que já são as chaves
+    legadas (R3).
+  - `UserDefaultsPreferencesStore` lê e grava no formato legado (`Data`
+    com JSON de `Bool`), então a 0.7 continua lendo o que a 1.0 grava.
+    `preferences-schema-version` é um inteiro simples.
+  - `PreferencesMigrator` (v1 → v2, uma vez só):
+    - mantém todo valor salvo;
+    - chave ausente ou ilegível recebe o padrão do catálogo (D5: Archives
+      fica desligado para quem nunca mexeu);
+    - `show-menu-bar-extra` vem ligado e
+      `display-free-up-space-in-menu-bar` mantém a escolha, agora lida
+      como "mostrar o tamanho";
+    - `launch-at-login = true` com status `.notRegistered` chama
+      `setEnabled(true)` uma vez. Uma falha volta em
+      `Outcome.loginItemFailure` sem parar a migração;
+    - a chave legada é mantida (B1 da revisão). A versão do esquema já
+      garante que ela só é lida uma vez (R15), e voltar para a 0.7 preserva
+      a escolha. Apagá-la faria a 0.7 ler "ausente" como `true` e registrar
+      o item contra a escolha do usuário. Daí em diante a fonte de verdade
+      é o `SMAppService`;
+    - um `launch-at-login` ilegível entra na contagem de valores
+      corrompidos (B2) e não registra;
+    - **decisão:** chave ausente não registra. Quem atualiza já está
+      registrado pelo LaunchAtLogin, que usa `SMAppService`, e uma
+      instalação nova escolhe em Ajustes;
+    - `Outcome.restoredCorruptedValueCount` serve para o breadcrumb sem
+      a chave, que quem chama envia (C19/C22).
+- **Diverge da seção 5.4 (superfície final):**
+  - `PreferencesStoring` tem `schemaVersion` só de leitura,
+    `storedValue(for:)`, `set(_:for:)`, `removeValue(for:)` e
+    `setSchemaVersion(_:)`. `bool(for:)`, `isSelected(_:)` e
+    `setSelected(_:_:)` são extensões;
+  - `LoginItemManaging` ganhou `status` (`LoginItemStatus`: `enabled`,
+    `notRegistered`, `requiresApproval`, `notFound`), que a migração usa,
+    além de `isEnabled` e `setEnabled(_:)`.
+- **`Core/Platform/LoginItemManaging`:** `MainAppLoginItem` sobre
+  `SMAppService.mainApp` via `AppServiceControlling`, que o
+  `SMAppService` adota. Os testes usam um serviço falso e nunca registram
+  um item de login real. Os erros chegam como `CleanupError`; como os
+  erros do `SMAppService` vêm de domínios próprios, quase sempre viram
+  `.unknown(domain:code:)`. Revisar no C20, junto com a orientação para
+  `.requiresApproval`.
+- `removeValue(for:)` não tem mais uso em produção depois do B1. Fica no
+  protocolo para os Ajustes (C20/C22) limparem chaves antigas.
+- **Plists de teste:** como no C16, o cfprefsd às vezes recria de forma
+  assíncrona um plist vazio depois da limpeza. Pode sobrar no máximo um
+  arquivo vazio por suite de nome fixo, agora incluindo as do C18, e nada
+  se acumula.
+- **SKILLS_STATUS:** swiftui-expert-skill marcada como SKIPPED neste card,
+  porque não há código SwiftUI no escopo.
+- **Testes:** o migrador usa uma store em memória. Só os testes da
+  `UserDefaultsPreferencesStore` e um teste ponta a ponta usam suites
+  reais, com nomes fixos por teste e o helper `TestPreferencesDomain`, que
+  remove domínio e plist. O vermelho foi demonstrado contra esqueletos, e
+  8 mutações foram pegas.
+- **Pendências:**
+  - C19, C20 e C22: ligar a migração no início do app (antes de ler as
+    preferências) e trocar `Preferences`/`StoragedValue` e o pacote
+    LaunchAtLogin pelos tipos novos. A remoção do pacote fica no C24 (D4);
+  - C27: validar o registro real em `/Applications` (AC15-live).

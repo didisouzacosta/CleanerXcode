@@ -255,7 +255,13 @@ ViewModels por tela.
     passos `simctl`, remoções e reset, reinício do CoreSimulatorService só
     depois de remoção direta no F24; cancelamento devolve relatório
     `cancelled` com o que já foi liberado);
-  - `Persistence/`: `Preferences` e `StoragedValue`;
+  - `Persistence/`: `Preferences` e `StoragedValue` (0.7, ainda ligados à
+    interface) e, desde o C18, `PreferencesStoring`,
+    `UserDefaultsPreferencesStore` (formato legado `Data` com JSON de
+    `Bool`) e `PreferencesMigrator` (v1→v2, uma vez; valores salvos
+    preservados; `launch-at-login` entregue ao `SMAppService` uma vez);
+  - `Platform/` (C18): `MainAppLoginItem` (`SMAppService.mainApp` via
+    `AppServiceControlling`; testes com serviço falso);
   - `Helpers/`: `Constants` (URLs via `staticURL(_:)`, que falha alto se o
     literal for inválido), `StateValue` e as extensões. `String` conforma a
     `Error`/`LocalizedError` por `@retroactive`, e os erros são lançados como
@@ -461,7 +467,7 @@ validação em dispositivo físico e de serviços externos.
     avisos. No C12: 184 execuções passaram, sem avisos. No C13: 196 execuções
     passaram, sem avisos. No C14: 217 execuções passaram, sem avisos. No C15: 242 execuções
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
-    passaram, sem avisos;
+    passaram, sem avisos. No C18: 295 execuções passaram, sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código
