@@ -1123,3 +1123,53 @@ SKILLS_STATUS:
   C17 deve levá-la para `extra` ou contexto. Builds Debug usam `dwarf` (sem
   dSYM), então o AC22-live do C28 deve ser validado com uma build Release e o
   upload de dSYMs.
+
+## Adendo da implementação do C09 (2026-10-31)
+
+- **`SafePathPolicy`** recebe `allowedBases` (`~/Library` e as três pastas
+  temporárias) e um `CleanupTarget`.
+  - `validateRoot` rejeita, com `.unsupportedRoot`, uma raiz que seja
+    symlink, que saia da base depois de resolvida ou que contenha `/`, `~` ou
+    `~/Library`. O alvo é pulado sem gerar relatório de bug.
+  - `validate` rejeita `.`/`..`, `excludedNames` e raízes do catálogo
+    aninhadas, e devolve `.notFound` para item inexistente.
+  - O volume é comparado por `volumeURLKey` em vez de `volumeIdentifierKey`.
+    Uma URL pode ser devolvida pelo `PathInspecting` e comparada com `==`, e o
+    efeito é equivalente ao do identificador.
+- **Pendências para o C12, da re-revisão do C09:**
+  - (R1) decidir se um symlink num ancestral entre a base e a raiz deve tornar
+    a raiz `.unsupportedRoot`. Hoje ele é aceito quando a raiz resolvida fica
+    dentro da base; por exemplo, `CoreSimulator` apontando para `~/Library`
+    faria `CoreSimulator/Caches` cair em `~/Library/Caches`;
+  - (R3) `FileSystemPathInspector.exists` deve devolver `false` só para
+    `ENOENT`/`ENOTDIR`, deixando falhas de permissão chegarem ao remover, e
+    ganhar um teste de link pendente.
+- **`CleanupItemResult`** grava `.failed(.notFound)` e
+  `.failed(.unsupportedRoot)` como `.skipped`. O `.failed(.cancelled)`
+  continua sendo falha quando a limpeza não foi cancelada.
+- **`CleanupOperation`**: os `targets` das categorias simctl indicam o que é
+  medido. `clear-simulator-data` mede `CoreSimulator/Devices`;
+  `remove-old-simulators` e `reset-xcode-preferences` não têm alvo.
+- **Lint × revisão:** o `type_contents_order` do projeto exige subtipos antes
+  de subscripts, então o `subscript` do `CleanupCatalog` fica depois de
+  `Nested Types`.
+- **Pendência para o C17:** o aviso de DerivedData com o Xcode aberto (R5) é
+  derivado pelo ID da categoria na interface; o catálogo só modela os
+  bloqueios.
+
+## Investigação do C10 (2026-10-31, somente leitura)
+
+Nenhuma categoria nova é proposta:
+- `~/Library/Developer/CoreDevice/DeviceFS` (724 MB): é um mount `devicefs`
+  (fskit, somente leitura) do `CoreDeviceService` que expõe aparelhos
+  físicos, não um cache local. Fica excluído; a `SafePathPolicy` também o
+  rejeitaria pelo volume.
+- `~/Library/Developer/Xcode/CodingAssistant` (4 KB): só `mcp-servers.json`,
+  configuração do usuário. Fica excluído.
+- `~/Library/Developer/DVTDownloads` (4 KB): `Assets/MetalToolchain` vazio e
+  `Personalization`. É insignificante e fica excluído.
+- Cache de documentação do Xcode 27: não foi encontrado em
+  `~/Library/Developer`, em `~/Library/Caches/com.apple.dt.Xcode` nem em
+  Application Support. Sem categoria.
+- `~/Library/Developer/Xcode/UntitledProjects` contém projetos do usuário e
+  nenhuma raiz do catálogo o alcança. Isso continua obrigatório.

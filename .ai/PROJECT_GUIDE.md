@@ -167,6 +167,31 @@ ViewModels por tela.
     `SentryErrorReporter`, `ErrorReportingConfiguration` e
     `SentryEventSanitizer`. Só esses dois últimos arquivos do Sentry importam
     o SDK; as Views não importam Sentry nem Himetrica;
+  - `Cleanup/` (C09, ainda não conectado à interface): o domínio da limpeza
+    nativa. `CleanupCategoryID` (as chaves de preferência como rawValue, com
+    as sete legadas preservadas), `RiskLevel`, `RemovalMode`,
+    `CleanupOperation`, `CleanupTarget`, `CleanupCategory`, `CleanupCatalog`
+    (tabela 5.5 do plano, 15 categorias montadas a partir de
+    `CleanupLocations`), `SafePathPolicy` (com `PathInspecting` e
+    `FileSystemPathInspector`), `CleanupError` (só valores enumerados, sem
+    caminho), `CleanupItemResult` e `CleanupReport` (agregação pura: sucesso,
+    falha parcial, falha ou cancelado). Os tipos são
+    `nonisolated struct/enum … : Sendable`;
+  - regras da `SafePathPolicy`:
+    - `validateRoot`: a raiz precisa ser do catálogo; não pode ser symlink;
+      resolvida, fica dentro de `~/Library` ou de uma pasta temporária e não
+      contém `/`, `~` nem `~/Library`. Se falhar, o resultado é
+      `.unsupportedRoot` e o alvo é pulado, por exemplo DerivedData
+      apontando para um disco externo;
+    - `validate`: o item é descendente estrito, sem `.`/`..`, fora de
+      `excludedNames` e de raízes aninhadas, sem pasta symlinkada saindo da
+      raiz, existente (senão `.notFound`) e no volume da raiz. O volume é
+      comparado por `volumeURLKey`, equivalente ao `volumeIdentifierKey`
+      citado na N2 do plano;
+    - `.unsafePath` é sempre bug e é reportado;
+  - `CleanupItemResult` normaliza `.failed(.notFound)` e
+    `.failed(.unsupportedRoot)` em `.skipped`, então inexistência nunca vira
+    falha (R6);
   - `Persistence/`: `Preferences` e `StoragedValue`;
   - `Helpers/`: `Constants` (URLs via `staticURL(_:)`, que falha alto se o
     literal for inválido), `StateValue` e as extensões. `String` conforma a
@@ -174,7 +199,9 @@ ViewModels por tela.
     strings.
 - Testes (`Tests/`): espelham `App/`, `Core/` e `Features/`. `Support/` traz
   os stubs, os scripts de teste (`Support/Scripts`), o `UserDefaults.test`, o
-  `Bundle.test` e o helper `waitUntil`.
+  `Bundle.test`, o helper `waitUntil` e o `TemporaryDirectoryFixture`, que
+  cria uma pasta exclusiva do teste e a apaga no `deinit` (testes de disco
+  nunca tocam dados reais).
 
 Exceções declaradas ao `SWIFT_REFERENCE.md` (card C04):
 
@@ -366,7 +393,8 @@ validação em dispositivo físico e de serviços externos.
     e 0 falharam. `ShellTests/ensureTimeoutError()` leva cerca de 5 s.
     Repetido no C02 com o scheme compartilhado e o test plan: 35 passaram.
     No C04, com build limpo: 45 passaram, sem avisos. No C08: 96 testes
-    (101 execuções com os parametrizados) passaram, sem avisos;
+    (101 execuções com os parametrizados) passaram, sem avisos. No C09: 148
+    execuções passaram, sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código
