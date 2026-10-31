@@ -79,7 +79,6 @@ struct AppEnvironmentTests {
             configuration: AppConfiguration(versionFileURL: nil)
         )
 
-        #expect(services.commandExecutor is InertCommandExecutor)
         #expect(services.analytics is NullAnalytics)
         #expect(services.errorReporter is NullErrorReporter)
         #expect(services.userDefaults !== UserDefaults.standard)

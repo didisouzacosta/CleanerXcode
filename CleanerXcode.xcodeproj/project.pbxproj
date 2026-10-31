@@ -7,13 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A90EBEE42DA0443D00A608BB /* Timeout in Frameworks */ = {isa = PBXBuildFile; productRef = A90EBEE32DA0443D00A608BB /* Timeout */; };
 		C07A0001C07A0001C07A0001 /* Himetrica in Frameworks */ = {isa = PBXBuildFile; productRef = C07A0002C07A0002C07A0002 /* Himetrica */; };
 		C08A0001C08A0001C08A0001 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = C08A0002C08A0002C08A0002 /* Sentry */; };
 		A94471EA2D9305470079ED9B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A94471E82D9305470079ED9B /* README.md */; };
 		A94471EB2D9305470079ED9B /* RELEASE_NOTES.md in Resources */ = {isa = PBXBuildFile; fileRef = A94471E92D9305470079ED9B /* RELEASE_NOTES.md */; };
-		A9D297D22D95A32C00C8B54A /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = A9D297D12D95A32C00C8B54A /* LaunchAtLogin */; };
-		A9F95FF92D95938800B10A82 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = A9F95FF82D95938800B10A82 /* LaunchAtLogin */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -73,11 +70,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A9D297D22D95A32C00C8B54A /* LaunchAtLogin in Frameworks */,
-				A90EBEE42DA0443D00A608BB /* Timeout in Frameworks */,
 				C07A0001C07A0001C07A0001 /* Himetrica in Frameworks */,
 				C08A0001C08A0001C08A0001 /* Sentry in Frameworks */,
-				A9F95FF92D95938800B10A82 /* LaunchAtLogin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,9 +128,6 @@
 			);
 			name = CleanerXcode;
 			packageProductDependencies = (
-				A9F95FF82D95938800B10A82 /* LaunchAtLogin */,
-				A9D297D12D95A32C00C8B54A /* LaunchAtLogin */,
-				A90EBEE32DA0443D00A608BB /* Timeout */,
 				C07A0002C07A0002C07A0002 /* Himetrica */,
 				C08A0002C08A0002C08A0002 /* Sentry */,
 			);
@@ -196,8 +187,6 @@
 			mainGroup = A9D98E042D8FCBEF000448A2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				A9D297D02D95A32C00C8B54A /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
-				A90EBEE22DA0443D00A608BB /* XCRemoteSwiftPackageReference "swift-timeout" */,
 				C07A0003C07A0003C07A0003 /* XCRemoteSwiftPackageReference "himetrica-swift" */,
 				C08A0003C08A0003C08A0003 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
@@ -534,22 +523,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A90EBEE22DA0443D00A608BB /* XCRemoteSwiftPackageReference "swift-timeout" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/swhitty/swift-timeout.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.2.1;
-			};
-		};
-		A9D297D02D95A32C00C8B54A /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:didisouzacosta/LaunchAtLogin-Modern.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 		C07A0003C07A0003C07A0003 /* XCRemoteSwiftPackageReference "himetrica-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/himetrica/himetrica-swift";
@@ -569,20 +542,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A90EBEE32DA0443D00A608BB /* Timeout */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A90EBEE22DA0443D00A608BB /* XCRemoteSwiftPackageReference "swift-timeout" */;
-			productName = Timeout;
-		};
-		A9D297D12D95A32C00C8B54A /* LaunchAtLogin */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A9D297D02D95A32C00C8B54A /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
-			productName = LaunchAtLogin;
-		};
-		A9F95FF82D95938800B10A82 /* LaunchAtLogin */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = LaunchAtLogin;
-		};
 		C07A0002C07A0002C07A0002 /* Himetrica */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C07A0003C07A0003C07A0003 /* XCRemoteSwiftPackageReference "himetrica-swift" */;

@@ -2174,3 +2174,67 @@ Nenhuma categoria nova é proposta:
 - **Pendência para o C24:** o `UpdateStore`, o `ApplicationInfo` e os
   testes deles só servem à `CleanerView` antiga e saem com ela.
 
+## Adendo da implementação do C24 (2026-10-31)
+
+- **Apagados (seção 5.6):**
+  - `Shell`, `CommandExecutor`, `Command`, `InertCommandExecutor` e
+    `Resources/Scripts/*.sh`;
+  - os scripts de teste (`Tests/Support/Scripts/*.sh`), `ShellTests`,
+    `CommandExecutorTests`, `CommandTests` e `CommandExecutorStub`;
+  - `StoragedValue`, `Preference+Extension`, `String+ErrorExtension` e
+    `Route`;
+  - `Components/` (`ExpandableButton`, `HighlightButton`,
+    `CustomCircularProgressViewStyle`, `ScrollContentHeightModifier`).
+- **Também apagado:** a interface antiga que a janela do C20 substituiu, com
+  os testes dela:
+  - `MainView`, `CleanerView` (`import Charts`), `CleanerStore`,
+    `PreferencesView` (`import TipKit` e `LaunchAtLogin`);
+  - `Preferences`, `UpdateStore`, `ApplicationInfo`, `AnalyticsTracker`,
+    `StateValue`, `UsedSpace`;
+  - `Int+Extension`, `Double+Formatter`, `Data+Decoder`;
+  - os helpers de teste `Person` e `TestImprovements`.
+- **Mantido do `Bundle+Extension`:** só `version` e `build`. A URL do
+  `version.json` vem da `AppConfiguration`.
+- **`AppServices`:** perdeu `commandExecutor` e `preferences`; os testes do
+  container foram ajustados.
+- **Dependências (D4):** `swift-timeout` e `LaunchAtLogin-Modern` saíram do
+  pbxproj (41 linhas, só os objetos desses pacotes; as alterações locais
+  preservadas continuam intactas) e do `Package.resolved`. A resolução não
+  precisa mais de SSH ao GitHub. O Release só embute o `Sentry.framework`.
+- **AC24:**
+  - `grep` em `CleanerXcode`, `CleanerXcode.xcodeproj` e `Tests` sem
+    `/bin/bash`, `.sh`, `Shell`, `CommandExecutor` nem os imports `Timeout`,
+    `Charts`, `TipKit` e `LaunchAtLogin`;
+  - os nomes `setLaunchAtLogin` e `legacyLaunchAtLoginKey` são do app, não do
+    pacote;
+  - os testes do `ProcessRunner` ainda rodam `/bin/echo` e `/bin/sh` como
+    processos inofensivos de teste; o app só roda `/usr/bin/xcrun`;
+  - o bundle Release não tem nenhum `.sh`;
+  - os scripts de ferramenta (`scripts/lint-swift.sh` e `.ai/shared/`) não
+    são do app e ficam.
+- **Docs:** o `PROJECT_GUIDE` foi atualizado nas seções de dependências,
+  nível mínimo, arquitetura, estado e concorrência, regras, previews e
+  testes; o mapa de código do `PROJECT_BRIEF` perdeu as linhas do código
+  antigo. A descrição de produto do brief continua a do 0.7 e é reescrita no
+  C29.
+- **Validação:** lint sem violações (171 arquivos), 368 execuções de teste
+  passando (saíram os 37 testes do código antigo) e build Release OK. O
+  domínio real do app fica vazio depois dos testes. Plists de teste vazaram
+  (pendência do C27) e foram removidos.
+- **Revisão (Manager), correções:**
+  - B1: `xcodebuild -resolvePackageDependencies -project CleanerXcode.xcodeproj
+    -scheme CleanerXcode` resolveu só Himetrica 1.0.0 (`b62348e`) e Sentry
+    9.32.0 (`4e1e4ba`), sem SSH. O Xcode não reescreveu o `Package.resolved`
+    (o `originHash` ficou o mesmo) e nenhum outro arquivo mudou.
+  - NITs aplicados:
+    - N1: o guia não cita mais `Charts`, `TipKit`, `StateValue`, os scripts
+      de teste nem o `waitUntil`;
+    - N2: o brief marca como resolvidas a falha visível, o encerramento do
+      processo e o fork `LaunchAtLogin`;
+    - N4: saíram o `Bundle.test`, a cor `greenAction` e os símbolos sociais;
+    - N6: o teste virou `whenRunningTestsTheSDKsStayOff`, sem `async throws`;
+    - N7: o `Bundle+Extension` importa só `Foundation`.
+  - NITs registrados:
+    - N3: o README ainda credita LaunchAtLogin e swift-timeout (C29);
+    - N5: chaves de texto das Views antigas no `Localizable.xcstrings` (C25).
+

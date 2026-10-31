@@ -11,30 +11,12 @@
       }
     },
     {
-      "identity" : "launchatlogin-modern",
-      "kind" : "remoteSourceControl",
-      "location" : "git@github.com:didisouzacosta/LaunchAtLogin-Modern.git",
-      "state" : {
-        "branch" : "main",
-        "revision" : "8b5fc35869ba5e0c06e735443b2b888596f0edda"
-      }
-    },
-    {
       "identity" : "sentry-cocoa",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getsentry/sentry-cocoa",
       "state" : {
         "revision" : "4e1e4ba9ce329f91ad6bfb63bab6da576a3f348c",
         "version" : "9.32.0"
-      }
-    },
-    {
-      "identity" : "swift-timeout",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/swhitty/swift-timeout.git",
-      "state" : {
-        "revision" : "4efb73b593d5553b90766d531db701ecf2306237",
-        "version" : "0.4.1"
       }
     }
   ],

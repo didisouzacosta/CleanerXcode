@@ -19,15 +19,13 @@ struct AppContainerTests {
     // MARK: - Public Methods
 
     @Test
-    func whenRunningTestsNothingTouchesTheSystem() async throws {
+    func whenRunningTestsTheSDKsStayOff() {
         let environment = AppEnvironment(isRunningTests: true, isDebug: true)
 
         let services = AppContainer.makeServices(environment: environment, configuration: configuration)
 
-        #expect(services.commandExecutor is InertCommandExecutor)
         #expect(services.analytics is NullAnalytics)
         #expect(services.errorReporter is NullErrorReporter)
-        #expect(try await services.commandExecutor.run(.calculateFreeUpSpace) == nil)
     }
 
     @Test
@@ -40,18 +38,17 @@ struct AppContainerTests {
     }
 
     @Test
-    func debugBuildRunsShellWithoutAnalytics() {
+    func debugBuildRunsWithoutAnalytics() {
         let environment = AppEnvironment(isRunningTests: false, isDebug: true)
 
         let services = AppContainer.makeServices(environment: environment, configuration: configuration)
 
-        #expect(services.commandExecutor is Shell)
         #expect(services.analytics is NullAnalytics)
         #expect(services.userDefaults === UserDefaults.standard)
     }
 
     @Test
-    func releaseBuildWithoutAKeyRunsShellWithoutAnalytics() {
+    func releaseBuildWithoutAKeyRunsWithoutAnalytics() {
         let environment = AppEnvironment(isRunningTests: false, isDebug: false)
         let factory = HimetricaFactorySpy()
 
@@ -61,7 +58,6 @@ struct AppContainerTests {
             makeHimetrica: factory.make
         )
 
-        #expect(services.commandExecutor is Shell)
         #expect(services.analytics is NullAnalytics)
         #expect(factory.apiKeys.isEmpty)
     }
@@ -167,7 +163,6 @@ struct AppContainerTests {
             makeErrorReporter: factory.make
         )
 
-        #expect(services.commandExecutor is InertCommandExecutor)
         #expect(services.analytics is NullAnalytics)
         #expect(services.errorReporter is NullErrorReporter)
         #expect(factory.configurations.isEmpty)
@@ -331,11 +326,9 @@ struct AppContainerTests {
 
         let reporter = ErrorReporterStub()
         let services = AppServices(
-            commandExecutor: InertCommandExecutor(),
             analytics: NullAnalytics(),
             errorReporter: reporter,
             userDefaults: defaults,
-            preferences: Preferences(defaults),
             configuration: configuration
         )
 

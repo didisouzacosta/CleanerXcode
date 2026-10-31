@@ -15,7 +15,7 @@ As fontes deste checkout são, nesta ordem:
 - Código e configuração existentes: comportamento efetivamente conectado.
 
 Não trate um tipo, string, pacote ou serviço sem callsite de produção como uma
-feature disponível. Exemplos atuais: `import Charts` e `import TipKit`. Não faça migrações de
+feature disponível. Não faça migrações de
 nomes, pastas ou arquitetura sem escopo explícito.
 
 ## Baseline efetiva
@@ -75,11 +75,9 @@ nomes, pastas ou arquitetura sem escopo explícito.
     entra no binário do app, e o Xcode embute em `Contents/Frameworks` um
     `Sentry.framework` de 64 KB, sem símbolos, só para levar o
     `PrivacyInfo.xcprivacy` (C08);
-  - `swift-timeout` (up to next major, a partir de 0.2.1; resolvido em 0.4.1):
-    `withThrowingTimeout` em `Shell`;
-  - `LaunchAtLogin` (fork `git@github.com:didisouzacosta/LaunchAtLogin-Modern.git`,
-    branch `main`), que exige acesso SSH ao GitHub. O produto aparece duas
-    vezes nas referências do target.
+  - `swift-timeout` e `LaunchAtLogin` foram removidos no C24 (D4): o timeout
+    de processo é do `ProcessRunner` e o "abrir no login" usa
+    `SMAppService.mainApp`.
   - Nenhuma dependência nova sem aprovação explícita.
 - Requisitos de hardware: Mac com macOS 26+. Para comportamento real, Xcode
   instalado com dados em `~/Library/Developer`. `xcrun simctl` e `pod` são
@@ -102,19 +100,21 @@ aqui somente preferências ou exceções do projeto.
 
 - Nível mínimo por área ou tipo de tarefa (decorre dos gatilhos de
   concorrência, segurança e integração do `AGENTS.md`):
-  - Nível 2 para qualquer mudança em `Resources/Scripts/*.sh`,
-    `Shell`, `CommandExecutor` ou no fluxo `CleanerStore.clear()`. Esse código
+  - Nível 2 para qualquer mudança em `Core/Cleanup`, `Core/FileSystem`,
+    `Core/Process`, `Core/Simulators` ou no `CleanupExecutor`. Esse código
     apaga dados do usuário de forma irreversível e envolve processos, timeout
     e cancelamento.
-  - Nível 2 para a migração para Swift 6, mudanças em chaves de
-    `Preferences`/`StoragedValue` (perda de preferências salvas), analytics,
+  - Nível 2 para mudanças em chaves de preferências (`PreferencesStoring`,
+    `PreferencesMigrator`: perda de preferências salvas), analytics,
     verificação de atualização e assinatura ou distribuição.
 
 ## Arquitetura
 
-O app é pequeno, com uma única cena `MenuBarExtra`. O estado vive em stores
-`@Observable` compostos na raiz e distribuídos por `.environment`. Não há
-ViewModels por tela.
+Desde o C20 o app tem uma janela única (`Window`), a cena `Settings` e o
+`MenuBarExtra(isInserted:)` opcional. O estado vive em ViewModels
+`@Observable` (`CleanerViewModel`, `SimulatorsViewModel`, `SettingsViewModel`
+e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
+às Views. Os detalhes de cada card estão nos adendos do plano.
 
 - Layout (card C04): código em `CleanerXcode/Sources/{App,Core,Features}`,
   recursos em `CleanerXcode/Resources` e testes em `Tests/`, na raiz do repo,
@@ -125,10 +125,10 @@ ViewModels por tela.
     função pura;
   - em teste (`XCTestConfigurationFilePath` ou `XCTestBundlePath`) ou em
     preview (`XCODE_RUNNING_FOR_PREVIEWS=1`) o container entrega
-    `InertCommandExecutor`, que não roda scripts, `NullAnalytics`,
-    `NullErrorReporter` e
-    `UserDefaults(suiteName: "didisouzacosta.CleanerXcode.test-host")`;
-  - fora de teste entrega `Shell` e `Preferences(.standard)`. O analytics é
+    `NullAnalytics`, `NullErrorReporter`,
+    `UserDefaults(suiteName: "didisouzacosta.CleanerXcode.test-host")` e
+    serviços inertes (sem disco, `simctl`, login item nem rede);
+  - fora de teste entrega `UserDefaults.standard`. O analytics é
     `HimetricaAnalytics` só em Release e com `HIMETRICA_API_KEY` configurada,
     senão `NullAnalytics`. A fábrica (`makeHimetrica`) é injetável para os
     testes nunca configurarem o SDK real;
@@ -141,28 +141,22 @@ ViewModels por tela.
     (padrão ligado) a cada evento e só chama `Himetrica.configure` no
     primeiro evento permitido. Ele nunca usa `identify`, `trackScreen` nem os
     modificadores de view do SDK;
-  - no `onAppear` do rótulo, `LaunchAtLogin` e `checkUpdates()` são pulados no
-    host de testes;
-  - `Route` e `MainView` também ficam em `Sources/App`.
-- Domínio: `Sources/Core/Models` (`UsedSpace`, `Version`) e
-  `Sources/Core/Contracts` (`ApplicationInfo`, com implementação padrão que
-  baixa e decodifica o `version.json`). `Bundle` conforma a `ApplicationInfo`.
+  - o `AppDelegate` aplica a regra de fechar a última janela.
+- Domínio: `Sources/Core/Models/Version.swift` (o `version.json`) e
+  `Sources/Core/Update` (`SemanticVersion`, `VersionChecking`).
 - Features (`Sources/Features`):
-  - `Cleaner/`: `CleanerView` (com o `CleanerButton` privado), `CleanerStore`
-    e `Components/` (`ExpandableButton`, `HighlightButton`,
-    `ScrollContentHeightModifier`, `CustomCircularProgressViewStyle`);
-  - `Settings/`: `PreferencesView`;
-  - `Update/`: `UpdateStore`.
+  - `Cleaner/`: `CleanerViewModel`, `Presentation/` e `Window/` (a janela);
+  - `Simulators/`: a seção "Gerenciar simuladores";
+  - `Settings/`: Ajustes, painel e rótulo da barra de menus;
+  - `Update/`: `UpdateViewModel`.
 - Infraestrutura (`Sources/Core`):
-  - `Process/`: o protocolo `CommandExecutor`, a implementação `Shell`, o
-    `InertCommandExecutor` e o catálogo `Command`. Os scripts `.sh` ficam em
-    `Resources/Scripts`;
+  - `Process/`: `ProcessRequest`, `ProcessRunner` e afins (sem shell; não há
+    scripts `.sh` desde o C24);
   - `Integrations/`: `Analytics`, `AnalyticsEvent` (eventos estáveis:
     `cleaner`, `cleaner_partial_failure`, `simulator_deleted`,
     `simulator_unavailable_deleted`, `runtime_deleted`, `social`, `donate` e
     `update_opened`, sem caminhos nem tamanhos exatos), `HimetricaAnalytics`,
-    `NullAnalytics` e `AnalyticsTracker`, o adaptador `@Observable` que as
-    Views recebem por `.environment`. Também `ErrorReporting` (com
+    `NullAnalytics`, chamados só pelos ViewModels. Também `ErrorReporting` (com
     `ReportableFailure` e `ReportingStage`), `NullErrorReporter`,
     `SentryErrorReporter`, `ErrorReportingConfiguration` e
     `SentryEventSanitizer`. Só esses dois últimos arquivos do Sentry importam
@@ -230,8 +224,7 @@ ViewModels por tela.
     paralelo por `readabilityHandler`, porque `FileHandle.bytes` bloqueia o
     pool cooperativo). Prazo e cancelamento terminam o processo com
     `SIGTERM` e esperam só ele sair. Exit diferente de zero vira
-    `commandFailed`, com o stderr sanitizado e cortado em 500 caracteres. O
-    `Shell` antigo continua até o C24;
+    `commandFailed`, com o stderr sanitizado e cortado em 500 caracteres;
   - `Simulators/` (C14): `DeviceSet`, `SimulatorDevice`, `SimulatorRuntime`,
     `SimctlJSON` (DTOs tolerantes a campos ausentes), `SimulatorManaging` e
     `SimctlSimulatorService` (listar, desligar, apagar simuladores
@@ -264,22 +257,18 @@ ViewModels por tela.
     reconfere Xcode e Simulator; relatório até
     dispensar; `retryFailed()` só nas categorias que falharam) e
     `CleanupOutcomeReporter` (analytics e um único erro agregado; a tag
-    `failed_categories` vai para `extra` do Sentry). Ainda não está ligado
-    à interface, o que fica para o C20;
-  - `Persistence/`: `Preferences` e `StoragedValue` (0.7, ainda ligados à
-    interface) e, desde o C18, `PreferencesStoring`,
+    `failed_categories` vai para `extra` do Sentry). A janela do C20 o usa;
+  - `Persistence/`: desde o C18, `PreferencesStoring`,
     `UserDefaultsPreferencesStore` (formato legado `Data` com JSON de
     `Bool`) e `PreferencesMigrator` (v1→v2, uma vez; valores salvos
     preservados; `launch-at-login` entregue ao `SMAppService` uma vez);
   - `Platform/` (C18): `MainAppLoginItem` (`SMAppService.mainApp` via
     `AppServiceControlling`; testes com serviço falso);
   - `Helpers/`: `Constants` (URLs via `staticURL(_:)`, que falha alto se o
-    literal for inválido), `StateValue` e as extensões. `String` conforma a
-    `Error`/`LocalizedError` por `@retroactive`, e os erros são lançados como
-    strings.
+    literal for inválido) e `Bundle+Extension` (`version` e `build`).
 - Testes (`Tests/`): espelham `App/`, `Core/` e `Features/`. `Support/` traz
-  os stubs, os scripts de teste (`Support/Scripts`), o `UserDefaults.test`, o
-  `Bundle.test`, o helper `waitUntil` e o `TemporaryDirectoryFixture`, que
+  os stubs e spies, os fixtures do `simctl`, o `UserDefaults.test`, o
+  `TestPreferencesDomain` e o `TemporaryDirectoryFixture`, que
   cria uma pasta exclusiva do teste e a apaga no `deinit` (testes de disco
   nunca tocam dados reais).
 
@@ -304,43 +293,38 @@ existente por conta própria.
 ## Estado, concorrência e efeitos
 
 - Fonte de verdade de cada estado:
-  - `CleanerStore`: `usedSpace` (`StateValue<UsedSpace>`), `status`,
-    `steps` e os comandos ativos, derivados de `Preferences`;
-  - `UpdateStore`: `hasUpdate` (`StateValue<Bool>`) e `version`;
-  - `Preferences`: um `StoragedValue<Bool>` por opção;
-  - `Route`: `path`;
-  - estado local de View: `isFirstOpen` no rótulo da barra e
-    `contentHeight` nas preferências.
+  - `CleanerViewModel`: fase da janela (`CleanerPhase`), linhas por categoria,
+    seleção (persistida no `PreferencesStoring`), restrições de apps abertos e
+    o relatório da última limpeza;
+  - `SimulatorsViewModel`: fase da seção, simuladores, runtimes, seleção e a
+    confirmação pendente;
+  - `SettingsViewModel`: os switches dos Ajustes (store) e o status do login
+    item (`SMAppService`);
+  - `UpdateViewModel`: a atualização disponível;
+  - estado local de View: seções recolhidas (`@AppStorage`) e "Detalhes" do
+    relatório.
 - Isolamento de atores e tarefas:
-  - com `MainActor` como isolamento padrão, stores, `Shell` e o protocolo
-    `CommandExecutor` são isolados no main actor;
-  - `clear()` roda os comandos em sequência numa `Task` no main actor e checa
-    o cancelamento entre os comandos. Depois espera 1 s antes do sucesso e
-    2 s antes de voltar a `idle`. A pausa de "0,5 s" por passo nunca existiu,
-    porque `Double.second` trunca para 0; os timers somem no C19;
-  - `Shell.run` fica no main actor, mas o `Process`, o `readToEnd` e o
-    `waitUntilExit` rodam em `@concurrent nonisolated static func execute`,
-    fora dele. Isso é necessário porque a `withThrowingTimeout` é
-    `nonisolated(nonsending)` e herda o isolamento de quem chama;
-  - o callback do `Timer`, agendado no `RunLoop.main`, usa
-    `MainActor.assumeIsolated`;
-  - o helper de teste `waitUntil` é `async` (com `Task.sleep`) para não
-    bloquear o main actor.
-  - Avalie tudo isso com a skill `swift-concurrency` antes de mexer.
+  - com `MainActor` como isolamento padrão, os ViewModels são isolados no main
+    actor; o I/O de disco e de processo roda em serviços `@concurrent`
+    (`FileSystemSizeScanner`, `FileSystemRemover`, `ProcessRunner`);
+  - o `CleanupExecutor` orquestra no main actor e entrega os resultados no ator
+    de quem chama;
+  - avalie tudo isso com a skill `swift-concurrency` antes de mexer.
 - Cancelamento e invalidação de resultados obsoletos:
-  - `clear()` e `calculateFreeUpSpace()` cancelam a `Task` anterior antes de
-    criar outra;
-  - `stopTimer()` cancela o cálculo e invalida o `Timer`;
-  - `Shell.cancel()` cancela só a última `task`, e o `Process` filho não
-    recebe `terminate()` nem no cancelamento nem no timeout.
-- Limites de memória e trabalho pendente: cada script tem timeout padrão de
-  10 s. O cálculo é reagendado ~6 s depois de cada execução, o que mantém um
-  `du -sk` periódico em `~/Library`. A saída do processo é lida inteira com
-  `readToEnd()`.
+  - medições têm geração: uma medição nova cancela a anterior e só a mais nova
+    muda o estado; nada é medido durante confirmação ou limpeza;
+  - a limpeza é cancelada entre itens e sempre devolve relatório;
+  - o processo filho recebe `SIGTERM` no cancelamento e no timeout;
+  - as listagens da seção de simuladores têm geração, e uma exclusão invalida
+    as anteriores.
+- Limites de trabalho: sem polling. A janela mede ao abrir e ao ser ativada,
+  com debounce de 2 s e cache de 60 s; o `simctl` tem timeouts de 60, 600 e
+  1.800 s conforme a operação.
 - Permissões, rede, arquivos e outros efeitos:
-  - os scripts apagam com `rm -rf`, `xcrun simctl delete unavailable`,
-    `defaults delete com.apple.dt.Xcode` e `pod cache clean --all`, sem
-    confirmação; por isso o app não usa sandbox;
+  - a limpeza apaga só o conteúdo das raízes do catálogo fechado
+    (`SafePathPolicy`), manda os itens perigosos para a Lixeira, usa `simctl`
+    por API e confirma itens de atenção e perigosos; por isso o app não usa
+    sandbox;
   - a rede se limita a `URLSession.shared` para o `version.json` e, em Release
     com chave e com a preferência "Enviar estatísticas de uso" ligada (opt-out,
     padrão ligado), aos eventos do Himetrica;
@@ -359,8 +343,8 @@ existente por conta própria.
   - com `SENTRY_DSN`, o Sentry envia crashes (inclusive `NSException` não
     capturada) e um único evento `cleanup_partial_failure` (warning) por
     limpeza com falha, com tags de resultado, categorias e tipos de erro e
-    contagens. O `CleanerStore` deixa os breadcrumbs `cleanup_started` e
-    `cleanup_finished`. Opções: `sendDefaultPii = false`,
+    contagens. O `CleanupOutcomeReporter` deixa os breadcrumbs `cleanup_started`
+    e `cleanup_finished`. Opções: `sendDefaultPii = false`,
     `enableAutoSessionTracking = false` (as sessões levam o installation ID
     do Sentry e não passam pelo `beforeSend`), `tracesSampleRate = 0`;
   - o `SentryEventSanitizer` (funções `nonisolated static`, usadas direto em
@@ -375,26 +359,25 @@ existente por conta própria.
   - ações do dono no painel do Sentry antes do primeiro Release com DSN:
     ligar Data Scrubbing e "Prevent Storing of IP Addresses";
   - `openURL` abre os links externos;
-  - `LaunchAtLogin` registra o item de login.
+  - o `SMAppService.mainApp` registra o item de login.
 
 ## Regras de implementação
 
 - Injete serviços e protocolos nas fronteiras de comportamento
-  (`CommandExecutor`, `Analytics`, `ApplicationInfo`, `UserDefaults` em
-  `Preferences`).
-- Use dublês nos testes e nas previews (`CommandExecutorStub`,
-  `AnalyticsStub`, `UserDefaults.test`). Nunca execute os scripts reais de
-  limpeza em testes ou previews.
+  (`DiskUsageScanning`, `FileRemoving`, `ProcessRunning`, `SimulatorManaging`,
+  `CleanupExecuting`, `PreferencesStoring`, `LoginItemManaging`,
+  `VersionChecking`, `Analytics`, `ErrorReporting`).
+- Use dublês nos testes e nas previews (stubs e spies em `Tests/Support`,
+  serviços inertes do `AppContainer`, fakes `*Preview`). Testes e previews
+  nunca leem o disco real, rodam `simctl`, tocam no login item, no domínio
+  real do Xcode, na Lixeira nem na rede.
 - Preserve cancelamento, isolamento e tratamento de erros.
-- Todo script novo em `CleanerXcode/Resources/Scripts/` precisa de:
-  - um `Command` estático e a entrada em `Command.commands`;
-  - uma preferência com chave igual ao nome do script e um padrão seguro
-    (desligado para operações amplas ou irreversíveis);
-  - o tamanho em `calculate-free-up-space.sh`, `UsedSpace` e
-    `CleanerStore.size(of:)`, quando aplicável;
-  - o toggle em `PreferencesView` e testes.
-- Não renomeie scripts nem chaves de preferência sem plano de migração, porque
-  a chave em `UserDefaults` é o nome do script.
+- Toda categoria nova de limpeza entra pelo `CleanupCatalog`, com risco,
+  padrão seguro (desligado para operações amplas ou irreversíveis), seção em
+  `CleanerSection`, texto em `CategoryPresentation` e testes. Nenhuma
+  categoria nova sem aprovação do dono.
+- Não renomeie as chaves de preferência sem plano de migração: as categorias
+  antigas usam o nome do script como chave em `UserDefaults`.
 - Ao mudar a versão, atualize juntos `MARKETING_VERSION`,
   `CURRENT_PROJECT_VERSION`, `resources/version.json` e `RELEASE_NOTES.md`.
 - Textos de interface vão para `Localizable.xcstrings` (fonte `en`, com
@@ -446,12 +429,12 @@ existente por conta própria.
 - Convenção confirmada com a documentação da Apple:
   [Previewable](<https://developer.apple.com/documentation/swiftui/previewable()>).
 - No CleanerXcode:
-  - as Views atuais não têm `#Preview`;
-  - os estados relevantes do `CleanerButton` são `idle` com e sem espaço,
-    `isCleaning`, `isCompleted` e `error`;
-  - as previews precisam de um `CommandExecutor` falso que nunca rode
-    `Shell`, de `Preferences` com `UserDefaults` isolado e de um `Analytics`
-    nulo;
+  - cada View tem `#Preview` por estado, com fakes em arquivos próprios
+    (`CleanerWindowPreview`, `SimulatorsSectionPreview`, `SettingsPreview`,
+    `MenuBarPanelPreview`, `UpdatePreview`) e locais inertes;
+  - os prints para o dono saem de um harness temporário que renderiza as
+    previews fora da tela (`NSHostingView.cacheDisplay`); glass e estilos de
+    botão não aparecem nesse método;
   - nunca use `Bundle.main` para buscar versão em preview.
 
 ## Testes e validação
@@ -480,19 +463,18 @@ validação em dispositivo físico e de serviços externos.
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
     passaram, sem avisos. No C18: 295 execuções passaram, sem avisos. No C19: 325 execuções
     passaram, sem avisos. No C20: 345 execuções passaram, sem avisos. No C21: 370
-    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos;
+    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo);
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código
     alterado são defeitos;
-  - alguns testes usam `Task.sleep`/`waitUntil` com tempo real; a referência
-    pede espera explícita.
-- Testes de integração: `ShellTests` roda scripts de teste reais por
-  `/bin/bash`. Nenhum teste executa os scripts de limpeza, e não deve
+  - o teste de debounce ainda espera tempo real; a referência pede espera
+    explícita.
+- Testes de integração: o `ProcessRunner` roda processos reais inofensivos
+  (`/bin/echo` e afins). Nenhum teste executa limpeza real, e não deve
   executar.
 - Build: `xcodebuild build -project CleanerXcode.xcodeproj -scheme CleanerXcode -destination 'platform=macOS'`.
-  A resolução de pacotes precisa de acesso SSH ao GitHub por causa do
-  `LaunchAtLogin`.
+  Desde o C24 a resolução de pacotes não precisa mais de acesso SSH ao GitHub.
 - Simulator: não se aplica, porque o app é macOS nativo. A validação local
   roda no próprio Mac (`platform=macOS`). Não use XCUIAutomation nem testes de
   UI.

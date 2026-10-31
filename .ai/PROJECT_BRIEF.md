@@ -138,11 +138,9 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 - Validações concluídas:
   - Código: leitura do código conectado em 2026-10-31 (branch `v1.0.0`,
     commit `f11d52c`).
-  - Testes: suíte Swift Testing do target `CleanerXcodeTests` (`CleanerStore`,
-    `UpdateStore`, `Command`, `Shell`, `CommandExecutor`, `Preferences`,
-    `StoragedValue`, `Analytics`, `Constants`): 35 testes passaram e nenhum
-    falhou em 2026-10-31 (Xcode 27.2, destino `platform=macOS`). Comando e
-    avisos no [PROJECT_GUIDE](./PROJECT_GUIDE.md#testes-e-validação).
+  - Testes: a suíte inicial (35 testes, com `Shell` e o código antigo)
+    passou em 2026-10-31; a contagem atual de cada card fica no
+    [PROJECT_GUIDE](./PROJECT_GUIDE.md#testes-e-validação).
 - Validações pendentes:
   - limpeza real em uma máquina com Xcode, conferindo o espaço liberado contra
     o estimado;
@@ -160,12 +158,8 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Fluxo | Fontes conectadas |
 | --- | --- |
 | Entrada, composição e barra de menus | `Sources/App/CleanerXcodeApp.swift`, `Sources/App/AppContainer.swift`, `Sources/App/AppEnvironment.swift`, `Sources/App/AppConfiguration.swift` |
-| Navegação | `Sources/App/Route.swift`, `Sources/App/MainView.swift` |
-| Limpeza e espaço liberável | `Sources/Features/Cleaner/CleanerStore.swift`, `Sources/Features/Cleaner/CleanerView.swift` |
-| Execução de comandos | `Sources/Core/Process/{Command,CommandExecutor,Shell,InertCommandExecutor}.swift`, `Resources/Scripts/*.sh` |
-| Preferências | `Sources/Core/Persistence/{Preferences,StoragedValue}.swift`, `Sources/Core/Helpers/Extensions/Preference+Extension.swift`, `Sources/Features/Settings/PreferencesView.swift` |
-| Atualização | `Sources/Features/Update/UpdateStore.swift`, `Sources/Core/Contracts/ApplicationInfo.swift`, `Sources/Core/Models/Version.swift`, `Sources/Core/Helpers/Extensions/Bundle+Extension.swift`, `Config.xcconfig`, `resources/version.json` |
-| Analytics | `Sources/Core/Integrations/{Analytics,HimetricaAnalytics,NullAnalytics,AnalyticsTracker}.swift`, preferência `send-anonymous-analytics` em `Sources/Core/Persistence/Preferences.swift` |
+| Versão e `version.json` | `Sources/Core/Models/Version.swift`, `Sources/Core/Helpers/Extensions/Bundle+Extension.swift`, `Config.xcconfig`, `resources/version.json` |
+| Analytics | `Sources/Core/Integrations/{Analytics,HimetricaAnalytics,NullAnalytics}.swift`, preferência `send-anonymous-analytics` (`SettingsViewModel`) |
 | Domínio da limpeza nativa (C09) | `Sources/Core/Cleanup/*.swift` (`CleanupCatalog`, `SafePathPolicy`, `CleanupReport`) |
 | Medição de tamanho (C11) | `Sources/Core/FileSystem/{DiskUsageScanning,FileSystemSizeScanner}.swift`, `Sources/Core/Cleanup/{CategorySize,CategorySizeMeasurer}.swift` |
 | Remoção nativa (C12) | `Sources/Core/FileSystem/{FileRemoving,FileSystemRemover,FileOperating}.swift`, `Sources/Core/Cleanup/SafePathPolicy.swift` |
@@ -181,7 +175,6 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Ajustes, barra de menus e Sobre (C22) | `Sources/Features/Settings/*.swift`, `Sources/App/CleanerXcodeApp.swift` (`AppDelegate`) |
 | Atualização (C23) | `Sources/Core/Update/{SemanticVersion,VersionChecking}.swift`, `Sources/Features/Update/{UpdateViewModel,UpdatePreview}.swift` |
 | Erros e crashes | `Sources/Core/Integrations/{ErrorReporting,NullErrorReporter,SentryErrorReporter,ErrorReportingConfiguration,SentryEventSanitizer}.swift` |
-| Componentes visuais | `Sources/Features/Cleaner/Components/*.swift` |
 | Distribuição | `releases/CleanerXcode.dmg`, `RELEASE_NOTES.md`, `resources/version.json` |
 
 Caminhos relativos a `CleanerXcode/`, exceto `resources/`, `releases/` e
@@ -189,9 +182,10 @@ Caminhos relativos a `CleanerXcode/`, exceto `resources/`, `releases/` e
 
 ## Pendências e decisões
 
-- Pendência: a falha de um comando não aparece; `Status.error` não é usado e
-  a limpeza sempre termina em sucesso.
-- Pendência: o cancelamento e o timeout não encerram o `Process` filho.
+- Resolvido no C17/C19: falhas aparecem como falha parcial ou falha, nunca
+  como sucesso (`CleanupReport`, `HeroContent`).
+- Resolvido no C13: o cancelamento e o timeout encerram o processo filho
+  (`ProcessRunner`).
 - Resolvido no C06: o `MIXPANEL_TOKEN` saiu do `Config.xcconfig`, do
   `Info.plist` e do código. **Ação do dono:** revogar o token no Mixpanel,
   porque ele continua no histórico do git.
@@ -206,9 +200,8 @@ Caminhos relativos a `CleanerXcode/`, exceto `resources/`, `releases/` e
 - Risco: a remoção destrutiva e irreversível (`rm -rf`, `defaults delete`)
   de pastas que podem conter Archives necessários para symbolication ou
   reenvio à loja.
-- Risco: `LaunchAtLogin` vem de um fork por SSH
-  (`git@github.com:didisouzacosta/LaunchAtLogin-Modern.git`, branch `main`),
-  o que exige acesso SSH e não fixa versão.
+- Resolvido no C24: o fork `LaunchAtLogin` (por SSH) e o `swift-timeout`
+  saíram; o "abrir no login" usa `SMAppService`.
 - Próximo passo: definir o escopo da v1.0.0 (branch atual `v1.0.0`, versão
   publicada 0.7.0 build 114) e priorizar: migração para Swift 6, erro visível
   na limpeza, encerramento do processo no cancelamento e remoção do token.

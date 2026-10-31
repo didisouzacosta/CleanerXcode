@@ -11,11 +11,9 @@ struct AppServices {
 
     // MARK: - Public Properties
 
-    let commandExecutor: any CommandExecutor
     let analytics: any Analytics
     let errorReporter: any ErrorReporting
     let userDefaults: UserDefaults
-    let preferences: Preferences
     let configuration: AppConfiguration
 
 }
@@ -44,11 +42,9 @@ enum AppContainer {
             }
 
             return AppServices(
-                commandExecutor: InertCommandExecutor(),
                 analytics: NullAnalytics(),
                 errorReporter: NullErrorReporter(),
                 userDefaults: testHostDefaults,
-                preferences: Preferences(testHostDefaults),
                 configuration: configuration
             )
         }
@@ -60,7 +56,6 @@ enum AppContainer {
         )
         errorReporter.start()
 
-        let preferences = Preferences(userDefaults)
         // Read on every event, so the Settings switch applies at once.
         let store = UserDefaultsPreferencesStore(defaults: userDefaults)
         let analytics: any Analytics = if !environment.isDebug, let apiKey = configuration.himetricaAPIKey {
@@ -70,11 +65,9 @@ enum AppContainer {
         }
 
         return AppServices(
-            commandExecutor: Shell(),
             analytics: analytics,
             errorReporter: errorReporter,
             userDefaults: userDefaults,
-            preferences: preferences,
             configuration: configuration
         )
     }
