@@ -18,7 +18,7 @@ nonisolated struct FileSystemRemover: FileRemoving {
     private let policy: SafePathPolicy
     private let locations: CleanupLocations
     private let operations: any FileOperating
-    private let scanner: any DiskUsageScanning
+    private let sizeReader: ItemSizeReader
 
     // MARK: - Initializers
 
@@ -31,7 +31,7 @@ nonisolated struct FileSystemRemover: FileRemoving {
         self.policy = policy
         self.locations = locations
         self.operations = operations
-        self.scanner = scanner
+        self.sizeReader = ItemSizeReader(scanner: scanner)
     }
 
     // MARK: - Private Static Methods
@@ -81,8 +81,12 @@ nonisolated struct FileSystemRemover: FileRemoving {
             return
         }
 
-        for child in children where filter(child) {
+        for child in children {
+            // Before the filter, which may read the disk (the temporary folder filters do).
             try Task.checkCancellation()
+
+            guard filter(child) else { continue }
+
             try await onResult(remove(child, in: target, categoryID: categoryID, mode: mode))
         }
     }
@@ -98,7 +102,7 @@ nonisolated struct FileSystemRemover: FileRemoving {
         do {
             try policy.validate(child, in: target)
 
-            let bytes = try await allocatedSize(of: child)
+            let bytes = try await sizeReader.allocatedSize(of: child)
 
             // The scan may return even when cancelled near its end, so check before removing.
             try Task.checkCancellation()
@@ -116,35 +120,6 @@ nonisolated struct FileSystemRemover: FileRemoving {
             throw error
         } catch {
             return result(for: child, categoryID: categoryID, bytes: 0, outcome: .failed(CleanupError(error)))
-        }
-    }
-
-    /// A folder is measured by the scanner, a link counts 0 and a file reports its own allocation.
-    /// A size that cannot be read counts 0 instead of blocking the removal.
-    private func allocatedSize(of item: URL) async throws -> Int64 {
-        let path = item.path(percentEncoded: false)
-
-        guard let type = try? FileManager().attributesOfItem(atPath: path)[.type] as? FileAttributeType else {
-            return 0
-        }
-
-        switch type {
-        case .typeDirectory:
-            do {
-                return try await scanner.allocatedSize(of: CleanupTarget(root: item))
-            } catch let error as CancellationError {
-                throw error
-            } catch {
-                return 0
-            }
-
-        case .typeSymbolicLink:
-            return 0
-
-        default:
-            let fresh = URL(filePath: path, directoryHint: .notDirectory)
-            let values = try? fresh.resourceValues(forKeys: [.totalFileAllocatedSizeKey, .fileAllocatedSizeKey])
-            return Int64(values?.totalFileAllocatedSize ?? values?.fileAllocatedSize ?? 0)
         }
     }
 

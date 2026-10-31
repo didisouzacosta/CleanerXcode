@@ -1374,3 +1374,96 @@ Nenhuma categoria nova é proposta:
   desenvolvedor instalada, o shim `/usr/bin/xcrun` pode abrir o pedido do
   sistema para instalar as Command Line Tools. Verificar ao vivo e decidir
   se o app consulta antes `xcode-select -p`.
+
+## Adendo da implementação do C15 (2026-10-31)
+
+- **Diverge da seção 5.4:** em vez de `shouldRemove(_:now:)` há
+  `decision(for:now:)`, `simulatorTempDecision(for:now:)` e o estático
+  `softened(_:)`, e o init exige o `appBundleIdentifier` para a exclusão
+  dos arquivos do próprio app.
+- **`TemporaryItemsPolicy`** (pura, `Core/FileSystem`):
+  - padrão de 3 dias (D7); o init recebe os dias que vierem dos Ajustes
+    (C22) e o `getuid()`;
+  - `decision(for:now:)` (`clear-temporary-files`): as exclusões vêm
+    primeiro (`com.apple.launchd.*`, `.X11-unix`, `powerlog`, `*.sock`,
+    nomes que começam com o bundle ID do app e as pastas
+    `com.apple.CoreSimulator.SimDevice.*`, que ficam para o F19). Depois o
+    dono, o tipo (sockets, FIFOs e dispositivos são pulados) e a idade;
+  - `simulatorTempDecision(for:now:)` (`clear-orphan-simulator-temp`):
+    verifica só o dono, o tipo e a idade;
+  - `softened(_:)`: `failed(.inUse)` vira `skipped(.inUse)` e
+    `failed(.permissionDenied)` vira `skipped(.noPermission)`. O executor
+    (C17) aplica nas duas categorias temporárias, porque assim `EBUSY`,
+    `EPERM` e `EACCES` não viram falha da categoria.
+- **`TemporaryItemInspector`:** lê dono, tipo e modificação com lstat.
+  - A pasta vale pela modificação mais recente do que tem dentro, de forma
+    recursiva e sem seguir links. Uma pasta lida só em parte, ou cuja
+    varredura foi cancelada, conta como recente (`distantFuture`), e um
+    item ilegível é deixado em paz.
+  - **Pastas com socket, FIFO ou dispositivo dentro** (B1 da revisão) são
+    preservadas em `clear-temporary-files` (`skip(.unsupportedFileType)`).
+    O mtime de um socket não muda com o tráfego, então uma sessão de tmux
+    ou de agente de IA com mais de 3 dias pareceria antiga. A regra não
+    vale para os órfãos de simulador: as 80 pastas
+    `SimDevice.*` desta máquina têm um `syslogsock`, que fica obsoleto
+    quando o simulador não existe mais.
+  - Uma inspeção rasa (`includingContents: false`) descarta antes da
+    varredura recursiva o que as exclusões, o dono, o tipo ou a data da
+    própria pasta já rejeitam.
+- **`OrphanSimulatorTempFinder`:** compara o UDID sem diferenciar
+  maiúsculas e exige um UUID válido depois do prefixo. `knownUDIDs(from:in:)`
+  junta os UDIDs de todos os sets e falha se qualquer set falhar, porque
+  sem a lista completa nada é órfão.
+  - **Salvaguarda além do plano:** os órfãos também passam pela idade e
+    pelo dono, para proteger o simulador de um set desconhecido.
+  - **"Todos os sets"** (B2 da revisão): `DeviceSet.all(in:)` devolve o set
+    padrão mais os sets auxiliares cujas pastas existem: `XCTestDevices`,
+    `UserData/Previews/Simulator Devices`,
+    `UserData/IB Support/Simulator Devices` e `XCPGDevices`. As pastas que
+    não existem ficam de fora porque o `simctl` falha nelas.
+- **`TemporaryFilters`:** filtros `@Sendable (URL) -> Bool` para o remover
+  (C12) e para a medição, e assim o que aparece como liberável é
+  exatamente o que seria removido.
+- **Medição filtrada (pendência do C11):**
+  - `FilteredContentsMeasurer` mede só os filhos aceitos;
+  - `CategorySizeMeasurer.measure(_:filters:...)` usa esse caminho para
+    as categorias com filtro;
+  - o C19 deve passar os dois filtros temporários. Sem filtro, as
+    categorias `removeTemporaryItems` e `removeOrphanSimulatorTemp` não
+    geram resultado, em vez de serem medidas de forma bruta.
+- **Cancelamento** (B3 da revisão): o remover verifica o cancelamento antes
+  de cada chamada do filtro, porque os filtros temporários leem o disco.
+  Assim um cancelamento não é engolido enquanto houver itens por filtrar,
+  e a varredura do inspector para quando a task é cancelada. Exceção
+  aceita: um cancelamento durante o filtro do último item termina o laço
+  sem lançar. Nada a mais é removido, e as verificações entre alvos do
+  executor (C17) tratam o caso.
+- **Pendência para o C27:** um item cujo `fileResourceType` venha nulo
+  enquanto a data é lida não é tratado como especial. Não foi possível
+  reproduzir em teste; se aparecer ao vivo, tratar como leitura parcial.
+- **Pendências para o C17 e o C19:**
+  - rodar `OrphanSimulatorTempFinder.knownUDIDs(from:in: DeviceSet.all(in:))`
+    antes de medir ou limpar `clear-orphan-simulator-temp` (ligada por
+    padrão);
+  - se a listagem falhar, por exemplo com `.toolUnavailable` (R12), a
+    categoria fica indisponível, sem medição nem limpeza, porque sem a
+    lista completa nada é órfão;
+  - a medição não aplica a `SafePathPolicy`, então um filho em outro
+    volume pode ser contado e depois recusado pelo remover; no pior caso o
+    número fica um pouco maior que o liberado.
+- **Refatoração:** o cálculo de tamanho por item saiu do
+  `FileSystemRemover` para o `ItemSizeReader`, compartilhado com a medição
+  filtrada, sem mudança de comportamento (os testes do remover continuam
+  passando).
+- **Verificação ao vivo, somente leitura (2026-10-31), nada removido:**
+  - 5 sets e 13 UDIDs conhecidos;
+  - das 80 pastas de simulador em `/private/var/tmp`, 10 são órfãs antigas
+    (17,8 MB);
+  - em `$TMPDIR` (1.111 itens) e `/private/tmp`, nada passa pela política;
+    em `/private/var/tmp`, 7 itens (779 MB);
+  - `claude-501` e `cc-socks` nunca são selecionados.
+  - Se o C27 mostrar que a política está conservadora demais no
+    `$TMPDIR`, revisar sem relaxar as salvaguardas.
+- **Pendência para a interface (C20 e C22):** o aviso fixo "Feche apps de
+  IA e terminais antes. Itens com menos de N dias são preservados." e a
+  escolha de 1, 3, 7 ou 14 dias.

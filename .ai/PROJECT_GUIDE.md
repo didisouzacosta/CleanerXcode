@@ -205,6 +205,17 @@ ViewModels por tela.
     chamada, cancelamento a cada 500 itens). Raiz inexistente ou symlink
     mede 0; raiz ilegível lança `CleanupError`; subitem ilegível conta 0 e
     só a contagem é registrada;
+  - pasta temporária (C15): `TemporaryItemsPolicy` (pura: exclusões, dono,
+    tipo e idade mínima de 3 dias por padrão; `softened` torna EBUSY e
+    permissão "pulado"), `TemporaryItemInspector` (modificação mais
+    recente, recursiva; leitura parcial ou cancelada conta como recente;
+    pastas com socket, FIFO ou dispositivo dentro são preservadas fora do
+    F19), `OrphanSimulatorTempFinder` (UDIDs de `DeviceSet.all(in:)`: set
+    padrão + sets auxiliares existentes) e
+    `TemporaryFilters`. A medição dessas categorias passa por
+    `FilteredContentsMeasurer` via
+    `CategorySizeMeasurer.measure(_:filters:...)`, e o `ItemSizeReader`
+    mede um item (pasta, link ou arquivo) para o remover e a medição;
   - remoção (C12): `FileRemoving` e `FileSystemRemover` removem os filhos
     diretos da raiz um a um, com `@concurrent` e `onResult` por item. A
     `SafePathPolicy` é injetada no init e consultada antes de cada remoção.
@@ -434,7 +445,8 @@ validação em dispositivo físico e de serviços externos.
     (101 execuções com os parametrizados) passaram, sem avisos. No C09: 148
     execuções passaram, sem avisos. No C11: 165 execuções passaram, sem
     avisos. No C12: 184 execuções passaram, sem avisos. No C13: 196 execuções
-    passaram, sem avisos. No C14: 217 execuções passaram, sem avisos;
+    passaram, sem avisos. No C14: 217 execuções passaram, sem avisos. No C15: 242 execuções
+    passaram, sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

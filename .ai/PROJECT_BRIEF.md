@@ -171,6 +171,7 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Remoção nativa (C12) | `Sources/Core/FileSystem/{FileRemoving,FileSystemRemover,FileOperating}.swift`, `Sources/Core/Cleanup/SafePathPolicy.swift` |
 | Execução de processos sem shell (C13) | `Sources/Core/Process/{ProcessRequest,ProcessOutput,ProcessRunning,ProcessRunner}.swift` |
 | Simuladores e runtimes (C14) | `Sources/Core/Simulators/*.swift` (`SimctlSimulatorService`, `DuplicateSimulatorDetector`, `CoreSimulatorServiceRestarter`) |
+| Pasta temporária e órfãos de simuladores (C15) | `Sources/Core/FileSystem/{TemporaryItemsPolicy,TemporaryItemInspector,OrphanSimulatorTempFinder,TemporaryFilters,FilteredContentsMeasurer,ItemSizeReader}.swift` |
 | Erros e crashes | `Sources/Core/Integrations/{ErrorReporting,NullErrorReporter,SentryErrorReporter,ErrorReportingConfiguration,SentryEventSanitizer}.swift` |
 | Componentes visuais | `Sources/Features/Cleaner/Components/*.swift` |
 | Distribuição | `releases/CleanerXcode.dmg`, `RELEASE_NOTES.md`, `resources/version.json` |
