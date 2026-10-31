@@ -212,6 +212,14 @@ ViewModels por tela.
     isola as operações destrutivas, e os testes usam o
     `FileOperationsSpy`, que nunca toca a Lixeira real. O cancelamento
     acontece entre itens, e o resultado de cada item removido sempre chega;
+  - `Process/` (C13): `ProcessRequest` (`.xcrun(_:timeout:)` com os prazos
+    de 60 s, 600 s e 1.800 s), `ProcessOutput`, `ProcessRunning` e
+    `ProcessRunner` (`@concurrent`, sem shell, stdout e stderr lidos em
+    paralelo por `readabilityHandler`, porque `FileHandle.bytes` bloqueia o
+    pool cooperativo). Prazo e cancelamento terminam o processo com
+    `SIGTERM` e esperam só ele sair. Exit diferente de zero vira
+    `commandFailed`, com o stderr sanitizado e cortado em 500 caracteres. O
+    `Shell` antigo continua até o C24;
   - `Persistence/`: `Preferences` e `StoragedValue`;
   - `Helpers/`: `Constants` (URLs via `staticURL(_:)`, que falha alto se o
     literal for inválido), `StateValue` e as extensões. `String` conforma a
@@ -415,7 +423,8 @@ validação em dispositivo físico e de serviços externos.
     No C04, com build limpo: 45 passaram, sem avisos. No C08: 96 testes
     (101 execuções com os parametrizados) passaram, sem avisos. No C09: 148
     execuções passaram, sem avisos. No C11: 165 execuções passaram, sem
-    avisos. No C12: 184 execuções passaram, sem avisos;
+    avisos. No C12: 184 execuções passaram, sem avisos. No C13: 196 execuções
+    passaram, sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

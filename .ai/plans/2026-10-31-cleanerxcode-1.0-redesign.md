@@ -1264,3 +1264,46 @@ Nenhuma categoria nova é proposta:
     `.present`, `.missing` (só `ENOENT`/`ENOTDIR`) ou `.unreadable(erro)`.
     Um item que não pode ser consultado lança o erro real, como
     `.permissionDenied`, em vez de `.unsafePath`.
+
+## Adendo da implementação do C13 (2026-10-31)
+
+- **`ProcessRunner`** (`Core/Process`, conforma `ProcessRunning`):
+  - `nonisolated struct` com `@concurrent func run(_:)`, sem shell e com os
+    argumentos em array. `ProcessRequest.xcrun(_:timeout:)` usa
+    `/usr/bin/xcrun`, e o init exige um caminho absoluto. Os testes usam
+    binários inofensivos do sistema (`echo`, `sleep`, `false` e `/bin/sh`
+    só para escrever no stderr).
+  - Prazos em `ProcessRequest`: 60 s por padrão, 600 s para `erase all` e
+    1.800 s para `runtime delete`.
+  - O término vem do `terminationHandler` com
+    `withCheckedThrowingContinuation`. O cancelamento usa
+    `withTaskCancellationHandler`, com `terminate()` só se o processo estiver
+    rodando. O prazo é uma corrida num task group e termina o processo.
+  - Exit diferente de zero, ou sinal não pedido, vira
+    `CleanupError.commandFailed(exitCode:summary:)`, com o stderr sanitizado
+    por `SentryEventSanitizer.sanitize(text:)` e cortado em 500 caracteres.
+    Executável ausente vira `.toolUnavailable`.
+- **Divergência da seção 5.3:** as saídas são lidas com
+  `readabilityHandler` + `AsyncStream`, e não com
+  `fileHandleForReading.bytes`. Um experimento com 40 leituras de `sleep 3`
+  mostrou que o `bytes` bloqueia uma thread do pool cooperativo por pipe
+  até o processo terminar: um `echo` esperou 3 s. Num `runtime delete` de
+  até 30 min isso travaria o resto do app. O teste
+  `aQuickCommandFinishesWhileManyLongCommandsAreRunning` falha com o `bytes`.
+- **Verificações defensivas sem teste determinístico:** a verificação de
+  cancelamento logo antes do `run()` e a que vem depois do task group
+  cobrem corridas, porque a verificação no início de `run` e o filho do
+  prazo já tratam os casos reproduzíveis. O `terminate()` no caminho do
+  prazo repete o do `onCancel` disparado por `cancelAll()`.
+- **Não feito (opcional do card):** `launchRequirementData` exigindo binário
+  da Apple. O caminho é fixo em `/usr/bin` (SIP) e a regra pode ser
+  adicionada no C14, se o dono quiser.
+- **Limitação:** depois de `terminate()`, o runner espera o processo sair
+  (`terminationHandler`). Ele não espera os pipes nem descendentes, porque
+  uma leitura cancelada remove o `readabilityHandler` no `onTermination`,
+  e não escala para `SIGKILL`. Um processo que ignore `SIGTERM` atrasaria
+  o retorno. Foi verificado que o `xcrun` faz `exec` da ferramenta: o PID
+  iniciado por `/usr/bin/xcrun sleep 3` passa a ser o próprio
+  `/bin/sleep`, sem filhos. O `SIGTERM` chega então ao `simctl`, e o
+  `SIGKILL` com período de tolerância fica para o C27, se a validação ao
+  vivo mostrar necessidade.
