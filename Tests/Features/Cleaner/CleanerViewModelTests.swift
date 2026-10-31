@@ -408,7 +408,7 @@ struct CleanerViewModelTests {
         sizes: [CleanupCategoryID: Int64],
         preferences: InMemoryPreferencesStore = InMemoryPreferencesStore(),
         executor: CleanupExecutorSpy = CleanupExecutorSpy(),
-        simulators: SimulatorManagerStub = SimulatorManagerStub(),
+        simulators: any SimulatorManaging = SimulatorManagerStub(),
         applications: RunningApplicationsFake? = nil,
         now: @escaping () -> Date = Date.init,
         debounce: Duration = .zero

@@ -85,6 +85,7 @@ final class CleanerViewModel {
     private let catalog: CleanupCatalog
     private let measurer: CategorySizeMeasurer
     private let snapshotReader: SimulatorSnapshotReader
+    private let simulators: any SimulatorManaging
     private let executor: any CleanupExecuting
     private let preferences: any PreferencesStoring
     private let runningApplications: any RunningApplicationsProviding
@@ -126,6 +127,7 @@ final class CleanerViewModel {
         self.catalog = catalog
         self.measurer = measurer
         self.snapshotReader = SimulatorSnapshotReader(simulators: simulators, locations: catalog.locations)
+        self.simulators = simulators
         self.executor = executor
         self.preferences = preferences
         self.runningApplications = runningApplications
@@ -199,6 +201,16 @@ final class CleanerViewModel {
     /// cannot be picked.
     func canToggle(_ id: CleanupCategoryID) -> Bool {
         phase.allowsMeasurement && !isUnavailable(id)
+    }
+
+    /// "Encerrar agora" on the Simulator-open notice: quits Simulator.app, shuts the default set
+    /// down and measures again. A failure only leaves the notice on screen.
+    func shutDownSimulators() async {
+        guard phase.allowsMeasurement else { return }
+
+        _ = await runningApplications.terminateSimulator()
+        try? await simulators.shutdownAll(in: .default)
+        await refresh()
     }
 
     func toggle(_ id: CleanupCategoryID) {

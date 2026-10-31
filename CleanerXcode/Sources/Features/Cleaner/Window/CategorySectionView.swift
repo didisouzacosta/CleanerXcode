@@ -21,7 +21,7 @@ struct CategorySectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            header
+            CollapsibleSectionHeader(isCollapsed: $isCollapsed, title: group.section.title, summary: summary)
 
             if !isCollapsed {
                 VStack(spacing: 0) {
@@ -36,34 +36,6 @@ struct CategorySectionView: View {
     }
 
     // MARK: - Private Properties
-
-    private var header: some View {
-        Button {
-            withAnimation(.snappy) {
-                isCollapsed.toggle()
-            }
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "chevron.down")
-                    .font(.caption.weight(.semibold))
-                    .rotationEffect(.degrees(isCollapsed ? -90 : 0))
-                    .accessibilityHidden(true)
-
-                Text(group.section.title)
-                    .font(.headline)
-
-                Spacer()
-
-                Text(summary)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .contentShape(.rect)
-        }
-        .buttonStyle(.plain)
-        .accessibilityValue(isCollapsed ? Text("Collapsed") : Text("Expanded"))
-        .accessibilityHint("Shows or hides the categories of this section")
-    }
 
     private var summary: LocalizedStringResource {
         let isSelected = group.categories.contains { viewModel.selectedIDs.contains($0.id) }

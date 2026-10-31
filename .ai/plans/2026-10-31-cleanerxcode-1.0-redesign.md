@@ -1889,3 +1889,110 @@ Nenhuma categoria nova é proposta:
     pacote LaunchAtLogin;
   - C25: revisão de strings, truncamento em en e VoiceOver real.
 
+## Adendo da implementação do C21 (2026-10-31)
+
+- **`SimulatorsViewModel`:**
+  - fases `idle`, `loading`, `loaded`, `empty`, `toolsUnavailable`,
+    `failed` e `deleting(ids)`;
+  - `load` lista o set padrão e os runtimes juntos;
+  - `selectDuplicates` só pré-seleciona os duplicados do
+    `DuplicateSimulatorDetector` (o mais recente fica);
+  - `requestDeleteSelected` e `requestDeleteRuntime` abrem a confirmação,
+    e um runtime com `deletable == false` não pede nada;
+  - `confirm` apaga os UDIDs exatos ou o runtime, recarrega as listas (a
+    seleção mantém só os que ainda existem) e chama `onDeleted`, que faz a
+    janela medir de novo;
+  - analytics só em sucesso: `simulator_deleted` com `reason` `duplicate`
+    (todos eram sugeridos) ou `manual`, e `runtime_deleted`;
+  - uma falha fica em `lastFailure`.
+- **Interface:**
+  - seção recolhível "Gerenciar simuladores" no fim da lista, recolhida por
+    padrão (`@AppStorage`); expandir carrega (fluxo 2.3);
+  - simuladores com nome, runtime, estado, último uso, etiqueta de
+    duplicado e tamanho, com "Selecionar duplicados (n)" e "Remover n
+    simuladores" num `GlassEffectContainer`;
+  - runtimes com build, quantos simuladores dependem, último uso, tamanho e
+    Remover (desabilitado para os incluídos no Xcode);
+  - sheet de perigo para simuladores e para runtime (os dependentes também
+    são apagados e o runtime terá de ser baixado de novo);
+  - estados de carregando, vazio, ferramentas ausentes e falha;
+  - nada aqui apaga enquanto uma limpeza roda, e o hero fica desabilitado
+    enquanto simuladores ou um runtime são apagados;
+  - o cabeçalho recolhível virou `CollapsibleSectionHeader`, também usado
+    pelas seções do C20.
+- **Composição:** `AppContainer.makeSimulatorsViewModel`, com
+  `SimctlSimulatorService` em produção e `InertSimulatorManager` no test host
+  e nas previews.
+- **TDD:** vermelho com esqueletos (`SimulatorsViewModelTests`,
+  `SimulatorPresentationTests`, `AppContainerTests`), depois verde.
+- **Prints:** os estados foram renderizados fora da tela, como no C20, e
+  enviados ao dono. Ajustes que saíram deles: "Remover simuladores" sem
+  número quando nada está selecionado, "em uso agora" para simulador ligado
+  e datas relativas numéricas.
+- **Revisão (Manager), correções:**
+  - B1: não há prova de que `simctl runtime delete` apague os simuladores do
+    runtime (a ajuda só fala em desligar os ligados e desmontar a imagem).
+    Agora o ViewModel apaga antes os dependentes pelos UDIDs exatos
+    (shutdown e depois delete) e só então o runtime. Se essa etapa falha, o
+    runtime fica. Quando outra imagem atende o mesmo `runtimeIdentifier`, os
+    simuladores ficam e a confirmação diz só que o runtime terá de ser
+    baixado de novo. O spy não apaga mais simuladores no `runtime delete`.
+  - B2: a preview "vazio" mostra o estado vazio de verdade; as previews
+    abrem a seção expandida (`isInitiallyCollapsed`); há previews das duas
+    confirmações e do Dark.
+  - B3: "Tentar de novo" nos estados de falha, ferramentas ausentes e vazio;
+    expandir recarrega nesses estados; o Atualizar da toolbar recarrega a
+    seção já aberta (`reloadIfOpened`). Antes de apagar, a lista é lida de
+    novo e o estado atual de cada simulador é usado, então um simulador
+    ligado depois do carregamento ainda é desligado antes.
+  - B4: testes do estado `deleting` (UDIDs e runtime), das travas durante a
+    exclusão e das falhas de cada etapa da exclusão do runtime.
+  - B5: "Encerrar agora" no aviso de Simulator aberto
+    (`CleanerViewModel.shutDownSimulators`: fecha o Simulator.app, roda
+    `shutdown all` e mede de novo; testado).
+  - Decisões pendentes do C14:
+    - a decodificação do JSON do `simctl` roda no main actor (listas de
+      dezenas de itens); sem medição de custo ainda, fica como está e o C27
+      confere com Instruments;
+    - o aviso de instalar as Command Line Tools que o shim `xcrun` pode
+      abrir fica para a validação real do C27.
+  - NITs aplicados: N1 (`sheet(item:)`, a sheet não fica vazia ao fechar), N3
+    (sem "0 duplicados"), N5 (rótulo de acessibilidade do Remover com o nome
+    do runtime).
+  - NITs registrados:
+    - N2: frases com zero ou um (C25);
+    - N4 e N5: tipo do aparelho no VoiceOver, simuladores indisponíveis e
+      estados `Deleting`/`Unusable` dos runtimes (C25);
+    - N6: preview do aviso "Não foi possível apagar" e texto grande (C25);
+    - N7: `unreadableOutput` desta seção não vai para o error reporter (C25).
+  - Decisões que se afastam do Figma ou do texto do plano:
+    - N8: o `reason` é `duplicate` sempre que todos os selecionados eram
+      duplicados sugeridos, mesmo marcados à mão;
+    - N9: Simuladores e Runtimes ficam dentro de "Gerenciar simuladores", e o
+      runtime incluído no Xcode mostra Remover desabilitado (R9);
+    - N9: o rótulo é "Selecionar duplicados (n)", como no Figma, no lugar de
+      "Remover duplicados (n)";
+    - N9: só os simuladores ligados são desligados (R8), não um `shutdown all`
+      antes de toda operação (R10).
+  - N10: o `MenuBarExtra` antigo ainda pode limpar enquanto simuladores são
+    apagados (sai no C22/C24); no C22, abrir a janela já na confirmação não
+    pode empilhar duas sheets.
+- **Revisão, 2ª rodada:**
+  - B6: uma listagem do Atualizar que termina durante uma exclusão
+    sobrescrevia a lista e voltava a fase para `loaded`, reabilitando o hero
+    no meio da exclusão. Agora cada listagem tem uma geração, a exclusão
+    invalida as anteriores e uma listagem velha é descartada (teste
+    `aRefreshThatEndsDuringADeletionIsDiscarded`, vermelho sem a guarda);
+  - N11 aplicada: "Encerrar agora" fica desabilitado enquanto simuladores
+    são apagados;
+  - N12: apagar um runtime também apaga os simuladores dependentes, mas só
+    registra `runtime_deleted`, como na tabela de analytics;
+  - N13: a contagem "N simuladores dependem" da linha conta todos do
+    runtime, enquanto a confirmação usa a regra da imagem gêmea.
+- **Validação:** lint sem violações (189 arquivos), 370 execuções de teste
+  passando e build Release OK.
+- **Pendência:** duas execuções completas do C21 deixaram plists dos domínios
+  de teste em `~/Library/Preferences`: a corrida do `cfprefsd` com o
+  `TestPreferencesDomain.remove`. Foram removidos; tornar a limpeza confiável
+  fica para o C27.
+

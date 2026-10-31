@@ -21,6 +21,7 @@ struct CleanerXcodeApp: App {
     @State private var preferences: Preferences
     @State private var cleanerStore: CleanerStore
     @State private var cleanerViewModel: CleanerViewModel
+    @State private var simulatorsViewModel: SimulatorsViewModel
 
     // MARK: - Private Variables
 
@@ -33,6 +34,7 @@ struct CleanerXcodeApp: App {
         Window("CleanerXcode", id: "main") {
             CleanerWindowView(
                 viewModel: cleanerViewModel,
+                simulators: simulatorsViewModel,
                 updates: updateStore,
                 versionText: "\(Bundle.main.version) (\(Bundle.main.build))"
             )
@@ -109,10 +111,16 @@ struct CleanerXcodeApp: App {
             analytics: services.analytics,
             errorReporter: services.errorReporter
         ))
-        _cleanerViewModel = .init(initialValue: AppContainer.makeCleanerViewModel(
+        let cleanerViewModel = AppContainer.makeCleanerViewModel(environment: environment, services: services)
+
+        _cleanerViewModel = .init(initialValue: cleanerViewModel)
+        // Deleting simulators or a runtime changes the sizes, so the window measures again.
+        _simulatorsViewModel = .init(initialValue: AppContainer.makeSimulatorsViewModel(
             environment: environment,
             services: services
-        ))
+        ) {
+            await cleanerViewModel.refresh()
+        })
     }
 
 }

@@ -14,6 +14,8 @@ struct CleanerNoticesView: View {
     // MARK: - Public Properties
 
     let viewModel: CleanerViewModel
+    /// Simulators or a runtime are being deleted: shutting everything down now could break it.
+    var isDeletingSimulators = false
 
     var body: some View {
         VStack(spacing: 8) {
@@ -43,7 +45,13 @@ struct CleanerNoticesView: View {
                     systemImage: "ipad.and.iphone",
                     tint: .orange,
                     title: "Simulators are open",
-                    message: "They will be shut down before the Simulators items are cleaned."
+                    message: "They will be shut down before the Simulators items are cleaned.",
+                    action: NoticeView.Action(
+                        title: "Shut down now",
+                        isEnabled: viewModel.phase.allowsMeasurement && !isDeletingSimulators
+                    ) {
+                        Task { await viewModel.shutDownSimulators() }
+                    }
                 )
             }
 
@@ -81,6 +89,8 @@ private struct NoticeView: View {
     let title: LocalizedStringResource
     let message: LocalizedStringResource
 
+    var action: Action?
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Image(systemName: systemImage)
@@ -98,10 +108,24 @@ private struct NoticeView: View {
             }
 
             Spacer(minLength: 0)
+
+            if let action {
+                Button(action.title, action: action.perform)
+                    .controlSize(.small)
+                    .disabled(!action.isEnabled)
+            }
         }
         .padding(12)
         .background(tint.opacity(0.12), in: .rect(cornerRadius: 12))
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
+    }
+
+    // MARK: - Nested Types
+
+    struct Action {
+        let title: LocalizedStringResource
+        let isEnabled: Bool
+        let perform: () -> Void
     }
 
 }

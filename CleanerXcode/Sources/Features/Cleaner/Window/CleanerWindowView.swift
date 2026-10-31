@@ -23,6 +23,7 @@ struct CleanerWindowView: View {
     // MARK: - Public Properties
 
     let viewModel: CleanerViewModel
+    let simulators: SimulatorsViewModel
     let updates: UpdateStore
     let versionText: String
 
@@ -30,8 +31,10 @@ struct CleanerWindowView: View {
         ScrollView {
             VStack(spacing: 16) {
                 CleanerHeroView(isShowingFailures: $isShowingFailures, viewModel: viewModel)
+                    // A cleanup never starts while simulators or a runtime are being deleted.
+                    .disabled(simulators.phase.isDeleting)
 
-                CleanerNoticesView(viewModel: viewModel)
+                CleanerNoticesView(viewModel: viewModel, isDeletingSimulators: simulators.phase.isDeleting)
 
                 if isShowingFailures, let failures = viewModel.phase.report?.failedResults, !failures.isEmpty {
                     FailedItemsCard(results: failures)
@@ -40,6 +43,8 @@ struct CleanerWindowView: View {
                 ForEach(sections) { group in
                     CategorySectionView(group: group, viewModel: viewModel)
                 }
+
+                SimulatorsSectionView(viewModel: simulators, isLocked: !viewModel.phase.allowsMeasurement)
             }
             .padding(16)
         }
@@ -47,7 +52,7 @@ struct CleanerWindowView: View {
             WindowFooterView(updates: updates, versionText: versionText)
         }
         .toolbar {
-            CleanerToolbar(viewModel: viewModel)
+            CleanerToolbar(viewModel: viewModel, simulators: simulators)
         }
         .sheet(isPresented: isConfirming) {
             CleanupConfirmationSheet(viewModel: viewModel)
@@ -91,11 +96,15 @@ private struct CleanerToolbar: ToolbarContent {
     // MARK: - Public Properties
 
     let viewModel: CleanerViewModel
+    let simulators: SimulatorsViewModel
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {
             Button("Refresh", systemImage: "arrow.clockwise") {
-                Task { await viewModel.refresh() }
+                Task {
+                    await viewModel.refresh()
+                    await simulators.reloadIfOpened()
+                }
             }
             .help("Measure every category again")
             .disabled(!viewModel.phase.allowsMeasurement)

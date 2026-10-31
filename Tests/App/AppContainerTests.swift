@@ -249,6 +249,27 @@ struct AppContainerTests {
         #expect(loginItem.requests.isEmpty)
     }
 
+    @Test
+    func testsGetASimulatorsSectionThatNeverRunsSimctl() async {
+        let environment = AppEnvironment(isRunningTests: true, isDebug: true)
+        let services = AppContainer.makeServices(environment: environment, configuration: configuration)
+
+        let viewModel = AppContainer.makeSimulatorsViewModel(environment: environment, services: services)
+        await viewModel.load()
+
+        #expect(viewModel.phase == .toolsUnavailable)
+    }
+
+    @Test
+    func outsideTestsTheSimulatorsSectionUsesSimctl() {
+        let environment = AppEnvironment(isRunningTests: false, isDebug: true)
+        let services = AppContainer.makeServices(environment: environment, configuration: configuration)
+
+        let viewModel = AppContainer.makeSimulatorsViewModel(environment: environment, services: services)
+
+        #expect(viewModel.simulators is SimctlSimulatorService)
+    }
+
     /// The saved choices are migrated to v2 when the window's state is made (section 9).
     @Test
     func outsideTestsTheCleanerMigratesThePreferences() {

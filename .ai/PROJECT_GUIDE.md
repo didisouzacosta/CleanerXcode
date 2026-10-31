@@ -479,7 +479,8 @@ validação em dispositivo físico e de serviços externos.
     passaram, sem avisos. No C14: 217 execuções passaram, sem avisos. No C15: 242 execuções
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
     passaram, sem avisos. No C18: 295 execuções passaram, sem avisos. No C19: 325 execuções
-    passaram, sem avisos. No C20: 345 execuções passaram, sem avisos;
+    passaram, sem avisos. No C20: 345 execuções passaram, sem avisos. No C21: 370
+    execuções passaram, sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

@@ -330,6 +330,24 @@ struct CleanerViewModelConcurrencyTests {
         #expect(analytics.events.last { $0.name == "cleaner" }?.properties["result"] as? String == "failure")
     }
 
+    /// "Encerrar agora" on the Simulator-open notice: quits Simulator.app, shuts the default set
+    /// down and measures again, so the warnings go away.
+    @Test
+    func shuttingTheSimulatorsDownQuitsSimulatorAndMeasuresAgain() async {
+        let applications = RunningApplicationsFake(log: log)
+        applications.isSimulatorRunning = true
+
+        let service = SimulatorsServiceSpy()
+        let viewModel = makeViewModel(simulators: service, applications: applications)
+        await viewModel.refresh()
+
+        await viewModel.shutDownSimulators()
+
+        #expect(log.calls == ["terminateSimulator"])
+        #expect(service.calls == ["shutdown all"])
+        #expect(viewModel.measurementCount == 2)
+    }
+
     // MARK: - Private Methods
 
     private func makeViewModel(

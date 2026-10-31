@@ -132,6 +132,19 @@ enum AppContainer {
         )
     }
 
+    /// The Simulators section. The test host and previews never run `simctl`.
+    static func makeSimulatorsViewModel(
+        environment: AppEnvironment,
+        services: AppServices,
+        onDeleted: @escaping () async -> Void = {}
+    ) -> SimulatorsViewModel {
+        let simulators: any SimulatorManaging = environment.isRunningTests || environment.isRunningPreviews
+            ? InertSimulatorManager()
+            : SimctlSimulatorService()
+
+        return SimulatorsViewModel(simulators: simulators, analytics: services.analytics, onDeleted: onDeleted)
+    }
+
     // MARK: - Private Methods
 
     /// Sentry runs in Debug and Release, in separate environments, whenever a DSN is configured.

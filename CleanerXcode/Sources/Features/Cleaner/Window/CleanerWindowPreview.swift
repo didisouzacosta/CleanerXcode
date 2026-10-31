@@ -16,17 +16,23 @@
         // MARK: - States
 
         @State private var viewModel: CleanerViewModel
+        @State private var simulators = SimulatorsSectionPreview.makeViewModel(for: .loaded)
         @State private var updates = UpdateStore(Bundle.main)
 
         // MARK: - Public Properties
 
         var body: some View {
-            CleanerWindowView(viewModel: viewModel, updates: updates, versionText: "1.0.0 (115)")
-                .environment(\.reducesTransparencyOverride, reducesTransparency ? true : nil)
-                .frame(width: 560, height: 720)
-                .task {
-                    await Self.prepare(viewModel, for: scenario)
-                }
+            CleanerWindowView(
+                viewModel: viewModel,
+                simulators: simulators,
+                updates: updates,
+                versionText: "1.0.0 (115)"
+            )
+            .environment(\.reducesTransparencyOverride, reducesTransparency ? true : nil)
+            .frame(width: 560, height: 720)
+            .task {
+                await Self.prepare(viewModel, for: scenario)
+            }
         }
 
         // MARK: - Private Properties
