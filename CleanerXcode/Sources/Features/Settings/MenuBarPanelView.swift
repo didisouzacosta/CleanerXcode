@@ -103,9 +103,24 @@ struct MenuBarPanelView: View {
     // MARK: - Private Methods
 
     private func detail(_ content: HeroContent) -> String {
-        guard reviewsInWindow else { return content.detail }
+        let action = content.actions.first
+        let detail = MenuBarPresentation.panelDetail(
+            action: action?.kind,
+            isEnabled: action?.isEnabled ?? false,
+            isDeletingSimulators: isDeletingSimulators,
+            reviewsInWindow: reviewsInWindow
+        )
 
-        return String(localized: "Some selected items need a confirmation. It opens in the main window.")
+        switch detail {
+        case .content:
+            return content.detail
+
+        case .waitForSimulators:
+            return String(localized: "Wait while simulators or a runtime are deleted.")
+
+        case .reviewInWindow:
+            return String(localized: "Some selected items need a confirmation. It opens in the main window.")
+        }
     }
 
     @ViewBuilder

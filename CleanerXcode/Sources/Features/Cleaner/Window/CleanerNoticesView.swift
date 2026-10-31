@@ -82,6 +82,10 @@ struct CleanerNoticesView: View {
 
 private struct NoticeView: View {
 
+    // MARK: - Environments
+
+    @Environment(\.colorSchemeContrast) private var contrast
+
     // MARK: - Public Properties
 
     let systemImage: String
@@ -116,7 +120,7 @@ private struct NoticeView: View {
             }
         }
         .padding(12)
-        .background(tint.opacity(0.12), in: .rect(cornerRadius: 12))
+        .badgeBackground(tint, in: .rect(cornerRadius: 12), contrast: contrast)
         .accessibilityElement(children: .contain)
     }
 
@@ -129,3 +133,61 @@ private struct NoticeView: View {
     }
 
 }
+
+#if DEBUG
+    #Preview("Xcode open") {
+        @Previewable @State var viewModel = CleanerWindowPreview.makeViewModel(for: .xcodeOpen)
+
+        // Always-present content, so the task runs before any notice exists.
+        ZStack {
+            Color.clear
+
+            CleanerNoticesView(viewModel: viewModel)
+                .padding()
+        }
+        .frame(width: 560, height: 160)
+        .task { await viewModel.refresh() }
+    }
+
+    #Preview("Simulator open") {
+        @Previewable @State var viewModel = CleanerWindowPreview.makeViewModel(for: .simulatorOpen)
+
+        // Always-present content, so the task runs before any notice exists.
+        ZStack {
+            Color.clear
+
+            CleanerNoticesView(viewModel: viewModel)
+                .padding()
+        }
+        .frame(width: 560, height: 160)
+        .task { await viewModel.refresh() }
+    }
+
+    #Preview("Simulator open · deleting simulators") {
+        @Previewable @State var viewModel = CleanerWindowPreview.makeViewModel(for: .simulatorOpen)
+
+        // Always-present content, so the task runs before any notice exists.
+        ZStack {
+            Color.clear
+
+            CleanerNoticesView(viewModel: viewModel, isDeletingSimulators: true)
+                .padding()
+        }
+        .frame(width: 560, height: 160)
+        .task { await viewModel.refresh() }
+    }
+
+    #Preview("Xcode tools unavailable") {
+        @Previewable @State var viewModel = CleanerWindowPreview.makeViewModel(for: .toolsUnavailable)
+
+        // Always-present content, so the task runs before any notice exists.
+        ZStack {
+            Color.clear
+
+            CleanerNoticesView(viewModel: viewModel)
+                .padding()
+        }
+        .frame(width: 560, height: 160)
+        .task { await viewModel.refresh() }
+    }
+#endif

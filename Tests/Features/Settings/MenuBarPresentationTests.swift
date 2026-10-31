@@ -55,4 +55,52 @@ struct MenuBarPresentationTests {
         #expect(!MenuBarPresentation.quitsAfterLastWindowClosed(showsMenuBarExtra: true))
     }
 
+    /// The panel explains a disabled Clean or retry during a simulator deletion; otherwise it asks
+    /// for the window when the plan needs a confirmation, or shows the usual detail.
+    @Test
+    func picksThePanelDetail() {
+        #expect(MenuBarPresentation.panelDetail(
+            action: .clean,
+            isEnabled: true,
+            isDeletingSimulators: true,
+            reviewsInWindow: true
+        ) == .waitForSimulators)
+        #expect(MenuBarPresentation.panelDetail(
+            action: .retry,
+            isEnabled: true,
+            isDeletingSimulators: true,
+            reviewsInWindow: false
+        ) == .waitForSimulators)
+        #expect(MenuBarPresentation.panelDetail(
+            action: .dismiss,
+            isEnabled: true,
+            isDeletingSimulators: true,
+            reviewsInWindow: false
+        ) == .content)
+        #expect(
+            MenuBarPresentation
+                .panelDetail(action: .clean, isEnabled: false, isDeletingSimulators: true, reviewsInWindow: false) ==
+                .content,
+            "Already disabled for another reason."
+        )
+        #expect(MenuBarPresentation.panelDetail(
+            action: .clean,
+            isEnabled: true,
+            isDeletingSimulators: false,
+            reviewsInWindow: true
+        ) == .reviewInWindow)
+        #expect(MenuBarPresentation.panelDetail(
+            action: .clean,
+            isEnabled: true,
+            isDeletingSimulators: false,
+            reviewsInWindow: false
+        ) == .content)
+        #expect(MenuBarPresentation.panelDetail(
+            action: nil,
+            isEnabled: false,
+            isDeletingSimulators: true,
+            reviewsInWindow: false
+        ) == .content)
+    }
+
 }

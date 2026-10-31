@@ -44,7 +44,28 @@ enum MenuBarPresentation {
         !showsMenuBarExtra
     }
 
+    /// Why the main action waits: a simulator deletion blocks an otherwise enabled Clean or
+    /// retry; a plan that needs a confirmation goes to the window; otherwise the usual detail.
+    static func panelDetail(
+        action: HeroContent.Action.Kind?,
+        isEnabled: Bool,
+        isDeletingSimulators: Bool,
+        reviewsInWindow: Bool
+    ) -> PanelDetail {
+        if let action, isEnabled, !Self.isEnabled(action, isDeletingSimulators: isDeletingSimulators) {
+            return .waitForSimulators
+        }
+
+        return reviewsInWindow ? .reviewInWindow : .content
+    }
+
     // MARK: - Nested Types
+
+    enum PanelDetail: Equatable {
+        case content
+        case waitForSimulators
+        case reviewInWindow
+    }
 
     enum Label: Equatable {
         case size(Int64)

@@ -53,7 +53,6 @@ struct CategoryRowView: View {
         .disabled(!viewModel.canToggle(category.id))
         .frame(minHeight: 44)
         .padding(.horizontal, 12)
-        .accessibilityValue(Text(valueText))
     }
 
     // MARK: - Private Properties
@@ -138,6 +137,10 @@ struct CategoryRowView: View {
 /// "Attention" in orange and "Dangerous" in red; safe items have none.
 struct RiskBadge: View {
 
+    // MARK: - Environments
+
+    @Environment(\.colorSchemeContrast) private var contrast
+
     // MARK: - Public Properties
 
     let title: LocalizedStringResource
@@ -149,7 +152,7 @@ struct RiskBadge: View {
             .foregroundStyle(tint)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(tint.opacity(0.15), in: .capsule)
+            .badgeBackground(tint, in: .capsule, contrast: contrast)
     }
 
     // MARK: - Initializers

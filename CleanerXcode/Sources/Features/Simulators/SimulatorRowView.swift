@@ -10,6 +10,10 @@ import SwiftUI
 /// A simulator: checkbox, device symbol, name, runtime, state, last use, duplicate badge and size.
 struct SimulatorRowView: View {
 
+    // MARK: - Environments
+
+    @Environment(\.colorSchemeContrast) private var contrast
+
     // MARK: - Public Properties
 
     let device: SimulatorDevice
@@ -22,7 +26,9 @@ struct SimulatorRowView: View {
                 Image(systemName: SimulatorPresentation.systemImage(forDeviceType: device.deviceTypeIdentifier))
                     .frame(width: 20)
                     .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
+                    .accessibilityLabel(Text(verbatim: spokenType ?? ""))
+                    // Read only for a renamed simulator, whose name no longer tells its type.
+                    .accessibilityHidden(spokenType == nil)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: device.name)
@@ -42,7 +48,7 @@ struct SimulatorRowView: View {
                         .foregroundStyle(.orange)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(.orange.opacity(0.15), in: .capsule)
+                        .badgeBackground(.orange, in: .capsule, contrast: contrast)
                 }
 
                 Text(valueText)
@@ -56,10 +62,13 @@ struct SimulatorRowView: View {
         .disabled(isLocked || viewModel.phase.isDeleting)
         .frame(minHeight: 44)
         .padding(.horizontal, 12)
-        .accessibilityValue(Text(valueText))
     }
 
     // MARK: - Private Properties
+
+    private var spokenType: String? {
+        SimulatorPresentation.spokenType(name: device.name, deviceType: device.deviceTypeIdentifier)
+    }
 
     private var isSelected: Binding<Bool> {
         Binding {
@@ -84,7 +93,10 @@ struct SimulatorRowView: View {
     /// "iOS 27.2 · off · last used 2 days ago".
     private var details: LocalizedStringResource {
         let runtime = SimulatorPresentation.runtimeName(device.runtimeIdentifier)
-        let state = String(localized: device.state.title)
+        let state = String(localized: SimulatorPresentation.deviceStateText(
+            device.state,
+            isAvailable: device.isAvailable
+        ))
         let lastUse = if device.state == .booted {
             String(localized: "in use now")
         } else if let date = device.lastUsedAt {
@@ -94,18 +106,6 @@ struct SimulatorRowView: View {
         }
 
         return "\(runtime) · \(state) · \(lastUse)"
-    }
-
-}
-
-private extension SimulatorDevice.State {
-
-    var title: LocalizedStringResource {
-        switch self {
-        case .booted: "on"
-        case .shutdown: "off"
-        case let .other(value): "\(value)"
-        }
     }
 
 }

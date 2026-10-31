@@ -186,3 +186,19 @@ private struct ConfirmationTitleStyle: LabelStyle {
     }
 
 }
+
+#if DEBUG
+    #Preview("Danger") {
+        @Previewable @State var viewModel = CleanerWindowPreview.makeViewModel(for: .confirming)
+
+        CleanupConfirmationSheet(viewModel: viewModel)
+            .task { await CleanerWindowPreview.prepare(viewModel, for: .confirming) }
+    }
+
+    #Preview("Xcode open") {
+        @Previewable @State var viewModel = CleanerWindowPreview.makeViewModel(for: .confirmingWhileXcodeIsOpen)
+
+        CleanupConfirmationSheet(viewModel: viewModel)
+            .task { await CleanerWindowPreview.prepare(viewModel, for: .confirmingWhileXcodeIsOpen) }
+    }
+#endif

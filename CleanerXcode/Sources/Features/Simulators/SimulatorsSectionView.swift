@@ -300,6 +300,21 @@ private struct SimulatorsMessage: View {
         SimulatorsSectionPreview(.confirmingDevices)
     }
 
+    #Preview("Could not delete") {
+        SimulatorsSectionPreview(.deleteFailed)
+    }
+
+    #Preview("Unavailable simulator and runtime states") {
+        SimulatorsSectionPreview(.unusualStates)
+    }
+
+    // macOS ignores `dynamicTypeSize` for these text styles (renders are identical); the real
+    // large-text check is in C27.
+    #Preview("Large text") {
+        SimulatorsSectionPreview(.loaded)
+            .dynamicTypeSize(.xxxLarge)
+    }
+
     #Preview("Dark") {
         SimulatorsSectionPreview(.loaded)
             .preferredColorScheme(.dark)

@@ -11,172 +11,12 @@
         }
       }
     },
-    "%@Q" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@Q"
-          }
-        }
-      }
-    },
-    "🎉 Success, all clear!" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "🎉 Sucesso, tudo limpo!"
-          }
-        }
-      }
-    },
-    "Cache" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cache"
-          }
-        }
-      }
-    },
-    "Calculating" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calculando"
-          }
-        }
-      }
-    },
-    "Cleaner Xcode" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cleaner Xcode"
-          }
-        }
-      }
-    },
-    "Cleaning" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpando"
-          }
-        }
-      }
-    },
-    "Clear" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpar"
-          }
-        }
-      }
-    },
-    "Clear %@" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpar %@"
-          }
-        }
-      }
-    },
-    "Clear Device Support" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpar Device Support"
-          }
-        }
-      }
-    },
-    "Clear Simulator Data" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpar Simulator Data"
-          }
-        }
-      }
-    },
     "Dedication" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dedicatória"
-          }
-        }
-      }
-    },
-    "Display Free Up Space In Menu Bar" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exibir espaço usado na barra de tarefas"
-          }
-        }
-      }
-    },
-    "Donate" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Faça uma doação"
-          }
-        }
-      }
-    },
-    "Home" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Principal"
-          }
-        }
-      }
-    },
-    "If you like it tool, consider make a donation." : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se você gostou, considere fazer uma doação"
-          }
-        }
-      }
-    },
-    "Launch At Login" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Iniciar no login"
-          }
-        }
-      }
-    },
-    "Preferences" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preferências"
           }
         }
       }
@@ -191,72 +31,12 @@
         }
       }
     },
-    "Remove Archives" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remover Archives"
-          }
-        }
-      }
-    },
-    "Remove Caches" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remover Caches"
-          }
-        }
-      }
-    },
-    "Remove Derived Data" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove Derived Data"
-          }
-        }
-      }
-    },
-    "Remove Old Simulators" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove Simuladores Antigos"
-          }
-        }
-      }
-    },
-    "Reset Xcode Preferences" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resetar preferências do Xcode"
-          }
-        }
-      }
-    },
-    "Simulators & Xcode" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Simuladores & Xcode"
-          }
-        }
-      }
-    },
     "This simple app was made for anyone who loves developing for Apple technologies.\n\nI'd like to dedicate this app to my son Orlando and my wife Gisele." : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esse simples app foi feito para aqueles que amam desenvolver para tecnologias App.\n\nEu gostaria de dedicar esse app para meu filho Orlando e minha esposa Gisele."
+            "value" : "Este app simples foi feito para quem ama desenvolver para tecnologias Apple.\n\nDedico este app ao meu filho Orlando e à minha esposa Gisele."
           }
         }
       }
@@ -267,16 +47,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tentar novamente"
-          }
-        }
-      }
-    },
-    "Update" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Atualizar"
           }
         }
       }
@@ -1486,6 +1256,12 @@
         "en" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "no categories cleaned"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -1504,6 +1280,12 @@
         "pt-BR" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "nenhuma categoria limpa"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -1526,6 +1308,12 @@
         "en" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "no categories finished before cancelling"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -1544,6 +1332,12 @@
         "pt-BR" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "nenhuma categoria concluída antes de cancelar"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -1836,6 +1630,12 @@
         "en" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "no simulators depend on it"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -1854,6 +1654,12 @@
         "pt-BR" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "nenhum simulador depende dele"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -1956,6 +1762,12 @@
         "en" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "no duplicates"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -1974,6 +1786,12 @@
         "pt-BR" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "nenhum duplicado"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -1996,6 +1814,12 @@
         "en" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "no simulators"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -2014,6 +1838,12 @@
         "pt-BR" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "nenhum simulador"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -2036,6 +1866,12 @@
         "en" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "no runtimes"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -2054,6 +1890,12 @@
         "pt-BR" : {
           "variations" : {
             "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "nenhum runtime"
+                }
+              },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
@@ -2497,6 +2339,76 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Alguns itens selecionados pedem confirmação. Ela abre na janela principal."
+          }
+        }
+      }
+    },
+    "unavailable" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "indisponível"
+          }
+        }
+      }
+    },
+    "Wait while simulators or a runtime are deleted." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguarde enquanto simuladores ou um runtime são apagados."
+          }
+        }
+      }
+    },
+    "deleting…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "apagando…"
+          }
+        }
+      }
+    },
+    "unusable" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "inutilizável"
+          }
+        }
+      }
+    },
+    "booting" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iniciando"
+          }
+        }
+      }
+    },
+    "shutting down" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "desligando"
+          }
+        }
+      }
+    },
+    "creating" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "criando"
           }
         }
       }

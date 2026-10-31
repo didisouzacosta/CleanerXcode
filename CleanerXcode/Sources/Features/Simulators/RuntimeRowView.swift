@@ -73,7 +73,9 @@ struct RuntimeRowView: View {
     /// "24A94425 · 3 simulators depend on it · last used 61 days ago".
     private var details: LocalizedStringResource {
         let dependents = String(localized: "\(viewModel.dependentCount(of: runtime)) simulators depend on it")
-        let usage = if !runtime.isDeletable {
+        let usage = if let state = SimulatorPresentation.runtimeStateText(runtime.state) {
+            String(localized: state)
+        } else if !runtime.isDeletable {
             String(localized: "bundled with Xcode")
         } else if let lastUsedAt = runtime.lastUsedAt {
             String(localized: "last used \(lastUsedAt.formatted(.relative(presentation: .numeric)))")

@@ -2238,3 +2238,105 @@ Nenhuma categoria nova é proposta:
     - N3: o README ainda credita LaunchAtLogin e swift-timeout (C29);
     - N5: chaves de texto das Views antigas no `Localizable.xcstrings` (C25).
 
+## Adendo da implementação do C25 (2026-10-31)
+
+- **Strings:**
+  - auditoria do `Localizable.xcstrings` contra as chaves que o build extrai
+    (`.stringsdata`): 23 chaves das Views antigas removidas (N5 do C24);
+  - nenhuma chave faltando, e todas com pt-BR (198 chaves depois da revisão);
+  - as frases com contagem têm plural em en e pt-BR;
+  - a ação destrutiva usa os textos aprovados ("Limpar", "Apagar", "Apagar
+    runtime", destino Lixeira, Definitivo ou Redefinir).
+- **VoiceOver:**
+  - o símbolo da linha do simulador leva o tipo do aparelho como rótulo só
+    quando o nome difere (`SimulatorPresentation.spokenType`, testado), então
+    um simulador renomeado continua identificável;
+  - simulador sem runtime aparece como "indisponível";
+  - runtime em estado diferente de "Ready" (`Deleting`, `Unusable`) mostra o
+    estado;
+  - o painel explica por que o botão fica desabilitado durante uma exclusão
+    ("Aguarde enquanto simuladores ou um runtime são apagados.", R2-N3 do
+    C22);
+  - a varredura das Views não achou `Image` sem rótulo nem
+    `accessibilityHidden` fora de `Label`.
+- **Aumentar contraste:** as etiquetas de risco, de duplicado e os avisos
+  mantêm o fundo e ganham borda na cor com `colorSchemeContrast ==
+  .increased` (`BadgeStyle`). Não há preview de contraste: o ambiente é só
+  de leitura.
+- **Previews:**
+  - previews próprios para as duas sheets de confirmação, os itens que
+    falharam, os avisos (inclusive durante a exclusão de simuladores), o
+    rodapé (com e sem atualização) e o cabeçalho recolhível;
+  - Reduzir transparência, Light e Dark já existiam; as previews de texto
+    grande saem idênticas às normais no macOS, e a conferência real fica no
+    C27;
+  - nenhuma preview usa `Bundle.main` nem serviços reais.
+- **Prints:** o painel bloqueado, o aviso, a sheet de runtime, "Não foi
+  possível apagar", os estados incomuns de simulador e runtime e a
+  comparação de texto grande, enviados ao dono.
+- **Validação:** lint sem violações (173 arquivos), 376 execuções de teste
+  passando e build Release OK; a auditoria de strings dá 198 chaves, sem
+  nenhuma sobrando ou faltando, em Debug e Release. O domínio real fica
+  vazio. Plists de teste vazaram (pendência do C27) e foram removidos.
+- **Revisão (Manager), correções:**
+  - B1: forma `zero` em en e pt-BR para as contagens que chegam a zero
+    ("nenhum simulador depende dele", "nenhuma categoria concluída antes de
+    cancelar", "nenhuma categoria limpa", "nenhum runtime", "nenhum
+    simulador", "nenhum duplicado"). Em português o 0 cairia em "one".
+    Testado resolvendo as strings do bundle em pt-BR e en
+    (`LocalizedPluralTests`).
+  - B2: estados do `simctl` traduzidos (`SimulatorPresentation`:
+    `runtimeStateText` para Deleting e Unusable; `deviceStateText` para
+    ligado, desligado, indisponível, Booting, Shutting Down e Creating); os
+    desconhecidos ficam como vêm. Testado.
+  - B3: a escolha do texto do painel foi para
+    `MenuBarPresentation.panelDetail` (testado); o bloqueio só aparece quando
+    o botão estaria habilitado e cita simuladores ou runtime (N3).
+  - B4: as previews da sheet de simuladores usam o
+    `SimulatorsConfirmationPreview` com `@State` e conteúdo sempre presente;
+    renderizadas. As previews dos avisos ganharam conteúdo sempre presente.
+    O preparo das previews de simuladores espera a lista carregar, porque a
+    seção também carrega ao expandir.
+  - B5: com Aumentar contraste o fundo fica o mesmo e ganha borda na cor
+    (`BadgeStyle`/`badgeBackground`, testado), nas etiquetas e nos avisos;
+    escurecer o fundo reduzia o contraste do texto.
+  - B6: previews novas ("Não foi possível apagar", simulador indisponível e
+    runtimes Unusable/Deleting, texto grande da seção). O texto grande foi
+    renderizado lado a lado com o padrão e saiu idêntico: o macOS ignora o
+    `dynamicTypeSize` nesses estilos. A conferência real de texto grande,
+    truncamento em en, VoiceOver real (inclusive o estado marcado ou não das
+    caixas) e Aumentar contraste vai para o C27, que já está no checklist.
+  - B7: a dedicatória em pt-BR diz "tecnologias Apple" ("Este app simples
+    foi feito… Dedico este app ao meu filho…").
+  - NITs aplicados:
+    - N1: o tipo do aparelho entra no rótulo do símbolo só quando o nome
+      difere (`spokenType`), sem dica;
+    - N2: as caixas não repetem mais o tamanho no `accessibilityValue`, que
+      podia esconder o estado marcado;
+    - N4: o `BadgeStyle` ganhou arquivo próprio.
+  - NITs registrados:
+    - N5: comentários para tradutores nas chaves curtas;
+    - N6: a introdução da confirmação diz "itens que exigem atenção" (o
+      Figma diz "de atenção e perigosos"), e o subtítulo de Archives não diz
+      "à App Store";
+    - N7: o botão "Encerrar agora" desabilitado só se vê ao vivo (C27).
+  - 2ª rodada: aprovada. Registrados:
+    - R2-N2: decisão que se afasta do R18: as caixas não têm mais
+      `accessibilityValue` (o tamanho é lido no rótulo, para não esconder o
+      estado marcado); confirmar no VoiceOver real do C27;
+    - R2-N3: o Remover continua habilitado num runtime que o `simctl` já
+      mostra como Deleting (já era assim antes do C25); conferir no C27;
+    - R2-N4: o teste de plural não exercita a regra do português que põe o 0
+      em "one", porque a forma `zero` vale para o 0 em qualquer idioma;
+    - R2-N5: o preparo das previews espera a lista com polling de 20 ms (só
+      DEBUG).
+- **Fica como está:**
+  - o texto da falha parcial não segue o Figma ("em N categorias");
+  - o relatório conta as categorias que geraram resultado, não as do plano
+    (N4 do C20);
+  - "Cancelando…" aparece três vezes no hero (R2-N1 do C22), porque a fase
+    não guarda os bytes;
+  - "1 de 1 categorias" não tem plural;
+  - o `unreadableOutput` da seção de simuladores não vai para o Sentry (N7
+    do C21).
+

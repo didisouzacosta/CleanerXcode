@@ -58,3 +58,18 @@ struct WindowFooterView: View {
     }
 
 }
+
+#if DEBUG
+    #Preview("Up to date") {
+        WindowFooterView(updates: UpdatePreview.makeViewModel(), versionText: "1.0.0 (115)") {}
+            .frame(width: 560)
+    }
+
+    #Preview("Update available") {
+        @Previewable @State var updates = UpdatePreview.makeViewModel(hasUpdate: true)
+
+        WindowFooterView(updates: updates, versionText: "1.0.0 (115)") {}
+            .frame(width: 560)
+            .task { await updates.check() }
+    }
+#endif

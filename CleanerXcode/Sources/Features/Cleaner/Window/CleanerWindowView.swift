@@ -185,6 +185,8 @@ private struct CleanerToolbar: ToolbarContent {
         CleanerWindowPreview(.toolsUnavailable)
     }
 
+    // macOS ignores `dynamicTypeSize` for these text styles (renders are identical); the real
+    // large-text check is in C27.
     #Preview("Large text") {
         CleanerWindowPreview(.ready)
             .dynamicTypeSize(.xxxLarge)

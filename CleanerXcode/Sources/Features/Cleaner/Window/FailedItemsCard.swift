@@ -47,3 +47,24 @@ struct FailedItemsCard: View {
     }
 
 }
+
+#if DEBUG
+    #Preview {
+        FailedItemsCard(results: [
+            CleanupItemResult(
+                categoryID: .removeDerivedData,
+                displayPath: "~/Library/Developer/Xcode/DerivedData/MyApp-fhq/Index.noindex",
+                bytes: 0,
+                outcome: .failed(.inUse)
+            ),
+            CleanupItemResult(
+                categoryID: .removeDerivedData,
+                displayPath: "~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex",
+                bytes: 0,
+                outcome: .failed(.permissionDenied)
+            ),
+        ])
+        .padding()
+        .frame(width: 560)
+    }
+#endif

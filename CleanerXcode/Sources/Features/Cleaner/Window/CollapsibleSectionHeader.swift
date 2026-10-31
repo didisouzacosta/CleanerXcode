@@ -48,3 +48,21 @@ struct CollapsibleSectionHeader: View {
     }
 
 }
+
+#if DEBUG
+    #Preview("Expanded and collapsed") {
+        @Previewable @State var isCollapsed = false
+        @Previewable @State var isOtherCollapsed = true
+
+        VStack(spacing: 16) {
+            CollapsibleSectionHeader(isCollapsed: $isCollapsed, title: "Xcode", summary: "\("31.3 GB") selected")
+            CollapsibleSectionHeader(
+                isCollapsed: $isOtherCollapsed,
+                title: "Temporary files",
+                summary: "nothing selected"
+            )
+        }
+        .padding()
+        .frame(width: 560)
+    }
+#endif

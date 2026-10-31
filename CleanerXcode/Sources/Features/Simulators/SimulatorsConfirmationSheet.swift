@@ -120,3 +120,13 @@ struct SimulatorsConfirmationSheet: View {
     }
 
 }
+
+#if DEBUG
+    #Preview("Simulators") {
+        SimulatorsConfirmationPreview(.confirmingDevices)
+    }
+
+    #Preview("Runtime") {
+        SimulatorsConfirmationPreview(.confirmingRuntime)
+    }
+#endif

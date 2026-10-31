@@ -46,30 +46,43 @@
             SimulatorsViewModel(simulators: PreviewSimulatorsService(scenario: scenario), analytics: NullAnalytics())
         }
 
-        /// Brings the view model to the scenario's phase.
+        /// Brings the view model to the scenario's phase. The section also loads when it expands,
+        /// which can supersede this load, so each step waits for the list first.
         static func prepare(_ viewModel: SimulatorsViewModel, for scenario: Scenario) async {
+            await viewModel.load()
+            await waitUntilListed(viewModel)
+
             switch scenario {
             case .deleting:
-                await viewModel.load()
                 viewModel.selectDuplicates()
                 viewModel.requestDeleteSelected()
 
                 Task { await viewModel.confirm() }
 
+            case .deleteFailed:
+                viewModel.selectDuplicates()
+                viewModel.requestDeleteSelected()
+                await viewModel.confirm()
+
             case .confirmingDevices:
-                await viewModel.load()
                 viewModel.selectDuplicates()
                 viewModel.requestDeleteSelected()
 
             case .confirmingRuntime:
-                await viewModel.load()
-
                 if let runtime = viewModel.runtimes.first(where: \.isDeletable) {
                     viewModel.requestDeleteRuntime(runtime)
                 }
 
             default:
-                await viewModel.load()
+                break
+            }
+        }
+
+        // MARK: - Private Methods
+
+        private static func waitUntilListed(_ viewModel: SimulatorsViewModel) async {
+            while viewModel.phase == .idle || viewModel.phase == .loading, !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(20))
             }
         }
 
@@ -85,8 +98,46 @@
             case toolsUnavailable
             case failed
             case deleting
+            case deleteFailed
+            case unusualStates
             case confirmingDevices
             case confirmingRuntime
+        }
+
+    }
+
+    /// The confirmation sheet on its own, prepared by the same fakes.
+    struct SimulatorsConfirmationPreview: View {
+
+        // MARK: - States
+
+        @State private var viewModel: SimulatorsViewModel
+
+        // MARK: - Public Properties
+
+        var body: some View {
+            ZStack {
+                Color.clear
+
+                if let confirmation = viewModel.confirmation {
+                    SimulatorsConfirmationSheet(confirmation: confirmation, viewModel: viewModel)
+                }
+            }
+            .frame(width: 420, height: 320)
+            .task {
+                await SimulatorsSectionPreview.prepare(viewModel, for: scenario)
+            }
+        }
+
+        // MARK: - Private Properties
+
+        private let scenario: SimulatorsSectionPreview.Scenario
+
+        // MARK: - Initializers
+
+        init(_ scenario: SimulatorsSectionPreview.Scenario) {
+            self.scenario = scenario
+            _viewModel = State(initialValue: SimulatorsSectionPreview.makeViewModel(for: scenario))
         }
 
     }
@@ -125,6 +176,12 @@
             case .failed:
                 throw CleanupError.timedOut
 
+            case .unusualStates:
+                return [
+                    device("1", "iPhone 17 Pro", Self.iOS272, daysAgo: 2, bytes: 2_400_000_000),
+                    device("2", "QA phone", Self.iOS271, daysAgo: 9, bytes: 900_000_000, isAvailable: false),
+                ]
+
             default:
                 return [
                     device("1", "iPhone 17 Pro", Self.iOS272, daysAgo: 2, bytes: 2_400_000_000),
@@ -142,6 +199,27 @@
                 return []
             }
 
+            if case .unusualStates = scenario {
+                return [
+                    runtime(
+                        "R1",
+                        Self.iOS271,
+                        build: "24A94425",
+                        bytes: 7_600_000_000,
+                        deletable: true,
+                        state: "Unusable"
+                    ),
+                    runtime(
+                        "R3",
+                        Self.watchOS271,
+                        build: "24R382",
+                        bytes: 3_100_000_000,
+                        deletable: true,
+                        state: "Deleting"
+                    ),
+                ]
+            }
+
             return [
                 runtime("R2", Self.iOS272, build: "24B114", bytes: 7_500_000_000, deletable: false),
                 runtime("R1", Self.iOS271, build: "24A94425", bytes: 7_600_000_000, deletable: true),
@@ -149,6 +227,10 @@
         }
 
         func delete(_ devices: [SimulatorDevice], in set: DeviceSet) async throws {
+            if case .deleteFailed = scenario {
+                throw CleanupError.inUse
+            }
+
             try await Task.sleep(for: .seconds(3_600))
         }
 
@@ -173,7 +255,8 @@
             _ name: String,
             _ runtime: String,
             daysAgo: Double?,
-            bytes: Int64
+            bytes: Int64,
+            isAvailable: Bool = true
         ) -> SimulatorDevice {
             SimulatorDevice(
                 udid: udid,
@@ -182,7 +265,7 @@
                     + name.replacing("\"", with: "").replacing(" ", with: "-"),
                 runtimeIdentifier: runtime,
                 state: daysAgo == 0 ? .booted : .shutdown,
-                isAvailable: true,
+                isAvailable: isAvailable,
                 lastUsedAt: daysAgo.map { Date.now.addingTimeInterval(-$0 * 86_400) },
                 sizeBytes: bytes
             )
@@ -193,7 +276,8 @@
             _ runtimeIdentifier: String,
             build: String,
             bytes: Int64,
-            deletable: Bool
+            deletable: Bool,
+            state: String = "Ready"
         ) -> SimulatorRuntime {
             SimulatorRuntime(
                 identifier: identifier,
@@ -204,7 +288,7 @@
                 sizeBytes: bytes,
                 lastUsedAt: deletable ? Date.now.addingTimeInterval(-61 * 86_400) : nil,
                 isDeletable: deletable,
-                state: "Ready",
+                state: state,
                 kind: deletable ? "Patchable Cryptex Disk Image" : "Bundled with Xcode"
             )
         }
