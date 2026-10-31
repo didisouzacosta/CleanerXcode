@@ -1534,3 +1534,97 @@ Nenhuma categoria nova é proposta:
   - o executor monta o resetter a partir do `domain` da operação
     `.resetPreferences(domain:)` do catálogo, que fica a única fonte do
     domínio.
+
+## Adendo da implementação do C17 (2026-10-31)
+
+- **`CleanupExecutor`** (`Core/Cleanup/Executor`, no main actor pelo
+  isolamento padrão): `execute(_ plan: CleanupPlan, onEvent:) async ->
+  CleanupReport`.
+  - **Diverge da seção 5.3:** em vez de um
+    `AsyncThrowingStream<CleanupEvent, Error>`, a API é estruturada e
+    entrega os eventos (`closingSimulators`, `categoryStarted`,
+    `itemFinished`, `restartingSimulatorService`) a `onEvent`, no ator de
+    quem chama. É a mesma lição do B1 do C12: cancelar quem consome um
+    stream perde o resultado em andamento. Aqui o `CleanerViewModel`
+    (C19) cancela o próprio `Task`, e o executor devolve um relatório
+    `cancelled` com tudo o que já foi liberado (R7/AC7).
+  - **Ordem fixa (R10):**
+    1. com alguma categoria `shutsDownSimulators`, fecha o Simulator.app e
+       roda `simctl shutdown all` no set padrão;
+    2. passos `simctl`: `erase all`, `delete unavailable` e, para cada set
+       auxiliar existente (`DeviceSet.all(in:)`), `shutdown all` + `delete
+       all`, seguidos das sobras nas raízes do catálogo;
+    3. remoções de arquivo e reset de preferências, na ordem do catálogo;
+    4. reinício do CoreSimulatorService só se uma categoria
+       `restartsSimulatorService` (F24) removeu algo.
+  - **Simulator e cancelamento:**
+    - se o Simulator não fechar, ou o `shutdown all` falhar, só as
+      categorias de simulador falham (`.blockedByRunningApp(.simulator)` ou
+      o erro), e as outras rodam;
+    - um cancelamento durante o fechamento vira relatório `cancelled`,
+      nunca falha, e nenhum `shutdown all` roda depois dele.
+  - **Pendências anteriores resolvidas:**
+    - o executor reconfere `isXcodeRunning` antes de cada categoria
+      `isBlockedWhileXcodeRuns` (`.blockedByRunningApp(.xcode)`);
+    - monta o resetter a partir do `domain` da operação;
+    - roda `knownUDIDs` antes do F19 (com falha na listagem, a categoria
+      falha);
+    - aplica `TemporaryItemsPolicy.softened` às duas categorias
+      temporárias;
+    - pula sets auxiliares inexistentes.
+  - **Bytes liberados dos passos `simctl`:** diferença do alvo antes e
+    depois (`erase all` mede `CoreSimulator/Devices`, os sets medem a
+    própria pasta) ou soma dos simuladores indisponíveis listados antes
+    (`delete unavailable`). O reset de preferências conta 0.
+  - **AC10:** nenhuma raiz sai do catálogo, e um teste com o catálogo
+    inteiro confirma que nada aponta para `/Library/Developer/CoreSimulator`.
+- **Ajuste no `FileRemoving` (C12):** `onResult` deixou de ser `@Sendable`.
+  O laço do remover roda na task e no ator de quem chama, e a listagem e o
+  trabalho de cada item rodam em helpers `@concurrent`. Assim o executor
+  coleta os resultados sem trava. O `filter` passou a ser `@escaping`.
+- **Testes:** fakes com um registro de chamadas compartilhado validam a
+  ordem global. A primeira execução dos testes do executor foi contra a
+  implementação; o vermelho foi demonstrado com um esqueleto vazio
+  (13 falhas) e com 10 mutações, todas pegas.
+- **Correções da revisão:**
+  - **B1:** depois que um passo `simctl` acontece, o resultado é sempre
+    registrado, mesmo se a medição de depois for cancelada. Nesse caso o
+    resultado leva 0 bytes, e o total liberado fica subestimado.
+  - **B2:** no F23, uma raiz que é ou contém um set cujo `shutdown all` ou
+    `delete all` falhou não tem as sobras removidas. Apagar um set vivo
+    pelas costas do serviço é a causa (a) do "precisa reiniciar".
+  - **B3:** o reinício do CoreSimulatorService também roda depois de um
+    cancelamento, se o F24 já removeu algo, e não depende de
+    cancelamento.
+  - **B4:** um cancelamento engolido no último item da última categoria
+    termina o relatório como `cancelled`. Isso fecha a exceção aceita no
+    C15.
+  - **N1:** o cancelamento durante a listagem dos indisponíveis para o
+    passo. Uma falha comum da listagem só zera os bytes.
+  - **N3:** uma execução já cancelada nem pede para o Simulator fechar.
+  - **N2:** o teste do AC10 confere os caminhos completos entregues ao
+    remover e ao `simctl`.
+- **Decisões registradas:**
+  - (pendência do C14) a decodificação do JSON do `simctl` e a varredura
+    libproc do `restartService()` rodam no main actor, porque o executor
+    está nele e esses métodos herdam o ator de quem chama. O custo é
+    pequeno e fica aceito; marcar `@concurrent` só se a medição mostrar
+    impacto;
+  - (N7) pela verificação de cancelamento do `ProcessRunner` depois do fim
+    do processo (C13), um `erase all` ou `delete all` que termina no exato
+    momento do cancelamento aparece como não feito. O liberado pode ficar
+    subestimado; validar no C27.
+- **Pendência para o C27 (N8):** depois que as sobras do F23 removem o
+  `device_set.plist` de `XCTestDevices` e `XCPGDevices`, as pastas
+  continuam existindo e o F19 (`knownUDIDs` sobre `DeviceSet.all`) roda
+  `simctl --set` nelas. Os dois vêm ligados por padrão. Confirmar ao vivo
+  que o `simctl` aceita um set vazio; se não aceitar, o F19 falharia em
+  toda limpeza padrão.
+- **Pendências para o C19:**
+  - a tag `failed_categories` do Sentry (limite de 200 caracteres) vai
+    para `extra` quando o ViewModel transformar o relatório em
+    `ReportableFailure`;
+  - o `freed_bucket` do analytics passa a usar o `freedBytes` real do
+    relatório;
+  - o evento `cleaner` com `result = cancelled` sai do relatório
+    `cancelled`.

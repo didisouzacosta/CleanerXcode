@@ -217,7 +217,8 @@ ViewModels por tela.
     `CategorySizeMeasurer.measure(_:filters:...)`, e o `ItemSizeReader`
     mede um item (pasta, link ou arquivo) para o remover e a medição;
   - remoção (C12): `FileRemoving` e `FileSystemRemover` removem os filhos
-    diretos da raiz um a um, com `@concurrent` e `onResult` por item. A
+    diretos da raiz um a um, com `onResult` por item no ator de quem chama
+    e o trabalho de disco em helpers `@concurrent`. A
     `SafePathPolicy` é injetada no init e consultada antes de cada remoção.
     `FileOperating` (`FileManagerOperations`: `removeItem` e `trashItem`)
     isola as operações destrutivas, e os testes usam o
@@ -248,6 +249,12 @@ ViewModels por tela.
     R5 ficam em `Cleanup/CleanupRestrictions`, derivadas das flags
     `isBlockedWhileXcodeRuns`, `warnsWhileXcodeRuns` e `shutsDownSimulators`
     do catálogo;
+  - `Cleanup/Executor/` (C17): `CleanupPlan`, `CleanupEvent` e
+    `CleanupExecutor` (main actor; `execute(_:onEvent:) async ->
+    CleanupReport`; ordem fixa: fechar o Simulator e `shutdown all`,
+    passos `simctl`, remoções e reset, reinício do CoreSimulatorService só
+    depois de remoção direta no F24; cancelamento devolve relatório
+    `cancelled` com o que já foi liberado);
   - `Persistence/`: `Preferences` e `StoragedValue`;
   - `Helpers/`: `Constants` (URLs via `staticURL(_:)`, que falha alto se o
     literal for inválido), `StateValue` e as extensões. `String` conforma a
@@ -453,7 +460,8 @@ validação em dispositivo físico e de serviços externos.
     execuções passaram, sem avisos. No C11: 165 execuções passaram, sem
     avisos. No C12: 184 execuções passaram, sem avisos. No C13: 196 execuções
     passaram, sem avisos. No C14: 217 execuções passaram, sem avisos. No C15: 242 execuções
-    passaram, sem avisos. No C16: 256 execuções passaram, sem avisos;
+    passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
+    passaram, sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

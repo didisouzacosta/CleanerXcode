@@ -173,6 +173,7 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Simuladores e runtimes (C14) | `Sources/Core/Simulators/*.swift` (`SimctlSimulatorService`, `DuplicateSimulatorDetector`, `CoreSimulatorServiceRestarter`) |
 | Pasta temporária e órfãos de simuladores (C15) | `Sources/Core/FileSystem/{TemporaryItemsPolicy,TemporaryItemInspector,OrphanSimulatorTempFinder,TemporaryFilters,FilteredContentsMeasurer,ItemSizeReader}.swift` |
 | Reset do Xcode e apps abertos (C16) | `Sources/Core/Xcode/{XcodePreferencesResetting,RunningApplicationsProviding}.swift`, `Sources/Core/Cleanup/CleanupRestrictions.swift` |
+| Executor da limpeza (C17) | `Sources/Core/Cleanup/Executor/{CleanupPlan,CleanupExecutor}.swift` |
 | Erros e crashes | `Sources/Core/Integrations/{ErrorReporting,NullErrorReporter,SentryErrorReporter,ErrorReportingConfiguration,SentryEventSanitizer}.swift` |
 | Componentes visuais | `Sources/Features/Cleaner/Components/*.swift` |
 | Distribuição | `releases/CleanerXcode.dmg`, `RELEASE_NOTES.md`, `resources/version.json` |

@@ -402,7 +402,7 @@ struct FileSystemRemoverTests {
         of target: CleanupTarget,
         categoryID: CleanupCategoryID,
         mode: RemovalMode,
-        filter: @Sendable (URL) -> Bool
+        filter: @escaping @Sendable (URL) -> Bool
     ) async throws -> [CleanupItemResult] {
         let collector = CleanupResultCollector()
 

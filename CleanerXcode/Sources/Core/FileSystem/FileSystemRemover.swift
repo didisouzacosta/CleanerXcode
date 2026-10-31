@@ -10,7 +10,7 @@ import Foundation
 /// Removes the contents of a cleanup target natively. Every child goes through the
 /// `SafePathPolicy` right before it is removed, and each one produces its own result, so a single
 /// failure never hides behind a success (R6) and cancellation stops between items (R7). The work
-/// runs in the caller's task, off its actor, so a cancelled caller still gets every result.
+/// runs in the caller's task, so a cancelled caller still gets every result.
 nonisolated struct FileSystemRemover: FileRemoving {
 
     // MARK: - Private Properties
@@ -51,32 +51,33 @@ nonisolated struct FileSystemRemover: FileRemoving {
 
     // MARK: - Public Methods
 
-    @concurrent
+    /// The loop runs in the caller's task and on its actor, so `onResult` needs no locking; listing
+    /// and every item's work run off the actor in `@concurrent` helpers.
     func removeContents(
         of target: CleanupTarget,
         categoryID: CleanupCategoryID,
         mode: RemovalMode,
-        filter: @Sendable (URL) -> Bool,
-        onResult: @Sendable (CleanupItemResult) -> Void
+        filter: @escaping @Sendable (URL) -> Bool,
+        onResult: (CleanupItemResult) -> Void
     ) async throws {
         try Task.checkCancellation()
 
         let children: [URL]
 
-        do {
-            try policy.validateRoot(target)
-            children = try Self.children(of: target)
-        } catch {
-            let cleanupError = CleanupError(error)
+        switch await list(target) {
+        case let .success(listed):
+            children = listed
 
+        case .failure(.notFound):
             // A missing root has nothing to remove.
-            guard cleanupError != .notFound else { return }
+            return
 
+        case let .failure(error):
             onResult(result(
                 for: Self.withoutTrailingSlash(target.root),
                 categoryID: categoryID,
                 bytes: 0,
-                outcome: .failed(cleanupError)
+                outcome: .failed(error)
             ))
             return
         }
@@ -85,13 +86,40 @@ nonisolated struct FileSystemRemover: FileRemoving {
             // Before the filter, which may read the disk (the temporary folder filters do).
             try Task.checkCancellation()
 
-            guard filter(child) else { continue }
+            guard let result = try await process(child, in: target, categoryID: categoryID, mode: mode, filter: filter)
+            else {
+                continue
+            }
 
-            try await onResult(remove(child, in: target, categoryID: categoryID, mode: mode))
+            onResult(result)
         }
     }
 
     // MARK: - Private Methods
+
+    @concurrent
+    private func list(_ target: CleanupTarget) async -> Result<[URL], CleanupError> {
+        do {
+            try policy.validateRoot(target)
+            return try .success(Self.children(of: target))
+        } catch {
+            return .failure(CleanupError(error))
+        }
+    }
+
+    /// `nil` when the filter leaves the child alone.
+    @concurrent
+    private func process(
+        _ child: URL,
+        in target: CleanupTarget,
+        categoryID: CleanupCategoryID,
+        mode: RemovalMode,
+        filter: @Sendable (URL) -> Bool
+    ) async throws -> CleanupItemResult? {
+        guard filter(child) else { return nil }
+
+        return try await remove(child, in: target, categoryID: categoryID, mode: mode)
+    }
 
     private func remove(
         _ child: URL,
