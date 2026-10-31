@@ -1467,3 +1467,70 @@ Nenhuma categoria nova é proposta:
 - **Pendência para a interface (C20 e C22):** o aviso fixo "Feche apps de
   IA e terminais antes. Itens com menos de N dias são preservados." e a
   escolha de 1, 3, 7 ou 14 dias.
+
+## Adendo da implementação do C16 (2026-10-31)
+
+- **`Core/Xcode`:**
+  - `UserDefaultsPreferencesResetter` (`XcodePreferencesResetting`): usa
+    `UserDefaults.standard.removePersistentDomain(forName:)`, no lugar de
+    `defaults delete`, e lança `.unknown(domain: "XcodePreferences",
+    code: 1)` se sobrar valor. Os testes só resetam domínios criados por
+    eles e conferem que um domínio vizinho fica intacto; o domínio real
+    `com.apple.dt.Xcode` nunca é tocado. A validação ao vivo fica para o C27.
+  - `WorkspaceRunningApplications` (`RunningApplicationsProviding`, no
+    main actor): detecta o Xcode e o Simulator por bundle ID através de
+    `TerminatableApplication`, que o `NSRunningApplication` adota.
+    `terminateSimulator()` pede para fechar todos os Simulators ainda
+    abertos e consulta `isTerminated` até o prazo (5 s, a cada 100 ms).
+    - O resultado de `terminate()` é ignorado, porque ele também é `false`
+      para uma instância que acabou de fechar (B2 da revisão). Só o
+      `isTerminated` decide, e uma recusa real aparece como prazo vencido.
+    - A consulta periódica foi escolhida pela simplicidade em vez da
+      notificação `didTerminateApplication`: cada suspensão do main actor
+      deixa o run loop atualizar o `isTerminated`.
+    - O retorno é `false` se algum não fechou a tempo ou se a espera foi
+      cancelada. O Xcode nunca recebe pedido para fechar, e os testes usam
+      apps falsos.
+- **Catálogo (R4/R5):**
+  - **Diverge da seção 5.5:** duas flags declarativas novas em
+    `CleanupCategory`. `warnsWhileXcodeRuns` vale só para DerivedData e
+    fecha a pendência do C09. `shutsDownSimulators` vale para
+    `clear-simulator-data`, `remove-old-simulators`,
+    `clear-auxiliary-device-sets` e `clear-simulator-caches`;
+  - o R5 lista F8, F21, F22, F23 e F24. O F9 (`delete unavailable`) entrou
+    porque o R10 manda desligar os simuladores antes de qualquer operação
+    com eles; F21 e F22 ficam na seção Simuladores (C21).
+- **`CleanupRestrictions`** (pura): com o Xcode aberto, o reset e o
+  UserData ficam bloqueados e o DerivedData mostra aviso. Com simuladores
+  ativos (o Simulator.app aberto ou um simulador ligado, calculado pelo
+  ViewModel), as categorias com `shutsDownSimulators` avisam que eles
+  serão fechados. Uma categoria bloqueada não recebe aviso.
+- **UserData e Provisioning Profiles para a Lixeira:** já vinham do
+  catálogo (C09, `removeContents(.trash)`) e do remover (C12). O teste de
+  tabela do catálogo garante o modo.
+- **Testes do reset** (B1 da revisão): os primeiros testes usavam domínios
+  com UUID e deixavam um plist vazio de 42 bytes por domínio em
+  `~/Library/Preferences` a cada execução, porque o cfprefsd mantém o
+  arquivo depois do `removePersistentDomain`.
+  - Agora os nomes são fixos e diferentes por teste, e o `defer` remove o
+    domínio, sincroniza com `CFPreferencesAppSynchronize` e apaga o plist.
+  - O cfprefsd às vezes recria o plist vazio de forma assíncrona depois
+    disso (em 1 de 3 execuções seguidas). Nada se acumula: sobram no máximo
+    os mesmos 3 arquivos de nome fixo, reaproveitados a cada execução.
+  - Os 18 plists que as primeiras execuções desta tarefa deixaram foram
+    removidos.
+- **Pendência para o C27:** o reset real do Xcode também deixa um
+  `com.apple.dt.Xcode.plist` vazio, o que é inofensivo e equivale ao reset.
+- **Pendências para o C17 e o C19:**
+  - a confirmação de planos com risco de perigo ou atenção (primeira parte
+    do AC5) e a exibição das restrições ficam no `CleanerViewModel`;
+  - o bloqueio do R5 é um retrato tirado pelo ViewModel. O executor
+    confere `isXcodeRunning` de novo logo antes de
+    `reset-xcode-preferences` e `remove-xcode-user-data` e falha com
+    `.blockedByRunningApp(.xcode)`;
+  - `terminateSimulator()` devolve `false` tanto no prazo vencido quanto no
+    cancelamento. O executor confere `Task.isCancelled` e reporta
+    `.cancelled`, não uma falha ao fechar o Simulator;
+  - o executor monta o resetter a partir do `domain` da operação
+    `.resetPreferences(domain:)` do catálogo, que fica a única fonte do
+    domínio.

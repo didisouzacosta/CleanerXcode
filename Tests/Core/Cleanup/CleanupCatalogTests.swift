@@ -74,6 +74,15 @@ struct CleanupCatalogTests {
     }
 
     @Test
+    func onlyDerivedDataWarnsWhileXcodeRunsAndOnlySimulatorWorkClosesSimulators() {
+        let warns = catalog.categories.filter(\.warnsWhileXcodeRuns).map(\.id)
+        let closes = catalog.categories.filter(\.shutsDownSimulators).map(\.id)
+
+        #expect(warns == [.removeDerivedData])
+        #expect(closes == [.clearSimulatorData, .removeOldSimulators, .clearAuxiliaryDeviceSets, .clearSimulatorCaches])
+    }
+
+    @Test
     func onlyXcodeOwnedSettingsAreBlockedWhileXcodeRuns() {
         let blocked = catalog.categories.filter(\.isBlockedWhileXcodeRuns).map(\.id)
 

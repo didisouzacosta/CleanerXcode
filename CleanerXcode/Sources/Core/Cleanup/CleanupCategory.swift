@@ -17,6 +17,8 @@ nonisolated struct CleanupCategory: Identifiable, Sendable, Hashable {
     let isEnabledByDefault: Bool
     let isBlockedWhileXcodeRuns: Bool
     let restartsSimulatorService: Bool
+    let warnsWhileXcodeRuns: Bool
+    let shutsDownSimulators: Bool
 
     // MARK: - Initializers
 
@@ -27,7 +29,9 @@ nonisolated struct CleanupCategory: Identifiable, Sendable, Hashable {
         risk: RiskLevel,
         isEnabledByDefault: Bool,
         isBlockedWhileXcodeRuns: Bool = false,
-        restartsSimulatorService: Bool = false
+        restartsSimulatorService: Bool = false,
+        warnsWhileXcodeRuns: Bool = false,
+        shutsDownSimulators: Bool = false
     ) {
         self.id = id
         self.targets = targets
@@ -36,6 +40,8 @@ nonisolated struct CleanupCategory: Identifiable, Sendable, Hashable {
         self.isEnabledByDefault = isEnabledByDefault
         self.isBlockedWhileXcodeRuns = isBlockedWhileXcodeRuns
         self.restartsSimulatorService = restartsSimulatorService
+        self.warnsWhileXcodeRuns = warnsWhileXcodeRuns
+        self.shutsDownSimulators = shutsDownSimulators
     }
 
 }

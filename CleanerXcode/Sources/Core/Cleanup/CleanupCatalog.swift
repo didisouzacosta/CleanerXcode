@@ -39,7 +39,8 @@ nonisolated struct CleanupCatalog: Sendable {
                 targets: [paths.target(paths.xcode, "DerivedData")],
                 operation: .removeContents(.delete),
                 risk: .safe,
-                isEnabledByDefault: true
+                isEnabledByDefault: true,
+                warnsWhileXcodeRuns: true
             ),
             CleanupCategory(
                 id: .removeCaches,
@@ -81,14 +82,16 @@ nonisolated struct CleanupCatalog: Sendable {
                 targets: [paths.target(paths.coreSimulator, "Devices")],
                 operation: .eraseAllSimulators,
                 risk: .attention,
-                isEnabledByDefault: false
+                isEnabledByDefault: false,
+                shutsDownSimulators: true
             ),
             CleanupCategory(
                 id: .removeOldSimulators,
                 targets: [],
                 operation: .deleteUnavailableSimulators,
                 risk: .safe,
-                isEnabledByDefault: false
+                isEnabledByDefault: false,
+                shutsDownSimulators: true
             ),
             CleanupCategory(
                 id: .resetXcodePreferences,
@@ -108,7 +111,8 @@ nonisolated struct CleanupCatalog: Sendable {
                 ],
                 operation: .clearDeviceSets,
                 risk: .safe,
-                isEnabledByDefault: true
+                isEnabledByDefault: true,
+                shutsDownSimulators: true
             ),
             CleanupCategory(
                 id: .clearSimulatorCaches,
@@ -120,7 +124,8 @@ nonisolated struct CleanupCatalog: Sendable {
                 operation: .removeContents(.delete),
                 risk: .safe,
                 isEnabledByDefault: true,
-                restartsSimulatorService: true
+                restartsSimulatorService: true,
+                shutsDownSimulators: true
             ),
         ]
     }

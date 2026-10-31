@@ -241,6 +241,13 @@ ViewModels por tela.
     recente) e `CoreSimulatorServiceRestarter` (libproc + `SIGTERM`). Os
     testes usam `ProcessRunnerSpy` e `ServiceRestarterSpy` e nunca rodam o
     `simctl` nem sinalizam o serviço real;
+  - `Xcode/` (C16): `UserDefaultsPreferencesResetter` (reset do domínio
+    `com.apple.dt.Xcode` por `removePersistentDomain`; testes usam domínios
+    próprios) e `WorkspaceRunningApplications` (Xcode e Simulator por
+    bundle ID; `terminateSimulator()` nunca fecha o Xcode). As restrições do
+    R5 ficam em `Cleanup/CleanupRestrictions`, derivadas das flags
+    `isBlockedWhileXcodeRuns`, `warnsWhileXcodeRuns` e `shutsDownSimulators`
+    do catálogo;
   - `Persistence/`: `Preferences` e `StoragedValue`;
   - `Helpers/`: `Constants` (URLs via `staticURL(_:)`, que falha alto se o
     literal for inválido), `StateValue` e as extensões. `String` conforma a
@@ -446,7 +453,7 @@ validação em dispositivo físico e de serviços externos.
     execuções passaram, sem avisos. No C11: 165 execuções passaram, sem
     avisos. No C12: 184 execuções passaram, sem avisos. No C13: 196 execuções
     passaram, sem avisos. No C14: 217 execuções passaram, sem avisos. No C15: 242 execuções
-    passaram, sem avisos;
+    passaram, sem avisos. No C16: 256 execuções passaram, sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código
