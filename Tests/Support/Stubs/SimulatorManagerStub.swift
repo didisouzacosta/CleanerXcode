@@ -15,6 +15,7 @@ nonisolated struct SimulatorManagerStub: SimulatorManaging {
 
     var devices: [DeviceSet: [String]] = [:]
     var failingSets: [DeviceSet: CleanupError] = [:]
+    var bootedUDIDs: Set<String> = []
 
     // MARK: - Public Methods
 
@@ -29,7 +30,7 @@ nonisolated struct SimulatorManagerStub: SimulatorManaging {
                 name: udid,
                 deviceTypeIdentifier: "type",
                 runtimeIdentifier: "runtime",
-                state: .shutdown,
+                state: bootedUDIDs.contains(udid) ? .booted : .shutdown,
                 isAvailable: true,
                 lastUsedAt: nil,
                 sizeBytes: 0

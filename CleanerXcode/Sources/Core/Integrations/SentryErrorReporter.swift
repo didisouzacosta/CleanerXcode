@@ -58,7 +58,8 @@ final class SentryErrorReporter: ErrorReporting {
     nonisolated private static func scopeConfiguration(
         level: SentryLevel,
         tags: [String: String],
-        counts: [String: Int]
+        counts: [String: Int],
+        extras: [String: String]
     ) -> (Scope) -> Void {
         { scope in
             scope.setLevel(level)
@@ -66,6 +67,10 @@ final class SentryErrorReporter: ErrorReporting {
 
             for (key, count) in counts {
                 scope.setExtra(value: count, key: key)
+            }
+
+            for (key, value) in extras {
+                scope.setExtra(value: value, key: key)
             }
         }
     }
@@ -80,7 +85,8 @@ final class SentryErrorReporter: ErrorReporting {
         let configureScope = Self.scopeConfiguration(
             level: Self.sentryLevel(for: failure.level),
             tags: failure.tags,
-            counts: failure.counts
+            counts: failure.counts,
+            extras: failure.extras
         )
 
         SentrySDK.capture(message: failure.message, block: configureScope)

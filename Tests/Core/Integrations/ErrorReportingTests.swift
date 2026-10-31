@@ -24,9 +24,9 @@ struct ErrorReportingTests {
         #expect(failure.level == .warning)
         #expect(failure.tags == [
             "result": "partial_failure",
-            "failed_categories": "remove-caches",
             "error_kinds": "other, permission",
         ])
+        #expect(failure.extras == ["failed_categories": "remove-caches"])
         #expect(failure.counts == ["failed_count": 1, "total_count": 3])
     }
 
@@ -40,7 +40,8 @@ struct ErrorReportingTests {
 
         #expect(failure.message == "cleanup_partial_failure")
         #expect(failure.tags["result"] == "failure")
-        #expect(failure.tags["failed_categories"] == "remove-archives, remove-caches")
+        #expect(failure.extras["failed_categories"] == "remove-archives, remove-caches")
+        #expect(failure.tags["failed_categories"] == nil, "Tags are limited to 200 characters; 15 IDs do not fit.")
         #expect(failure.counts == ["failed_count": 2, "total_count": 2])
     }
 

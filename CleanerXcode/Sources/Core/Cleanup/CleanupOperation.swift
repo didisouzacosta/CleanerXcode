@@ -23,4 +23,15 @@ nonisolated enum CleanupOperation: Sendable, Hashable {
     case clearDeviceSets
     /// Removes a whole preferences domain.
     case resetPreferences(domain: String)
+
+    // MARK: - Public Properties
+
+    /// Without `xcrun`/`simctl` these cannot run (R12); the orphan folders need the simulators'
+    /// list to tell an orphan apart.
+    var needsSimulatorTools: Bool {
+        switch self {
+        case .eraseAllSimulators, .deleteUnavailableSimulators, .clearDeviceSets, .removeOrphanSimulatorTemp: true
+        default: false
+        }
+    }
 }

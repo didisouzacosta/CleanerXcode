@@ -255,6 +255,17 @@ ViewModels por tela.
     passos `simctl`, remoções e reset, reinício do CoreSimulatorService só
     depois de remoção direta no F24; cancelamento devolve relatório
     `cancelled` com o que já foi liberado);
+  - `Features/Cleaner/` (C19): `CleanerPhase`, `CleanupProgress`,
+    `CategoryRowState` (com o planejamento puro das linhas),
+    `SimulatorSnapshot`/`SimulatorSnapshotReader`, `CleanerViewModel`
+    (`@Observable`; mede sob demanda com debounce de 2 s e cache de 60 s
+    na ativação, nunca durante a limpeza; confirma planos de atenção ou
+    perigo e os que fechariam simuladores ou têm o Xcode aberto;
+    reconfere Xcode e Simulator; relatório até
+    dispensar; `retryFailed()` só nas categorias que falharam) e
+    `CleanupOutcomeReporter` (analytics e um único erro agregado; a tag
+    `failed_categories` vai para `extra` do Sentry). Ainda não está ligado
+    à interface, o que fica para o C20;
   - `Persistence/`: `Preferences` e `StoragedValue` (0.7, ainda ligados à
     interface) e, desde o C18, `PreferencesStoring`,
     `UserDefaultsPreferencesStore` (formato legado `Data` com JSON de
@@ -467,7 +478,8 @@ validação em dispositivo físico e de serviços externos.
     avisos. No C12: 184 execuções passaram, sem avisos. No C13: 196 execuções
     passaram, sem avisos. No C14: 217 execuções passaram, sem avisos. No C15: 242 execuções
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
-    passaram, sem avisos. No C18: 295 execuções passaram, sem avisos;
+    passaram, sem avisos. No C18: 295 execuções passaram, sem avisos. No C19: 325 execuções
+    passaram, sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

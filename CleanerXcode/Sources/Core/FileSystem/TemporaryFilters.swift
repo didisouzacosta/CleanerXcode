@@ -48,4 +48,26 @@ nonisolated enum TemporaryFilters {
         }
     }
 
+    /// The filters for measuring both temporary categories; the orphan folders need the full
+    /// list of simulators, without which they are not measured at all.
+    static func forMeasurement(
+        policy: TemporaryItemsPolicy,
+        knownUDIDs: Set<String>?,
+        now: Date
+    ) -> [CleanupCategoryID: @Sendable (URL) -> Bool] {
+        var filters: [CleanupCategoryID: @Sendable (URL) -> Bool] = [
+            .clearTemporaryFiles: temporaryFiles(policy: policy, now: now),
+        ]
+
+        if let knownUDIDs {
+            filters[.clearOrphanSimulatorTemp] = orphanSimulatorTemp(
+                finder: OrphanSimulatorTempFinder(knownUDIDs: knownUDIDs),
+                policy: policy,
+                now: now
+            )
+        }
+
+        return filters
+    }
+
 }

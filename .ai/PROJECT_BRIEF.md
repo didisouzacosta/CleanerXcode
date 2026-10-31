@@ -175,6 +175,7 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Reset do Xcode e apps abertos (C16) | `Sources/Core/Xcode/{XcodePreferencesResetting,RunningApplicationsProviding}.swift`, `Sources/Core/Cleanup/CleanupRestrictions.swift` |
 | Executor da limpeza (C17) | `Sources/Core/Cleanup/Executor/{CleanupPlan,CleanupExecutor}.swift` |
 | Migração de preferências e abrir no login (C18) | `Sources/Core/Persistence/{PreferencesStoring,UserDefaultsPreferencesStore,PreferencesMigrator}.swift`, `Sources/Core/Platform/LoginItemManaging.swift` |
+| ViewModel da limpeza (C19) | `Sources/Features/Cleaner/{CleanerPhase,CleanupProgress,CategoryRowState,SimulatorSnapshot,CleanerViewModel,CleanupOutcomeReporter}.swift`, `Sources/Core/Cleanup/Executor/CleanupExecuting.swift` |
 | Erros e crashes | `Sources/Core/Integrations/{ErrorReporting,NullErrorReporter,SentryErrorReporter,ErrorReportingConfiguration,SentryEventSanitizer}.swift` |
 | Componentes visuais | `Sources/Features/Cleaner/Components/*.swift` |
 | Distribuição | `releases/CleanerXcode.dmg`, `RELEASE_NOTES.md`, `resources/version.json` |

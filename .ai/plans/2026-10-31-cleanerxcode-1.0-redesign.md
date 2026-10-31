@@ -1694,3 +1694,120 @@ Nenhuma categoria nova é proposta:
     preferências) e trocar `Preferences`/`StoragedValue` e o pacote
     LaunchAtLogin pelos tipos novos. A remoção do pacote fica no C24 (D4);
   - C27: validar o registro real em `/Applications` (AC15-live).
+
+## Adendo da implementação do C19 (2026-10-31)
+
+- **`Features/Cleaner`:**
+  - `CleanerPhase` (fases da 2.4), `CleanupProgress` e `CategoryRowState`
+    (`measuring`, `measured`, `empty`, `unavailable(.toolsUnavailable |
+    .xcodeIsRunning)` e `failed`).
+  - `CleanerViewModel` (`@Observable`, main actor) depende só de
+    protocolos: `CleanupExecuting` (que o `CleanupExecutor` adota),
+    `SimulatorManaging`, `PreferencesStoring`,
+    `RunningApplicationsProviding`, `Analytics` e `ErrorReporting`.
+  - `CleanupOutcomeReporter` reúne breadcrumbs, os eventos `cleaner` e
+    `cleaner_partial_failure` e o único `ReportableFailure` agregado.
+- **Medição (R1):**
+  - `refresh()` cancela a medição anterior e usa uma geração, para que uma
+    medição velha não sobrescreva o estado;
+  - `windowDidActivate()` agrupa rajadas com debounce de 2 s e reaproveita
+    uma medição de menos de 60 s;
+  - o app mede de novo depois de cada limpeza, e não há polling;
+  - antes de medir, lista os simuladores do set padrão (simuladores
+    ativos e bytes dos indisponíveis) e os UDIDs de `DeviceSet.all(in:)`.
+    Sem as ferramentas, as categorias com
+    `CleanupOperation.needsSimulatorTools` (F8, F9, F23 e F19) ficam
+    `unavailable(.toolsUnavailable)` e as outras funcionam (R12). Sem a
+    lista de UDIDs, o F19 também fica indisponível;
+  - as duas categorias temporárias são medidas com os filtros do C15.
+- **Total e botão (R2):**
+  - `totalBytes` soma as categorias selecionadas e disponíveis já medidas;
+  - `canClean` só vale em `.ready`;
+  - **diverge do R2:** um reset de preferências selecionado sozinho (0
+    bytes) ainda permite limpar, porque ele não libera espaço mas é uma
+    ação;
+  - o texto "Limpar <tamanho>" e o rótulo "estimado" ficam na view (C20).
+- **Confirmação e restrições (R5):**
+  - `requestClean()` reconfere o Xcode, e as categorias bloqueadas saem
+    do plano e viram indisponíveis;
+  - um plano com risco de atenção ou perigo vai para `.confirming(plan)`
+    e roda em `confirm()`;
+  - `cancel()` na confirmação volta ao estado ocioso;
+  - os avisos ficam em `restrictions.warnings`.
+- **Execução e relatório (R6/R7):**
+  - `cancel()` durante a limpeza vai para `.cancelling` e cancela o
+    `Task` da execução, e o executor devolve o relatório `cancelled`
+    (C17);
+  - o relatório fica em `.finished` até `dismissReport()`, sem timers;
+  - uma falha de permissão (sem cancelamento) leva a
+    `.permissionDenied(report)` (R13);
+  - `retryFailed()` roda só as categorias que falharam, sem nova
+    confirmação.
+- **Pendências anteriores fechadas:**
+  - o `freed_bucket` usa o `freedBytes` real do relatório;
+  - o evento `cleaner` sai com `result = cancelled`;
+  - a tag `failed_categories` foi para `extras` do `ReportableFailure`
+    (o Sentry grava em `setExtra`), por causa do limite de 200 caracteres
+    das tags.
+- **Correções da revisão:**
+  - **B1:** `windowDidActivate()` não faz nada durante uma medição nem com
+    a fase em confirmação, limpeza ou cancelamento (a tarefa da ativação
+    confere de novo depois do debounce). `run()` cancela a ativação e a
+    medição pendentes antes de executar, e a medição pós-limpeza atualiza
+    tudo.
+  - **B2:** `requestClean()` relê o Simulator.app (e os simuladores
+    ligados da última listagem) junto com o Xcode e pede confirmação
+    quando alguma categoria do plano tem aviso de app aberto, além de
+    atenção ou perigo (F31, fluxo 2.3).
+  - **B3:** se o Xcode fechou desde a medição, as categorias que ele
+    bloqueava voltam por uma nova medição antes de montar o plano.
+  - **B4 (amplia o R12):** sem as ferramentas, as categorias
+    `shutsDownSimulators` também ficam indisponíveis, porque o F24 não
+    pode rodar sem o `shutdown all` (R10).
+  - **B5:** testes novos cobrem a medição substituída (a geração é tirada
+    em `refresh()`, antes da nova tarefa, para que a antiga nunca encerre
+    o estado da nova; a ordem em que a tarefa antiga retoma não é
+    reproduzível em teste, então a garantia vem da construção), a
+    re-medição (`measuring(first: false)`), a falha comum da listagem no
+    F9, a falha de um set auxiliar só no F19, simulador ligado como ativo
+    e o relatório de falha total.
+- **Re-revisão:**
+  - **B1 residual:** a tarefa da ativação confere de novo, depois do
+    debounce, que nenhuma medição começou e que o cache venceu. Assim a
+    medição do lançamento não é jogada fora pela ativação simultânea, e
+    uma medição que terminou durante a pausa é reaproveitada.
+  - **N10:** sem a lista de simuladores (falha comum da listagem ou de um
+    set auxiliar), o F19 fica `unavailable(.simulatorListUnavailable)`, e
+    não `toolsUnavailable`.
+  - **N11:** `refresh()` também não roda com a fase em confirmação,
+    limpeza ou cancelamento.
+  - **N13 (pendência para o C20):** `isMeasuring` só vira `true` quando a
+    tarefa de medição começa a rodar. Uma ativação que acorde exatamente
+    nesse intervalo do main actor ainda poderia medir de novo; marcar
+    `isMeasuring = true` dentro de `refresh()` fecha a janela.
+  - **N12 (aceita):** `retryFailed()` não pede nova confirmação, mesmo que
+    surja um aviso de simulador depois da primeira execução, porque tentar
+    de novo é uma ação explícita do usuário.
+- **NITs aplicadas e registradas:**
+  - `trashBoundCategoryIDs` expõe as categorias que vão para a Lixeira,
+    para o aviso fixo e a confirmação (N1);
+  - o progresso separa bytes liberados e movidos para a Lixeira (N2);
+  - o set padrão é listado uma vez, e seus UDIDs são reaproveitados (N3,
+    `SimulatorSnapshotReader`);
+  - `measurementCount` e `isMeasuring` não são observados (N4);
+  - `CategoryRowState` e `CleanupProgress` ganharam arquivos próprios
+    (N5);
+  - a exceção do reset no R2 precisa do aval do dono, e o C20 decide o
+    texto do botão para 0 B (N6);
+  - o teste de debounce ainda espera 100 ms reais; trocar por um `Clock`
+    injetável fica como melhoria (N7);
+  - `retryFailed()` reconfere o Xcode (N8);
+  - se o C20 chamar `refresh()`/`windowDidActivate()` a partir de
+    `.task`, o cancelamento dela não chega às tarefas internas; avaliar
+    `withTaskCancellationHandler` lá (N9).
+- **Pendências para o C20:**
+  - ligar o ViewModel e a `PreferencesMigrator` no `AppContainer` (antes
+    de ler as seleções);
+  - trocar o `CleanerStore`/`Preferences` antigos;
+  - chamar `windowDidActivate()` na ativação da janela;
+  - mostrar os avisos e a ação para os Ajustes no `permissionDenied`.

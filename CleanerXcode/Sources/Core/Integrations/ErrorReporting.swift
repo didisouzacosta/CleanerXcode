@@ -43,9 +43,16 @@ enum ReportableFailure: Equatable {
 
             return [
                 "result": result.rawValue,
-                "failed_categories": failedCategories.joined(separator: ", "),
                 "error_kinds": Set(errorKinds.map(\.rawValue)).sorted().joined(separator: ", "),
             ]
+        }
+    }
+
+    /// Sentry tags are limited to 200 characters, which 15 category IDs exceed.
+    var extras: [String: String] {
+        switch self {
+        case let .cleanupFailed(failedCategories, _, _):
+            ["failed_categories": failedCategories.joined(separator: ", ")]
         }
     }
 
