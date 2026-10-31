@@ -1,0 +1,86 @@
+# Shared SwiftLint baseline (SwiftLint 0.63.2).
+# Layout is owned by SwiftFormat (.swiftformat). SwiftLint keeps conventions, safety,
+# complexity and the readability rules SwiftFormat cannot express. The spacing rules
+# below are fixed automatically by `scripts/lint-swift.sh --fix`.
+
+disabled_rules:
+  # Layout owned by SwiftFormat.
+  - colon
+  - comma
+  - leading_whitespace
+  - opening_brace
+  - return_arrow_whitespace
+  - statement_position
+  - trailing_comma
+  - trailing_whitespace
+  - vertical_whitespace
+
+opt_in_rules:
+  - async_without_await
+  - blanket_disable_command
+  - force_try
+  - force_unwrapping
+  - let_var_whitespace
+  - modifier_order
+  - type_contents_order
+  - unowned_variable_capture
+
+file_length:
+  warning: 500
+  error: 700
+line_length:
+  warning: 120
+  error: 160
+  ignores_urls: true
+  ignores_interpolated_strings: true
+  # Long user-facing string literals cannot be wrapped by the formatter.
+  excluded_lines_patterns:
+    - '^\s*"[^"]*",?\s*$'
+# Wrapping before the first argument and the required blank lines make bodies taller
+# than with a dense layout; 60 lines keeps the limit meaningful without rewarding compression.
+function_body_length:
+  warning: 60
+  error: 100
+nesting:
+  type_level: 2
+type_body_length:
+  warning: 350
+  error: 500
+
+# type_contents_order cannot tell `let` from `var`; the let/var grouping is enforced
+# by let_var_whitespace (members) and let_var_group_separation (every scope).
+type_contents_order:
+  order:
+    - [case]
+    - [type_alias, associated_type]
+    - [type_property]
+    - [instance_property, initializer]
+    - [view_life_cycle_method]
+    - [type_method]
+    - [ib_action, ib_segue_action]
+    - [other_method]
+    - [subtype]
+    - [subscript]
+    - [deinitializer]
+
+custom_rules:
+  required_type_mark:
+    name: "Required type MARK"
+    regex: '(?m)^([ \t]*)(?:@[\w.]+(?:\([^()\n]*\))?[ \t]+)*(?:(?:public|private|fileprivate|internal|open|final|indirect|package|nonisolated)[ \t]+)*(?:class|struct|enum|actor|extension)[ \t]+(?!func\b|var\b|let\b|subscript\b)[A-Za-z_][^{}]*\{[ \t]*\n(?![ \t]*\n[ \t]*// MARK: - [^\n]+\n)(?=(?:\1[ \t]+\S[^\n]*\n|[ \t]*\n){10})'
+    message: "Types and extensions with 10+ body lines must open with a blank line and `// MARK: - <responsibility>`."
+    severity: error
+  blank_line_before_block:
+    name: "Blank line before block"
+    regex: '(?m)^([ \t]+)(?!//|case\b|default\b|@|#)[^\n]*[^\n{(\[,:\s](?<!\bin)\n\1(?:if|guard|for|while|switch|do|repeat|defer)\b'
+    message: "Separate control-flow blocks from the previous statement with a blank line (scripts/lint-swift.sh --fix)."
+    severity: error
+  blank_line_after_block:
+    name: "Blank line after block"
+    regex: '(?m)^([ \t]+)\}[ \t]*\n\1(?![ \t]|\}|\)|\]|\.|else\b|catch\b|case\b|default\b|#|//)\S'
+    message: "Separate the statement after a closing brace with a blank line (scripts/lint-swift.sh --fix)."
+    severity: error
+  let_var_group_separation:
+    name: "let/var group separation"
+    regex: '(?m)^([ \t]*)(?:@[\w.]+(?:\([^()\n]*\))?[ \t]+)*(?:(?:private|fileprivate|internal|public|package|open|static|class|nonisolated|lazy|weak|unowned|final|override)(?:\([a-z]+\))?[ \t]+)*(?:let[ \t][^\n]*\n\1(?:@[\w.]+(?:\([^()\n]*\))?[ \t]+)*(?:(?:private|fileprivate|internal|public|package|open|static|class|nonisolated|lazy|weak|unowned|final|override)(?:\([a-z]+\))?[ \t]+)*var[ \t]|var[ \t][^\n]*\n\1(?:@[\w.]+(?:\([^()\n]*\))?[ \t]+)*(?:(?:private|fileprivate|internal|public|package|open|static|class|nonisolated|lazy|weak|unowned|final|override)(?:\([a-z]+\))?[ \t]+)*let[ \t])'
+    message: "Keep `let` and `var` declarations in separate groups divided by a blank line (scripts/lint-swift.sh --fix)."
+    severity: error

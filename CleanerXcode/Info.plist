@@ -2,8 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>MIXPANEL_TOKEN</key>
-	<string>$(MIXPANEL_TOKEN)</string>
+	<key>HIMETRICA_API_KEY</key>
+	<string>$(HIMETRICA_API_KEY)</string>
+	<key>SENTRY_DSN</key>
+	<string>$(SENTRY_DSN)</string>
 	<key>VERSION_FILE_URL</key>
 	<string>$(VERSION_FILE_URL)</string>
 </dict>

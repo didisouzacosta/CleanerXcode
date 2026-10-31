@@ -8,11 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		A90EBEE42DA0443D00A608BB /* Timeout in Frameworks */ = {isa = PBXBuildFile; productRef = A90EBEE32DA0443D00A608BB /* Timeout */; };
+		C07A0001C07A0001C07A0001 /* Himetrica in Frameworks */ = {isa = PBXBuildFile; productRef = C07A0002C07A0002C07A0002 /* Himetrica */; };
+		C08A0001C08A0001C08A0001 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = C08A0002C08A0002C08A0002 /* Sentry */; };
 		A94471EA2D9305470079ED9B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A94471E82D9305470079ED9B /* README.md */; };
 		A94471EB2D9305470079ED9B /* RELEASE_NOTES.md in Resources */ = {isa = PBXBuildFile; fileRef = A94471E92D9305470079ED9B /* RELEASE_NOTES.md */; };
-		A9C4E01C2DA3FA2E00F8224A /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A9C4E01B2DA3FA2E00F8224A /* FirebaseAnalytics */; };
-		A9C4E01E2DA3FA2E00F8224A /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A9C4E01D2DA3FA2E00F8224A /* FirebaseCore */; };
-		A9C4E0202DA3FA2E00F8224A /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A9C4E01F2DA3FA2E00F8224A /* FirebaseCrashlytics */; };
 		A9D297D22D95A32C00C8B54A /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = A9D297D12D95A32C00C8B54A /* LaunchAtLogin */; };
 		A9F95FF92D95938800B10A82 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = A9F95FF82D95938800B10A82 /* LaunchAtLogin */; };
 /* End PBXBuildFile section */
@@ -39,7 +38,10 @@
 		A9D1A08C2D9740140039F8AA /* Exceptions for "CleanerXcode" folder in "CleanerXcode" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Config.xcconfig,
 				Info.plist,
+				Secrets.example.xcconfig,
+				Secrets.xcconfig,
 			);
 			target = A9D98E0C2D8FCBEF000448A2 /* CleanerXcode */;
 		};
@@ -61,7 +63,7 @@
 		};
 		A9D98E212D8FCBF0000448A2 /* CleanerXcodeTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CleanerXcodeTests;
+			path = Tests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -72,10 +74,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A9D297D22D95A32C00C8B54A /* LaunchAtLogin in Frameworks */,
-				A9C4E01E2DA3FA2E00F8224A /* FirebaseCore in Frameworks */,
 				A90EBEE42DA0443D00A608BB /* Timeout in Frameworks */,
-				A9C4E0202DA3FA2E00F8224A /* FirebaseCrashlytics in Frameworks */,
-				A9C4E01C2DA3FA2E00F8224A /* FirebaseAnalytics in Frameworks */,
+				C07A0001C07A0001C07A0001 /* Himetrica in Frameworks */,
+				C08A0001C08A0001C08A0001 /* Sentry in Frameworks */,
 				A9F95FF92D95938800B10A82 /* LaunchAtLogin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -136,9 +137,8 @@
 				A9F95FF82D95938800B10A82 /* LaunchAtLogin */,
 				A9D297D12D95A32C00C8B54A /* LaunchAtLogin */,
 				A90EBEE32DA0443D00A608BB /* Timeout */,
-				A9C4E01B2DA3FA2E00F8224A /* FirebaseAnalytics */,
-				A9C4E01D2DA3FA2E00F8224A /* FirebaseCore */,
-				A9C4E01F2DA3FA2E00F8224A /* FirebaseCrashlytics */,
+				C07A0002C07A0002C07A0002 /* Himetrica */,
+				C08A0002C08A0002C08A0002 /* Sentry */,
 			);
 			productName = CleanerXcode;
 			productReference = A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */;
@@ -175,7 +175,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 2720;
 				TargetAttributes = {
 					A9D98E0C2D8FCBEF000448A2 = {
 						CreatedOnToolsVersion = 16.2;
@@ -198,7 +198,8 @@
 			packageReferences = (
 				A9D297D02D95A32C00C8B54A /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 				A90EBEE22DA0443D00A608BB /* XCRemoteSwiftPackageReference "swift-timeout" */,
-				A9C4E01A2DA3FA2E00F8224A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				C07A0003C07A0003C07A0003 /* XCRemoteSwiftPackageReference "himetrica-swift" */,
+				C08A0003C08A0003C08A0003 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A9D98E0E2D8FCBEF000448A2 /* Products */;
@@ -290,7 +291,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = MM4N959BB5;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -309,11 +312,12 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -353,7 +357,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = MM4N959BB5;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -366,10 +372,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -383,13 +390,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CleanerXcode/CleanerXcode.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 114;
-				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = MM4N959BB5;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Resources/Preview Content\"";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -401,14 +406,17 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Provisioning Profile Device ID Application";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
@@ -421,13 +429,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CleanerXcode/CleanerXcode.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 114;
-				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = MM4N959BB5;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"CleanerXcode/Resources/Preview Content\"";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -439,14 +445,17 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Provisioning Profile Device ID Application";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
@@ -456,14 +465,18 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = MM4N959BB5;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcodeTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CleanerXcode.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CleanerXcode";
 			};
 			name = Debug;
@@ -474,14 +487,18 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = MM4N959BB5;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = didisouzacosta.CleanerXcodeTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CleanerXcode.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CleanerXcode";
 			};
 			name = Release;
@@ -527,20 +544,28 @@
 				minimumVersion = 0.2.1;
 			};
 		};
-		A9C4E01A2DA3FA2E00F8224A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 11.11.0;
-			};
-		};
 		A9D297D02D95A32C00C8B54A /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:didisouzacosta/LaunchAtLogin-Modern.git";
 			requirement = {
 				branch = main;
 				kind = branch;
+			};
+		};
+		C07A0003C07A0003C07A0003 /* XCRemoteSwiftPackageReference "himetrica-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/himetrica/himetrica-swift";
+			requirement = {
+				kind = exactVersion;
+				version = 1.0.0;
+			};
+		};
+		C08A0003C08A0003C08A0003 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
+			requirement = {
+				kind = exactVersion;
+				version = 9.32.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -551,21 +576,6 @@
 			package = A90EBEE22DA0443D00A608BB /* XCRemoteSwiftPackageReference "swift-timeout" */;
 			productName = Timeout;
 		};
-		A9C4E01B2DA3FA2E00F8224A /* FirebaseAnalytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A9C4E01A2DA3FA2E00F8224A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalytics;
-		};
-		A9C4E01D2DA3FA2E00F8224A /* FirebaseCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A9C4E01A2DA3FA2E00F8224A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCore;
-		};
-		A9C4E01F2DA3FA2E00F8224A /* FirebaseCrashlytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A9C4E01A2DA3FA2E00F8224A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCrashlytics;
-		};
 		A9D297D12D95A32C00C8B54A /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A9D297D02D95A32C00C8B54A /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
@@ -574,6 +584,16 @@
 		A9F95FF82D95938800B10A82 /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LaunchAtLogin;
+		};
+		C07A0002C07A0002C07A0002 /* Himetrica */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C07A0003C07A0003C07A0003 /* XCRemoteSwiftPackageReference "himetrica-swift" */;
+			productName = Himetrica;
+		};
+		C08A0002C08A0002C08A0002 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C08A0003C08A0003C08A0003 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

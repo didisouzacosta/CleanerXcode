@@ -1,3 +1,8 @@
+# v1.0.0 (in development)
+
+• Replace Firebase and all Google frameworks with Himetrica usage statistics: no personal data, paths, names or exact sizes; events carry a random installation ID and a session ID. An opt-out switch ships with the new Settings screen.
+• Replace Crashlytics with Sentry crash and error reporting: home folder paths become `~`, temporary paths, user and computer names and the hardware-derived device hash are removed before sending, and session tracking is off.
+
 # v0.7.0 - Build 114
 
 • Run application like agent.

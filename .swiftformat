@@ -1,0 +1,60 @@
+# Shared SwiftFormat baseline (SwiftFormat 0.63.0).
+# Layout: 4 spaces, 120 columns, arguments and conditions wrapped before the first element.
+# Rules that rewrite semantics, API surface or test names are disabled: the formatter only
+# changes layout and purely syntactic spelling. Spacing rules SwiftFormat cannot express
+# (blank lines around control-flow blocks and between let/var groups) live in .swiftlint.yml
+# and are fixed by scripts/fix-swift-spacing.pl.
+
+--swift-version 6.2
+--exclude .ai,.build,.swiftpm,DerivedData,Packages/**/.build
+
+# Layout
+--indent 4
+--indent-case false
+--max-width 120
+--wrap-arguments before-first
+--wrap-parameters before-first
+--wrap-collections before-first
+--wrap-conditions before-first
+--wrap-return-type preserve
+--wrap-effects preserve
+--closing-paren balanced
+--guard-else auto
+--else-position same-line
+--trailing-commas collections-only
+--import-grouping testable-last
+--ranges no-space
+
+# Blank lines: keep the blank line that opens a type before its first MARK,
+# one blank line around MARKs and after every guard, matching the SwiftLint block rules.
+--type-blank-lines preserve
+--line-after-marks true
+--line-between-guards true
+
+--enable blankLinesAfterGuardStatements
+--enable blankLineAfterSwitchCase
+
+# Rules disabled because they change behavior, API or names instead of layout.
+--disable swiftTestingTestCaseNames
+--disable unusedArguments
+--disable redundantMemberwiseInit
+--disable redundantSelf
+--disable redundantAsync
+--disable redundantThrows
+--disable redundantTypedThrows
+--disable redundantEquatable
+--disable redundantVariable
+--disable redundantViewBuilder
+--disable redundantEmptyView
+--disable redundantSwiftUIGroup
+--disable conditionalAssignment
+--disable opaqueGenericParameters
+--disable genericExtensions
+--disable enumNamespaces
+--disable environmentEntry
+--disable noForceUnwrapInTests
+--disable preferKeyPath
+
+# Owned by SwiftLint (modifier_order) or left to the author.
+--disable modifierOrder
+--disable numberFormatting

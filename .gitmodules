@@ -1,0 +1,4 @@
+[submodule ".ai/shared"]
+	path = .ai/shared
+	url = https://github.com/didisouzacosta/AI.git
+	branch = main
