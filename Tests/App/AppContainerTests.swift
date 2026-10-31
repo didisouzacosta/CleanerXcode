@@ -286,6 +286,39 @@ struct AppContainerTests {
         #expect(viewModel.loginItem is InertLoginItem)
     }
 
+    @Test
+    func testsNeverCheckForUpdatesOverTheNetwork() {
+        let environment = AppEnvironment(isRunningTests: true, isDebug: true)
+        let services = AppContainer.makeServices(
+            environment: environment,
+            configuration: AppConfiguration(versionFileURL: URL(string: "https://updates.invalid/version.json"))
+        )
+
+        let viewModel = AppContainer.makeUpdateViewModel(environment: environment, services: services)
+
+        #expect(viewModel.checker is InertVersionChecker)
+    }
+
+    /// Errors are silent by design, so a wrong branch would quietly disable updates.
+    @Test
+    func theAppChecksForUpdatesAndPreviewsDoNot() {
+        let configuration = AppConfiguration(versionFileURL: URL(string: "https://updates.invalid/version.json"))
+        let app = AppEnvironment(isRunningTests: false, isDebug: true)
+        let previews = AppEnvironment(isRunningTests: false, isRunningPreviews: true, isDebug: true)
+
+        let appViewModel = AppContainer.makeUpdateViewModel(
+            environment: app,
+            services: AppContainer.makeServices(environment: app, configuration: configuration)
+        )
+        let previewViewModel = AppContainer.makeUpdateViewModel(
+            environment: previews,
+            services: AppContainer.makeServices(environment: previews, configuration: configuration)
+        )
+
+        #expect(appViewModel.checker is RemoteVersionChecker)
+        #expect(previewViewModel.checker is InertVersionChecker)
+    }
+
     /// A restored value and a failed login item reach Sentry as breadcrumbs, without the key (§9).
     @Test
     func theMigrationOutcomeIsReportedWithoutTheKeys() {

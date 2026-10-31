@@ -17,7 +17,7 @@
 
         @State private var viewModel: CleanerViewModel
         @State private var simulators = SimulatorsSectionPreview.makeViewModel(for: .loaded)
-        @State private var updates = UpdateStore(Bundle.main)
+        @State private var updates = UpdatePreview.makeViewModel()
 
         // MARK: - Public Properties
 

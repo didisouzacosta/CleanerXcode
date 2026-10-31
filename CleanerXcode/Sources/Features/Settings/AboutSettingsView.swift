@@ -18,7 +18,7 @@ struct AboutSettingsView: View {
     // MARK: - Public Properties
 
     let viewModel: SettingsViewModel
-    let updates: UpdateStore
+    let updates: UpdateViewModel
     let versionText: String
 
     var body: some View {
@@ -77,9 +77,12 @@ struct AboutSettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            if updates.hasUpdate.value, let version = updates.version {
-                Link(destination: version.downloadURL) {
-                    Text("Update to \(version.version)")
+            if let update = updates.availableUpdate {
+                Button {
+                    openURL(update.downloadURL)
+                    updates.logUpdateOpened()
+                } label: {
+                    Text("Update to \(update.version)")
                 }
                 .buttonStyle(.glassProminent)
                 .controlSize(.small)

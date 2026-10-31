@@ -162,6 +162,21 @@ enum AppContainer {
         )
     }
 
+    /// The update check. The test host and previews never reach the network.
+    static func makeUpdateViewModel(environment: AppEnvironment, services: AppServices) -> UpdateViewModel {
+        let checker: any VersionChecking = environment.isRunningTests || environment.isRunningPreviews
+            ? InertVersionChecker()
+            : RemoteVersionChecker(url: services.configuration.versionFileURL)
+
+        return UpdateViewModel(
+            currentVersion: services.configuration.version ?? "",
+            currentBuild: services.configuration.build ?? "",
+            checker: checker,
+            analytics: services.analytics,
+            errorReporter: services.errorReporter
+        )
+    }
+
     /// The Simulators section. The test host and previews never run `simctl`.
     static func makeSimulatorsViewModel(
         environment: AppEnvironment,

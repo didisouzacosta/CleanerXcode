@@ -12,7 +12,7 @@ struct CleanerXcodeApp: App {
 
     // MARK: - States
 
-    @State private var updateStore: UpdateStore
+    @State private var updateViewModel: UpdateViewModel
     @State private var cleanerViewModel: CleanerViewModel
     @State private var simulatorsViewModel: SimulatorsViewModel
     @State private var settingsViewModel: SettingsViewModel
@@ -49,17 +49,15 @@ struct CleanerXcodeApp: App {
             CleanerWindowView(
                 viewModel: cleanerViewModel,
                 simulators: simulatorsViewModel,
-                updates: updateStore,
+                updates: updateViewModel,
                 versionText: versionText
             ) {
                 settingsViewModel.logDonation()
             }
             .frame(minWidth: 480, minHeight: 560)
             .task {
-                // The test host and previews never reach the network.
-                guard !environment.isRunningTests, !environment.isRunningPreviews else { return }
-
-                updateStore.checkUpdates()
+                // Inert in the test host and previews; errors stay silent (R16).
+                await updateViewModel.check()
             }
         }
         .defaultSize(width: 560, height: 720)
@@ -68,7 +66,7 @@ struct CleanerXcodeApp: App {
         .defaultLaunchBehavior(environment.isRunningTests ? .suppressed : .presented)
 
         Settings {
-            SettingsView(viewModel: settingsViewModel, updates: updateStore, versionText: versionText)
+            SettingsView(viewModel: settingsViewModel, updates: updateViewModel, versionText: versionText)
         }
 
         MenuBarExtra(isInserted: showsMenuBarExtra) {
@@ -90,7 +88,10 @@ struct CleanerXcodeApp: App {
         let cleanerViewModel = AppContainer.makeCleanerViewModel(environment: environment, services: services)
 
         self.environment = environment
-        _updateStore = .init(initialValue: .init(Bundle.main))
+        _updateViewModel = .init(initialValue: AppContainer.makeUpdateViewModel(
+            environment: environment,
+            services: services
+        ))
         _cleanerViewModel = .init(initialValue: cleanerViewModel)
         // Deleting simulators or a runtime changes the sizes, so the window measures again.
         _simulatorsViewModel = .init(initialValue: AppContainer.makeSimulatorsViewModel(

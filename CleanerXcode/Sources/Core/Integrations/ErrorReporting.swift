@@ -78,4 +78,6 @@ enum ReportingStage: String {
     case preferencesRestored = "preferences_restored"
     /// The legacy "open at login" could not be handed to `SMAppService`.
     case loginItemMigrationFailed = "login_item_migration_failed"
+    /// The update check failed; the user is never told (R16).
+    case updateCheckFailed = "update_check_failed"
 }

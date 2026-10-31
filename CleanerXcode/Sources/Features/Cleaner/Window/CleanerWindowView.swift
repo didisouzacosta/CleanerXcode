@@ -24,7 +24,7 @@ struct CleanerWindowView: View {
 
     let viewModel: CleanerViewModel
     let simulators: SimulatorsViewModel
-    let updates: UpdateStore
+    let updates: UpdateViewModel
     let versionText: String
     /// Logs the donation; the footer opens the page.
     var onSupport: () -> Void = {}

@@ -13,7 +13,7 @@ struct SettingsView: View {
     // MARK: - Public Properties
 
     let viewModel: SettingsViewModel
-    let updates: UpdateStore
+    let updates: UpdateViewModel
     let versionText: String
 
     var body: some View {
@@ -45,10 +45,20 @@ struct SettingsView: View {
     #Preview("About") {
         AboutSettingsView(
             viewModel: SettingsPreview.makeViewModel(),
-            updates: UpdateStore(Bundle.main),
+            updates: UpdatePreview.makeViewModel(),
             versionText: "1.0.0 (115)"
         )
         .frame(width: 520)
+    }
+
+    #Preview("About · update available") {
+        let updates = UpdatePreview.makeViewModel(hasUpdate: true)
+
+        AboutSettingsView(viewModel: SettingsPreview.makeViewModel(), updates: updates, versionText: "1.0.0 (115)")
+            .frame(width: 520)
+            .task {
+                await updates.check()
+            }
     }
 
     #Preview("General · Dark") {

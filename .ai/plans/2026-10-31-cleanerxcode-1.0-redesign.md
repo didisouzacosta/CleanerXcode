@@ -2124,3 +2124,53 @@ Nenhuma categoria nova é proposta:
     - o `SettingsLink` do painel trazer os Ajustes para a frente (N11);
   - C31: a sugestão de doação a cada 3 limpezas.
 
+## Adendo da implementação do C23 (2026-10-31)
+
+- **`SemanticVersion`:**
+  - compara por componente numérico; componente ausente conta zero;
+  - o build desempata;
+  - versão ou build que não sejam números dão `nil`;
+  - corrige a conversão antiga, que juntava os dígitos: `1.0.0` e `0.10.0`
+    davam 100 (iguais) e `1.0.0` ficava menor que `0.11.0` (110).
+- **`RemoteVersionChecker`:** lê o `version.json` (`VERSION_FILE_URL` da
+  `AppConfiguration`) com timeout de 10 s e sem cache local. Status fora de
+  2xx dá `badResponse`, e sem URL dá `notConfigured`. O
+  `InertVersionChecker` atende o test host e as previews.
+- **`UpdateViewModel`** (substitui o `UpdateStore` na interface nova):
+  - `availableUpdate` só quando o remoto é mais novo (versão e build);
+  - qualquer falha fica em silêncio e vira o breadcrumb `update_check_failed`;
+  - `logUpdateOpened()` registra `update_opened`;
+  - o botão "Atualizar para X" do rodapé e da aba Sobre abre o DMG e
+    registra o evento.
+- **Composição:** `AppContainer.makeUpdateViewModel`. A versão e o build
+  atuais vêm da `AppConfiguration`; a checagem roda na `.task` da janela.
+- **Previews:** `UpdatePreview` (com e sem versão nova); preview "About ·
+  update available" (o N10 do C22).
+- **TDD:** vermelho com esqueletos (`SemanticVersionTests`,
+  `RemoteVersionCheckerTests` com um `URLProtocol` stub numa sessão
+  efêmera, sem rede; `UpdateViewModelTests`; o teste do container), depois
+  verde.
+- **Prints:** a aba Sobre e o rodapé com atualização, enviados ao dono.
+- **Validação:** lint sem violações (206 arquivos), 405 execuções de teste
+  passando e build Release OK. Na primeira rodada vazaram plists de teste
+  (pendência do C27), que foram removidos; na última, nenhum. Revisão aprovada
+  na 2ª rodada; N10 (manter a atualização já achada depois de um check
+  cancelado, sem teste) registrado.
+- **Revisão (Manager), correções:**
+  - B1: um check cancelado (`CancellationError` ou `URLError(.cancelled)`,
+    como ao fechar a janela) não deixa breadcrumb (testado).
+  - B2: o `URLProtocol` stub perdeu o `@unchecked Sendable`, que não era
+    necessário.
+  - NITs aplicados: N1 (exemplo correto da conversão antiga), N2 (o
+    container usa o checker remoto no app e o inerte nas previews, testado),
+    N3 (só dígitos ASCII, sem sinal; apara quebras de linha), N5 (o stub
+    falha em vez de travar até o timeout; uma URL só).
+  - NITs registrados:
+    - N4: versão remota ilegível fica em silêncio, sem breadcrumb;
+    - N6: a política de cache não é testada;
+    - N7: o timeout de recurso continua o padrão do `URLSession.shared`;
+    - N8: não há preview do rodapé com atualização;
+    - N9: a categoria dos breadcrumbs continua "cleanup".
+- **Pendência para o C24:** o `UpdateStore`, o `ApplicationInfo` e os
+  testes deles só servem à `CleanerView` antiga e saem com ela.
+

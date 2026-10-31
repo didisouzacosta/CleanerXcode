@@ -17,7 +17,7 @@ struct WindowFooterView: View {
 
     // MARK: - Public Properties
 
-    let updates: UpdateStore
+    let updates: UpdateViewModel
     let versionText: String
     let onSupport: () -> Void
 
@@ -41,9 +41,12 @@ struct WindowFooterView: View {
 
             Spacer()
 
-            if updates.hasUpdate.value, let version = updates.version {
-                Link(destination: version.downloadURL) {
-                    Text("Update to \(version.version)")
+            if let update = updates.availableUpdate {
+                Button {
+                    openURL(update.downloadURL)
+                    updates.logUpdateOpened()
+                } label: {
+                    Text("Update to \(update.version)")
                 }
                 .buttonStyle(.glassProminent)
                 .controlSize(.small)
