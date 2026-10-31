@@ -146,6 +146,7 @@
         // MARK: - Private Properties
 
         private var values: [String: Bool] = [:]
+        private var integers: [String: Int] = [:]
 
         // MARK: - Public Methods
 
@@ -155,6 +156,14 @@
 
         func set(_ value: Bool, for key: String) {
             values[key] = value
+        }
+
+        func integer(for key: String) -> Int? {
+            integers[key]
+        }
+
+        func set(_ value: Int, for key: String) {
+            integers[key] = value
         }
 
         func removeValue(for key: String) {

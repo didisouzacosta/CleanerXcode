@@ -14,6 +14,7 @@ final class InMemoryPreferencesStore: PreferencesStoring {
     private(set) var values: [String: StoredBool]
     private(set) var schemaVersion: Int
     private(set) var writeCount = 0
+    private(set) var integers: [String: Int] = [:]
 
     // MARK: - Initializers
 
@@ -30,6 +31,15 @@ final class InMemoryPreferencesStore: PreferencesStoring {
 
     func set(_ value: Bool, for key: String) {
         values[key] = .value(value)
+        writeCount += 1
+    }
+
+    func integer(for key: String) -> Int? {
+        integers[key]
+    }
+
+    func set(_ value: Int, for key: String) {
+        integers[key] = value
         writeCount += 1
     }
 

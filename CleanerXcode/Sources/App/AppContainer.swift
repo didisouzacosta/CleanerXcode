@@ -61,8 +61,10 @@ enum AppContainer {
         errorReporter.start()
 
         let preferences = Preferences(userDefaults)
+        // Read on every event, so the Settings switch applies at once.
+        let store = UserDefaultsPreferencesStore(defaults: userDefaults)
         let analytics: any Analytics = if !environment.isDebug, let apiKey = configuration.himetricaAPIKey {
-            makeHimetrica(apiKey) { preferences.sendAnonymousAnalytics.value }
+            makeHimetrica(apiKey) { store.bool(for: SettingsViewModel.usageStatisticsKey) ?? true }
         } else {
             NullAnalytics()
         }
@@ -97,15 +99,24 @@ enum AppContainer {
                 runningApplications: InertRunningApplications(),
                 analytics: services.analytics,
                 errorReporter: services.errorReporter,
-                appBundleIdentifier: appBundleIdentifier
+                appBundleIdentifier: appBundleIdentifier,
+                minimumTemporaryAgeInDays: SettingsViewModel.storedMinimumAge(in: store)
             )
         }
 
         let locations = CleanupLocations.current()
         let catalog = CleanupCatalog(locations: locations)
 
-        // Before the view model reads the selection.
-        PreferencesMigrator(categories: catalog.categories).migrate(store, loginItem: loginItem)
+        // Before the view model reads the selection; the outcome goes to Sentry without the keys.
+        let outcome = PreferencesMigrator(categories: catalog.categories).migrate(store, loginItem: loginItem)
+
+        if outcome.restoredCorruptedValueCount > 0 {
+            services.errorReporter.breadcrumb(.preferencesRestored)
+        }
+
+        if outcome.loginItemFailure != nil {
+            services.errorReporter.breadcrumb(.loginItemMigrationFailed)
+        }
 
         let scanner = FileSystemSizeScanner()
         let simulators = SimctlSimulatorService(scanner: scanner)
@@ -128,7 +139,26 @@ enum AppContainer {
             runningApplications: runningApplications,
             analytics: services.analytics,
             errorReporter: services.errorReporter,
-            appBundleIdentifier: appBundleIdentifier
+            appBundleIdentifier: appBundleIdentifier,
+            minimumTemporaryAgeInDays: SettingsViewModel.storedMinimumAge(in: store)
+        )
+    }
+
+    /// Settings. The test host and previews never register a login item.
+    static func makeSettingsViewModel(
+        environment: AppEnvironment,
+        services: AppServices,
+        onMinimumAgeChanged: @escaping (Int) -> Void = { _ in }
+    ) -> SettingsViewModel {
+        let loginItem: any LoginItemManaging = environment.isRunningTests || environment.isRunningPreviews
+            ? InertLoginItem()
+            : MainAppLoginItem()
+
+        return SettingsViewModel(
+            store: UserDefaultsPreferencesStore(defaults: services.userDefaults),
+            loginItem: loginItem,
+            analytics: services.analytics,
+            onMinimumAgeChanged: onMinimumAgeChanged
         )
     }
 

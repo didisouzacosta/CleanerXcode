@@ -76,3 +76,22 @@ struct MainAppLoginItem: LoginItemManaging {
     }
 
 }
+
+/// For the test host and previews: never registers anything.
+struct InertLoginItem: LoginItemManaging {
+
+    // MARK: - Public Properties
+
+    var status: LoginItemStatus {
+        .notRegistered
+    }
+
+    var isEnabled: Bool {
+        false
+    }
+
+    // MARK: - Public Methods
+
+    func setEnabled(_ enabled: Bool) throws {}
+
+}

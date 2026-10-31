@@ -74,4 +74,8 @@ enum ReportableFailure: Equatable {
 enum ReportingStage: String {
     case cleanupStarted = "cleanup_started"
     case cleanupFinished = "cleanup_finished"
+    /// The migration reset saved values that could not be read (§9); never the keys.
+    case preferencesRestored = "preferences_restored"
+    /// The legacy "open at login" could not be handed to `SMAppService`.
+    case loginItemMigrationFailed = "login_item_migration_failed"
 }

@@ -47,6 +47,14 @@ final class UserDefaultsPreferencesStore: PreferencesStoring {
         defaults.set(data, forKey: key)
     }
 
+    func integer(for key: String) -> Int? {
+        defaults.object(forKey: key) as? Int
+    }
+
+    func set(_ value: Int, for key: String) {
+        defaults.set(value, forKey: key)
+    }
+
     func removeValue(for key: String) {
         defaults.removeObject(forKey: key)
     }

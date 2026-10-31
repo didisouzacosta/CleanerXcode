@@ -121,6 +121,12 @@ struct CategoryRowView: View {
         } else if let warning = viewModel.restrictions.warnings[category.id] {
             Text(warning.note)
                 .foregroundStyle(.orange)
+        } else if category.id == .clearTemporaryFiles {
+            // The fixed notice of the temporary folder (R13), with the age from Settings.
+            Text(
+                "Close AI apps and terminals first · items newer than \(viewModel.minimumTemporaryAgeInDays) days are kept"
+            )
+            .foregroundStyle(.secondary)
         } else {
             Text(presentation.subtitle)
                 .foregroundStyle(.secondary)

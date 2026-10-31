@@ -19,6 +19,9 @@ protocol PreferencesStoring: AnyObject {
 
     func storedValue(for key: String) -> StoredBool
     func set(_ value: Bool, for key: String)
+    /// `nil` when missing or not a number.
+    func integer(for key: String) -> Int?
+    func set(_ value: Int, for key: String)
     func removeValue(for key: String)
     func setSchemaVersion(_ version: Int)
 }

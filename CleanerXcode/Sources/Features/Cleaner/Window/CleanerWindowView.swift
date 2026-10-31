@@ -26,6 +26,8 @@ struct CleanerWindowView: View {
     let simulators: SimulatorsViewModel
     let updates: UpdateStore
     let versionText: String
+    /// Logs the donation; the footer opens the page.
+    var onSupport: () -> Void = {}
 
     var body: some View {
         ScrollView {
@@ -49,7 +51,7 @@ struct CleanerWindowView: View {
             .padding(16)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            WindowFooterView(updates: updates, versionText: versionText)
+            WindowFooterView(updates: updates, versionText: versionText, onSupport: onSupport)
         }
         .toolbar {
             CleanerToolbar(viewModel: viewModel, simulators: simulators)

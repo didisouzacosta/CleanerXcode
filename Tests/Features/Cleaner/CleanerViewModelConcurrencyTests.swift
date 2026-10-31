@@ -348,6 +348,59 @@ struct CleanerViewModelConcurrencyTests {
         #expect(viewModel.measurementCount == 2)
     }
 
+    /// The menu bar panel opens the window when the plan needs a confirmation.
+    @Test
+    func tellsWhetherCleaningWillAskFirst() async {
+        let viewModel = makeViewModel(
+            selected: [.removeDerivedData],
+            sizes: [.removeDerivedData: 1_000, .removeArchives: 2_000]
+        )
+        await viewModel.refresh()
+
+        #expect(!viewModel.cleanNeedsConfirmation)
+
+        viewModel.toggle(.removeArchives)
+
+        #expect(viewModel.cleanNeedsConfirmation)
+    }
+
+    /// A new age while a confirmation is open changes that plan too (R11, D7).
+    @Test
+    func aNewMinimumAgeChangesThePlanBeingConfirmed() async {
+        let executor = CleanupExecutorSpy()
+        let viewModel = makeViewModel(executor: executor, selected: [.removeArchives], sizes: [.removeArchives: 2_000])
+        await viewModel.refresh()
+        await viewModel.requestClean()
+
+        await viewModel.setMinimumTemporaryAgeInDays(14)
+
+        #expect(viewModel.measurementCount == 1, "Nothing is measured during a confirmation.")
+
+        await viewModel.confirm()
+
+        #expect(executor.plans.map(\.minimumTemporaryAgeInDays) == [14])
+    }
+
+    /// The minimum age from Settings reaches the plan and measures again (D7).
+    @Test
+    func aNewMinimumAgeReachesThePlan() async {
+        let viewModel = makeViewModel(selected: [.removeArchives], sizes: [.removeArchives: 2_000])
+        await viewModel.refresh()
+
+        await viewModel.setMinimumTemporaryAgeInDays(14)
+        await viewModel.requestClean()
+
+        #expect(viewModel.minimumTemporaryAgeInDays == 14)
+        #expect(viewModel.measurementCount == 2)
+
+        guard case let .confirming(plan) = viewModel.phase else {
+            Issue.record("Expected a confirmation, got \(viewModel.phase)")
+            return
+        }
+
+        #expect(plan.minimumTemporaryAgeInDays == 14)
+    }
+
     // MARK: - Private Methods
 
     private func makeViewModel(

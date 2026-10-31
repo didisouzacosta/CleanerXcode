@@ -99,10 +99,15 @@ struct AppContainerTests {
 
         #expect(services.userDefaults === UserDefaults.test)
 
-        services.preferences.sendAnonymousAnalytics.value = false
+        // The Settings switch writes through the store; the adapter reads it on every event.
+        let store = UserDefaultsPreferencesStore(defaults: .test)
+
+        #expect(factory.isEnabled?() == true, "On by default.")
+
+        store.set(false, for: SettingsViewModel.usageStatisticsKey)
         #expect(factory.isEnabled?() == false)
 
-        services.preferences.sendAnonymousAnalytics.value = true
+        store.set(true, for: SettingsViewModel.usageStatisticsKey)
         #expect(factory.isEnabled?() == true)
     }
 
@@ -268,6 +273,46 @@ struct AppContainerTests {
         let viewModel = AppContainer.makeSimulatorsViewModel(environment: environment, services: services)
 
         #expect(viewModel.simulators is SimctlSimulatorService)
+    }
+
+    @Test
+    func testsGetSettingsThatNeverTouchTheLoginItem() {
+        let environment = AppEnvironment(isRunningTests: true, isDebug: true)
+        let services = AppContainer.makeServices(environment: environment, configuration: configuration)
+
+        let viewModel = AppContainer.makeSettingsViewModel(environment: environment, services: services)
+
+        // Only the type is checked: a real login item must never be exercised by a test.
+        #expect(viewModel.loginItem is InertLoginItem)
+    }
+
+    /// A restored value and a failed login item reach Sentry as breadcrumbs, without the key (§9).
+    @Test
+    func theMigrationOutcomeIsReportedWithoutTheKeys() {
+        let defaults = TestPreferencesDomain.defaults(named: "container.outcome")
+
+        defer { TestPreferencesDomain.remove(named: "container.outcome") }
+
+        defaults.set("garbage", forKey: CleanupCategoryID.removeArchives.rawValue)
+        UserDefaultsPreferencesStore(defaults: defaults).set(true, for: PreferencesMigrator.legacyLaunchAtLoginKey)
+
+        let reporter = ErrorReporterStub()
+        let services = AppServices(
+            commandExecutor: InertCommandExecutor(),
+            analytics: NullAnalytics(),
+            errorReporter: reporter,
+            userDefaults: defaults,
+            preferences: Preferences(defaults),
+            configuration: configuration
+        )
+
+        _ = AppContainer.makeCleanerViewModel(
+            environment: AppEnvironment(isRunningTests: false, isDebug: true),
+            services: services,
+            loginItem: LoginItemSpy(status: .notRegistered, failure: .permissionDenied)
+        )
+
+        #expect(reporter.stages == [.preferencesRestored, .loginItemMigrationFailed])
     }
 
     /// The saved choices are migrated to v2 when the window's state is made (section 9).

@@ -29,6 +29,9 @@ final class CleanerViewModel {
         areSimulatorsActive: false
     )
 
+    /// From Settings (D7); fixed in each plan when it is requested.
+    private(set) var minimumTemporaryAgeInDays: Int
+
     /// For tests: how many measurements started.
     @ObservationIgnored private(set) var measurementCount = 0
 
@@ -39,6 +42,11 @@ final class CleanerViewModel {
 
             return total + bytes
         }
+    }
+
+    /// Plans with attention or danger, or with a warning for open apps, ask first (R5, F31).
+    var cleanNeedsConfirmation: Bool {
+        plannedCategories.contains { $0.risk != .safe || restrictions.warnings[$0.id] != nil }
     }
 
     var canClean: Bool {
@@ -90,8 +98,11 @@ final class CleanerViewModel {
     private let preferences: any PreferencesStoring
     private let runningApplications: any RunningApplicationsProviding
     private let reporter: CleanupOutcomeReporter
-    private let temporaryPolicy: TemporaryItemsPolicy
-    private let minimumTemporaryAgeInDays: Int
+
+    private var temporaryPolicy: TemporaryItemsPolicy
+
+    private let appBundleIdentifier: String
+
     private let now: () -> Date
     private let activationDebounce: Duration
     private let measurementCacheDuration: TimeInterval
@@ -137,6 +148,7 @@ final class CleanerViewModel {
             appBundleIdentifier: appBundleIdentifier
         )
         self.minimumTemporaryAgeInDays = minimumTemporaryAgeInDays
+        self.appBundleIdentifier = appBundleIdentifier
         self.now = now
         self.activationDebounce = activationDebounce
         self.measurementCacheDuration = measurementCacheDuration
@@ -203,6 +215,22 @@ final class CleanerViewModel {
         phase.allowsMeasurement && !isUnavailable(id)
     }
 
+    /// A new minimum age from Settings (D7): it reaches the plan being confirmed and the next ones,
+    /// and measures again. Items younger than the age the user sees are never removed (R11).
+    func setMinimumTemporaryAgeInDays(_ days: Int) async {
+        guard days != minimumTemporaryAgeInDays else { return }
+
+        minimumTemporaryAgeInDays = days
+        temporaryPolicy = TemporaryItemsPolicy(minimumAgeInDays: days, appBundleIdentifier: appBundleIdentifier)
+        lastMeasuredAt = nil
+
+        if case let .confirming(plan) = phase {
+            phase = .confirming(CleanupPlan(categories: plan.categories, minimumTemporaryAgeInDays: days))
+        }
+
+        await refresh()
+    }
+
     /// "Encerrar agora" on the Simulator-open notice: quits Simulator.app, shuts the default set
     /// down and measures again. A failure only leaves the notice on screen.
     func shutDownSimulators() async {
@@ -252,7 +280,7 @@ final class CleanerViewModel {
             return
         }
 
-        if plan.categories.contains(where: { $0.risk != .safe || restrictions.warnings[$0.id] != nil }) {
+        if cleanNeedsConfirmation {
             phase = .confirming(plan)
         } else {
             await run(plan)

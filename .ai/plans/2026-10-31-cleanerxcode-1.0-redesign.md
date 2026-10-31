@@ -1996,3 +1996,131 @@ Nenhuma categoria nova é proposta:
   `TestPreferencesDomain.remove`. Foram removidos; tornar a limpeza confiável
   fica para o C27.
 
+## Adendo da implementação do C22 (2026-10-31)
+
+- **`SettingsViewModel`:**
+  - abrir no login via `LoginItemManaging` (o `SMAppService` é a fonte de
+    verdade; depois de uma falha mostra o status real e a falha; o
+    `requiresApproval` mostra o caminho para Itens de Início, com um botão
+    que abre o painel);
+  - mostrar na barra de menus (`show-menu-bar-extra`);
+  - mostrar o tamanho (`display-free-up-space-in-menu-bar`);
+  - idade mínima da pasta temporária (`temporary-minimum-age-days`, inteiro
+    no store; só 1, 3, 7 e 14, senão 3);
+  - "Enviar estatísticas de uso" (`send-anonymous-analytics`, texto de dado
+    pseudônimo, sem `Himetrica.reset()`);
+  - eventos `donate` e `social`.
+- **`PreferencesStoring`** ganhou `integer(for:)` e `set(_: Int, for:)`.
+- **Cena `Settings`** com `TabView` (Geral e Sobre), conforme a página 04
+  do Figma. O Sobre tem versão, atualização, apoio, links (GitHub, X,
+  LinkedIn) e a dedicatória, com a chave antiga já traduzida.
+- **Barra de menus:**
+  - `MenuBarExtra(isInserted:)` ligado à preferência; tirar o item da
+    barra desliga a preferência;
+  - rótulo com o tamanho (`MenuBarPresentation.label`: nada até a primeira
+    medição, "Limpando…" durante a limpeza);
+  - painel com eyebrow, valor, a ação principal, Ajustes, "Abrir
+    CleanerXcode" e Sair;
+  - com plano que pede confirmação (`cleanNeedsConfirmation`), o botão vira
+    "Revisar e limpar…", abre a janela e chama `requestClean`, então a
+    confirmação aparece só na janela e nunca empilha duas sheets.
+- **Fechar a última janela:** um `AppDelegate`
+  (`applicationShouldTerminateAfterLastWindowClosed`) encerra o app só com
+  a barra de menus desligada (`MenuBarPresentation.quitsAfterLastWindowClosed`).
+- **Idade mínima:**
+  - mudar a idade nos Ajustes chega ao `CleanerViewModel`
+    (`setMinimumTemporaryAgeInDays`: troca a política, invalida o cache e
+    mede de novo) e aos próximos planos;
+  - o app abre com a idade salva;
+  - a linha da Pasta temporária mostra o aviso fixo "Feche apps de IA e
+    terminais antes · itens com menos de N dias são preservados"
+    (pendência do C15).
+- **Analytics:** o adaptador do Himetrica lê a chave pelo store a cada
+  evento, então o switch vale na hora.
+- **Rodapé:** "Apoie o projeto" (abre a página de doação e registra
+  `donate`).
+- **App:**
+  - a cena deixou de usar `CleanerStore`, `Preferences`, `Route`,
+    `AnalyticsTracker` e o pacote LaunchAtLogin, que o C24 apaga;
+  - `checkUpdates` roda na `.task` da janela, fora de testes e previews.
+- **Test host:** o item da barra continua inserido, como antes. Escondê-lo
+  gravava `NSStatusItem VisibleCC Item-0 = 0` no domínio real do app, o que
+  poderia esconder o item no app de verdade. A chave foi removida e o
+  domínio fica vazio depois dos testes.
+- **TDD:** vermelho com esqueletos (`SettingsViewModelTests`,
+  `MenuBarPresentationTests` e os testes novos do `CleanerViewModel`), depois
+  verde.
+- **Prints:** Geral, Geral com aprovação pendente, Sobre e o painel (pronto,
+  revisar, limpando, falha parcial), renderizados fora da tela e enviados ao
+  dono.
+- **Revisão (Manager), correções:**
+  - B1: o painel recebe `isDeletingSimulators`; Limpar e Tentar de novo
+    ficam desabilitados enquanto simuladores ou um runtime são apagados
+    (`MenuBarPresentation.isEnabled`, testado; preview "deleting
+    simulators").
+  - B2: depois de `requestClean`/`retryFailed`, se a fase ficou
+    `.confirming` (um app abriu desde a última medição), o painel abre a
+    janela (`MenuBarPresentation.needsMainWindow`, testado). Abrir o painel
+    chama `windowDidActivate()`, que respeita o debounce e o cache e atualiza
+    as restrições (N4).
+  - B3: mudar a idade com uma confirmação aberta refaz o plano com a idade
+    nova (teste `aNewMinimumAgeChangesThePlanBeingConfirmed`: o executor
+    recebe 14 dias).
+  - B4: previews do painel (pronto, medindo, revisar na janela, limpando,
+    sucesso, falha parcial, permissão negada, simuladores sendo apagados) e
+    do rótulo, com fábricas em `MenuBarPanelPreview.swift`; os prints foram
+    refeitos a partir delas.
+  - B5: o teste do container só confere o tipo (`loginItem is
+    InertLoginItem`) e nunca exercita um login item construído pela fábrica.
+  - B6: o resultado da migração vai para o Sentry como breadcrumb, sem a
+    chave: `preferences_restored` quando valores corrompidos voltam ao padrão
+    e `login_item_migration_failed` quando o "abrir no login" legado não pôde
+    ser registrado (testado com spy).
+  - B7: um register que termina em `requiresApproval` mostra só a
+    orientação, sem a falha genérica; com aprovação pendente o switch aparece
+    ligado, para poder desligar (N12). Os erros do `SMAppService` continuam
+    genéricos ("Erro desconhecido"), por decisão.
+  - B8, o que não foi visto rodando (o dono recusou o acesso de tela) e fica
+    para o C27, no AC14:
+    - o item da barra entrar e sair quando o switch muda;
+    - tirar o item com Cmd-arrastar desligar o switch;
+    - a regra de fechar a última janela com a barra ligada e desligada.
+    No macOS 26 o item da barra pertence ao Control Center, então a lista
+    de janelas do processo só mostra a janela principal (conferido num
+    lançamento Debug com serviços inertes).
+  - NITs aplicados: N1 (comentários), N2 (MARKs e posição da propriedade),
+    N3 (texto genérico do painel), N4, N5 (test host com `.constant(true)`),
+    N6 (`.cleaning` no teste do rótulo), N7 (rótulo de acessibilidade do
+    ícone).
+  - NITs registrados:
+    - N8: `integer(for:)` aceita NSNumber, e o filtro de opções cobre isso;
+    - N9: a fila offline do SDK pode enviar eventos já enfileirados (README,
+      C29);
+    - N10: preview de "atualização disponível" no C23;
+    - N11: o `SettingsLink` do painel pode abrir os Ajustes atrás de outros
+      apps (C27).
+- **Revisão, 2ª rodada:** aprovada. NITs registrados:
+  - R2-N1: a categoria dos breadcrumbs continua "cleanup";
+  - R2-N2: desligar com aprovação pendente e falha no `unregister` não
+    mostra a falha;
+  - R2-N3: o painel não explica por que o botão fica desabilitado durante a
+    exclusão de simuladores (C25);
+  - R2-N4: os tipos de preview aninhados seguem o padrão do C20.
+- **Validação:** lint sem violações (199 arquivos), 389 execuções de teste
+  passando e build Release OK. O domínio real do app fica vazio depois dos
+  testes. Plists de teste vazaram de novo (pendência do C27) e foram
+  removidos.
+- **Pendências:**
+  - C24: remover os arquivos antigos (`CleanerStore`, `Preferences`,
+    `MainView`, `CleanerView`, `PreferencesView`, `Route`,
+    `AnalyticsTracker`, `Components`), o `Shell` e o pacote LaunchAtLogin;
+  - C25: textos e truncamento;
+  - C27:
+    - o login item real em /Applications (AC15-live);
+    - AC14: o item da barra entrar e sair com o switch;
+    - AC14: tirar o item com Cmd-arrastar desligar o switch;
+    - AC14: fechar a última janela com a barra ligada (o app continua) e
+      desligada (o app encerra);
+    - o `SettingsLink` do painel trazer os Ajustes para a frente (N11);
+  - C31: a sugestão de doação a cada 3 limpezas.
+

@@ -73,4 +73,26 @@ struct UserDefaultsPreferencesStoreTests {
         #expect(store.storedValue(for: "launch-at-login") == .missing)
     }
 
+    /// Numbers, such as the minimum age of the temporary items, are plain integers.
+    @Test
+    func readsAndWritesIntegers() {
+        let name = "store.integers"
+        let defaults = TestPreferencesDomain.defaults(named: name)
+
+        defer { TestPreferencesDomain.remove(named: name) }
+
+        let store = UserDefaultsPreferencesStore(defaults: defaults)
+
+        #expect(store.integer(for: "days") == nil)
+
+        store.set(7, for: "days")
+
+        #expect(store.integer(for: "days") == 7)
+        #expect(defaults.integer(forKey: "days") == 7)
+
+        defaults.set("seven", forKey: "days")
+
+        #expect(store.integer(for: "days") == nil)
+    }
+
 }

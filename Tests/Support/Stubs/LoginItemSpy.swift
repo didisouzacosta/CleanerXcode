@@ -22,12 +22,15 @@ final class LoginItemSpy: LoginItemManaging {
     // MARK: - Private Properties
 
     private let failure: CleanupError?
+    /// What `SMAppService` reports after a failed attempt, such as `.requiresApproval`.
+    private let statusAfterFailure: LoginItemStatus?
 
     // MARK: - Initializers
 
-    init(status: LoginItemStatus, failure: CleanupError? = nil) {
+    init(status: LoginItemStatus, failure: CleanupError? = nil, statusAfterFailure: LoginItemStatus? = nil) {
         self.status = status
         self.failure = failure
+        self.statusAfterFailure = statusAfterFailure
     }
 
     // MARK: - Public Methods
@@ -36,6 +39,7 @@ final class LoginItemSpy: LoginItemManaging {
         requests.append(enabled)
 
         if let failure {
+            status = statusAfterFailure ?? status
             throw failure
         }
 
