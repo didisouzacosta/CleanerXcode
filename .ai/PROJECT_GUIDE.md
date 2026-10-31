@@ -220,6 +220,16 @@ ViewModels por tela.
     `SIGTERM` e esperam só ele sair. Exit diferente de zero vira
     `commandFailed`, com o stderr sanitizado e cortado em 500 caracteres. O
     `Shell` antigo continua até o C24;
+  - `Simulators/` (C14): `DeviceSet`, `SimulatorDevice`, `SimulatorRuntime`,
+    `SimctlJSON` (DTOs tolerantes a campos ausentes), `SimulatorManaging` e
+    `SimctlSimulatorService` (listar, desligar, apagar simuladores
+    desligando um a um os ligados antes, `delete unavailable`, `erase all`,
+    `delete all` por set, `runtime delete`; o exit 72 e os erros
+    `xcrun: error:` viram `.toolUnavailable`),
+    `DuplicateSimulatorDetector` (mesmo tipo e runtime, mantém o mais
+    recente) e `CoreSimulatorServiceRestarter` (libproc + `SIGTERM`). Os
+    testes usam `ProcessRunnerSpy` e `ServiceRestarterSpy` e nunca rodam o
+    `simctl` nem sinalizam o serviço real;
   - `Persistence/`: `Preferences` e `StoragedValue`;
   - `Helpers/`: `Constants` (URLs via `staticURL(_:)`, que falha alto se o
     literal for inválido), `StateValue` e as extensões. `String` conforma a
@@ -424,7 +434,7 @@ validação em dispositivo físico e de serviços externos.
     (101 execuções com os parametrizados) passaram, sem avisos. No C09: 148
     execuções passaram, sem avisos. No C11: 165 execuções passaram, sem
     avisos. No C12: 184 execuções passaram, sem avisos. No C13: 196 execuções
-    passaram, sem avisos;
+    passaram, sem avisos. No C14: 217 execuções passaram, sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

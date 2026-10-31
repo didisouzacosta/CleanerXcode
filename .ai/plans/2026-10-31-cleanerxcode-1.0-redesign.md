@@ -1307,3 +1307,70 @@ Nenhuma categoria nova é proposta:
   `/bin/sleep`, sem filhos. O `SIGTERM` chega então ao `simctl`, e o
   `SIGKILL` com período de tolerância fica para o C27, se a validação ao
   vivo mostrar necessidade.
+
+## Adendo da implementação do C14 (2026-10-31)
+
+- **`Core/Simulators`:**
+  - **`DeviceSet`:** padrão ou `.custom(URL)`; o `--set <caminho>` vai logo
+    depois de `simctl`.
+  - **Tipos de domínio:** `SimulatorDevice` (estado `booted`, `shutdown` ou
+    outro) e `SimulatorRuntime` (`identifier` para o `runtime delete`,
+    `runtimeIdentifier` para relacionar com os simuladores).
+  - **`SimctlJSON`:** DTOs com campos opcionais, para que um campo novo ou
+    ausente nunca quebre a lista, e datas ISO 8601. Um JSON ilegível vira
+    `SimctlSimulatorService.unreadableOutput` (`.unknown(domain: "SimctlJSON",
+    code: 1)`), que é inesperado e deve ser reportado.
+  - **`SimctlSimulatorService`:**
+    - o tamanho é `dataPathSize + logPathSize`. Sem os dois, a pasta do
+      simulador (o pai de `dataPath`) é medida pelo scanner;
+    - apagar desliga um a um os simuladores ligados, porque
+      `simctl shutdown` aceita um só, e depois roda `delete` com todos os
+      UDIDs;
+    - **diverge da seção 5.4:** `delete(_ udids:in:)` virou
+      `delete(_ devices: [SimulatorDevice], in:)`, porque o desligamento é
+      feito um a um e só nos ligados. Quem chama (C17 e C21) passa os
+      simuladores listados;
+    - prazos: 600 s para `erase all` e 1.800 s para `runtime delete`;
+    - viram `.toolUnavailable` (R12) o exit 72 do `xcrun` ("unable to find
+      utility"), qualquer erro do próprio `xcrun` (prefixo `xcrun: error:`,
+      exit 1, como Xcode apagado mas ainda selecionado ou
+      `DEVELOPER_DIR` inexistente, verificado com
+      `DEVELOPER_DIR=/nonexistent xcrun simctl list`) e o executável ausente;
+    - runtimes trazem também `state` e `kind`, para a interface diferenciar
+      "Bundled with Xcode" e estados como `Deleting`;
+    - na medição de reserva, o cancelamento (`CancellationError` ou
+      `.cancelled`) cancela a listagem. Como o scanner pode retornar mesmo
+      cancelado, a listagem verifica o cancelamento antes de usar o valor.
+  - **`DuplicateSimulatorDetector`** (puro): agrupa por tipo e runtime e
+    mantém o `lastUsedAt` mais recente. Nunca usado conta como o mais
+    antigo, e o empate cai no UDID. Simuladores sem tipo ou runtime nunca
+    são agrupados. Só sugere; a interface seleciona.
+  - **`CoreSimulatorServiceRestarter`:** `LibprocProcessListing` encontra o
+    serviço pelo último componente do `proc_pidpath`, porque o
+    `proc_name` corta nomes longos como o do serviço, e envia `SIGTERM`.
+    `ESRCH` e `EPERM` são ignorados (processo já encerrado ou de outro
+    usuário).
+- **Testes:** um `ProcessRunnerSpy` valida os argumentos exatos e nunca
+  roda o `simctl`. A listagem real é testada contra o próprio processo de
+  teste, e o `terminate` real contra um `sleep` criado pelo teste.
+- **Verificação ao vivo, somente leitura (2026-10-31):** o serviço real
+  decodificou 13 simuladores (31,7 GB) e 2 runtimes deste Mac, e achou o
+  PID do CoreSimulatorService sem enviar sinal. O reinício real continua
+  pendente para o C27.
+- **Pendências para o C17:**
+  - um set auxiliar inexistente faz o `simctl` responder "Provided set path
+    does not exist", então o executor deve pular sets cujas pastas não
+    existam;
+  - `erase all` exige os simuladores desligados, então rodar `shutdownAll`
+    antes. O mesmo vale antes de `delete`: o serviço só desliga os
+    marcados como `Booted`, e um estado de transição ou desatualizado
+    deixa de importar depois do `shutdownAll` (R10).
+- **Pendência para o C17 e o C21:** os métodos `nonisolated async` rodam no
+  ator de quem chama, então a decodificação do JSON e a varredura libproc
+  do `restartService()` rodariam no main actor se um ViewModel os chamasse
+  direto. O I/O de processo e de disco já é `@concurrent`; marcar o serviço
+  como `@concurrent` só se a medição mostrar custo.
+- **Pendência para o C21 e o C24:** sem nenhuma ferramenta de
+  desenvolvedor instalada, o shim `/usr/bin/xcrun` pode abrir o pedido do
+  sistema para instalar as Command Line Tools. Verificar ao vivo e decidir
+  se o app consulta antes `xcode-select -p`.
