@@ -290,6 +290,1296 @@
           }
         }
       }
+    },
+    "DerivedData" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DerivedData"
+          }
+        }
+      }
+    },
+    "Builds and indexes; Xcode rebuilds them" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Builds e índices; o Xcode recria sozinho"
+          }
+        }
+      }
+    },
+    "Xcode and package manager caches" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caches do Xcode e gerenciadores"
+          }
+        }
+      }
+    },
+    "Xcode, xcodebuild, CocoaPods and Carthage" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xcode, xcodebuild, CocoaPods e Carthage"
+          }
+        }
+      }
+    },
+    "Device Support" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device Support"
+          }
+        }
+      }
+    },
+    "iOS, watchOS, tvOS, visionOS and macOS · copied again when a device connects" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS, watchOS, tvOS, visionOS e macOS · copiado de novo ao conectar o aparelho"
+          }
+        }
+      }
+    },
+    "SwiftPM cache" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cache do SwiftPM"
+          }
+        }
+      }
+    },
+    "Packages downloaded again on the next build" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pacotes baixados de novo no próximo build"
+          }
+        }
+      }
+    },
+    "Products" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Products"
+          }
+        }
+      }
+    },
+    "Build products exported by Xcode" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Produtos de build exportados pelo Xcode"
+          }
+        }
+      }
+    },
+    "Orphan simulator temporary files" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temporários órfãos de simuladores"
+          }
+        }
+      }
+    },
+    "Folders with no matching simulator" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pastas sem simulador correspondente"
+          }
+        }
+      }
+    },
+    "CoreSimulator caches and logs" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caches e logs do CoreSimulator"
+          }
+        }
+      }
+    },
+    "Restarts the simulator service without restarting the Mac" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinicia o serviço de simuladores, sem reiniciar o Mac"
+          }
+        }
+      }
+    },
+    "Preview and test simulators" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simuladores de Previews e testes"
+          }
+        }
+      }
+    },
+    "SwiftUI Previews, XCTest and Playgrounds" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previews do SwiftUI, XCTest e Playgrounds"
+          }
+        }
+      }
+    },
+    "Unavailable simulators" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simuladores indisponíveis"
+          }
+        }
+      }
+    },
+    "From runtimes that no longer exist" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De runtimes que não existem mais"
+          }
+        }
+      }
+    },
+    "Erase the content of every simulator" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagar conteúdo de todos os simuladores"
+          }
+        }
+      }
+    },
+    "Keeps the simulators; removes apps and data" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantém os simuladores; remove apps e dados"
+          }
+        }
+      }
+    },
+    "Temporary folder" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasta temporária"
+          }
+        }
+      }
+    },
+    "Old files from AI tools and terminals · $TMPDIR and /tmp" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquivos antigos de IA e terminais · $TMPDIR e /tmp"
+          }
+        }
+      }
+    },
+    "Archives" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archives"
+          }
+        }
+      }
+    },
+    "Goes to the Trash · dSYMs to symbolicate and resubmit" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vai para a Lixeira · dSYMs para simbolicar e reenviar"
+          }
+        }
+      }
+    },
+    "Xcode user data" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dados do usuário do Xcode"
+          }
+        }
+      }
+    },
+    "Themes, shortcuts, snippets and breakpoints · goes to the Trash" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temas, atalhos, snippets e breakpoints · vai para a Lixeira"
+          }
+        }
+      }
+    },
+    "Provisioning Profiles" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provisioning Profiles"
+          }
+        }
+      }
+    },
+    "Xcode downloads them again when signing · goes to the Trash" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Xcode baixa de novo ao assinar · vai para a Lixeira"
+          }
+        }
+      }
+    },
+    "Reset Xcode preferences" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redefinir preferências do Xcode"
+          }
+        }
+      }
+    },
+    "DerivedData location, behaviors and windows" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local do DerivedData, comportamentos e janelas"
+          }
+        }
+      }
+    },
+    "Measuring…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medindo…"
+          }
+        }
+      }
+    },
+    "Attention" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atenção"
+          }
+        }
+      }
+    },
+    "Dangerous" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perigoso"
+          }
+        }
+      }
+    },
+    "Cleaning…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpando…"
+          }
+        }
+      }
+    },
+    "Failed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falhou"
+          }
+        }
+      }
+    },
+    "%@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        }
+      }
+    },
+    "—" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "—"
+          }
+        }
+      }
+    },
+    "Needs the Xcode tools" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Precisa das ferramentas do Xcode"
+          }
+        }
+      }
+    },
+    "Close Xcode to clean" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feche o Xcode para limpar"
+          }
+        }
+      }
+    },
+    "The simulator list could not be read" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível ler a lista de simuladores"
+          }
+        }
+      }
+    },
+    "Xcode is open: items in use will be skipped" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xcode aberto: itens em uso serão pulados"
+          }
+        }
+      }
+    },
+    "The open simulators will be shut down" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os simuladores abertos serão encerrados"
+          }
+        }
+      }
+    },
+    "Collapsed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recolhida"
+          }
+        }
+      }
+    },
+    "Expanded" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expandida"
+          }
+        }
+      }
+    },
+    "Shows or hides the categories of this section" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra ou oculta as categorias desta seção"
+          }
+        }
+      }
+    },
+    "%@ selected" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ selecionados"
+          }
+        }
+      }
+    },
+    "nothing selected" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nada selecionado"
+          }
+        }
+      }
+    },
+    "freed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "liberados"
+          }
+        }
+      }
+    },
+    "Full Disk Access needed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acesso Total ao Disco necessário"
+          }
+        }
+      }
+    },
+    "macOS blocked access to some folders. Open System Settings › Privacy & Security › Full Disk Access, turn on CleanerXcode and try again." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O macOS bloqueou o acesso a algumas pastas. Abra Ajustes do Sistema › Privacidade e Segurança › Acesso Total ao Disco, ative o CleanerXcode e tente de novo."
+          }
+        }
+      }
+    },
+    "Xcode is open" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xcode está aberto"
+          }
+        }
+      }
+    },
+    "Close Xcode to clean its user data and preferences. DerivedData may have items in use." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feche o Xcode para limpar Dados do usuário e Preferências. DerivedData pode ter itens em uso."
+          }
+        }
+      }
+    },
+    "Simulators are open" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simuladores abertos"
+          }
+        }
+      }
+    },
+    "They will be shut down before the Simulators items are cleaned." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eles serão encerrados antes de limpar os itens de Simuladores."
+          }
+        }
+      }
+    },
+    "Xcode tools unavailable" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferramentas do Xcode indisponíveis"
+          }
+        }
+      }
+    },
+    "Install Xcode or select it in Xcode › Settings › Locations. The other categories keep working." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instale o Xcode ou selecione-o em Xcode › Ajustes › Locais. As demais categorias continuam funcionando."
+          }
+        }
+      }
+    },
+    "Some items go to the Trash" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alguns itens vão para a Lixeira"
+          }
+        }
+      }
+    },
+    "They only free space after you empty the Trash." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eles só liberam espaço quando você esvaziar a Lixeira."
+          }
+        }
+      }
+    },
+    "Xcode" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xcode"
+          }
+        }
+      }
+    },
+    "Simulators" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simuladores"
+          }
+        }
+      }
+    },
+    "Temporary files" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temporários"
+          }
+        }
+      }
+    },
+    "User data and reset" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dados do usuário e reset"
+          }
+        }
+      }
+    },
+    "Refresh" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar"
+          }
+        }
+      }
+    },
+    "Measure every category again" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medir todas as categorias de novo"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes"
+          }
+        }
+      }
+    },
+    "CleanerXcode" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CleanerXcode"
+          }
+        }
+      }
+    },
+    "Clean %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpar %@"
+          }
+        }
+      }
+    },
+    "Clean" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpar"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        }
+      }
+    },
+    "You selected items that need attention. Check what happens to each one before continuing." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Você selecionou itens que exigem atenção. Confira o que acontece com cada um antes de continuar."
+          }
+        }
+      }
+    },
+    "Confirm cleanup" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirmar limpeza"
+          }
+        }
+      }
+    },
+    "Items in the Trash only free space after you empty it." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Itens na Lixeira só liberam espaço quando você esvaziar a Lixeira."
+          }
+        }
+      }
+    },
+    "The open simulators will be shut down." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os simuladores abertos serão encerrados."
+          }
+        }
+      }
+    },
+    "Trash" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lixeira"
+          }
+        }
+      }
+    },
+    "Reset" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redefinir"
+          }
+        }
+      }
+    },
+    "Permanent" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Definitivo"
+          }
+        }
+      }
+    },
+    "No permission" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sem permissão"
+          }
+        }
+      }
+    },
+    "In use by another process" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Em uso por outro processo"
+          }
+        }
+      }
+    },
+    "Not found" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não encontrado"
+          }
+        }
+      }
+    },
+    "The Xcode tools are unavailable" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As ferramentas do Xcode estão indisponíveis"
+          }
+        }
+      }
+    },
+    "The command failed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O comando falhou"
+          }
+        }
+      }
+    },
+    "Timed out" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo esgotado"
+          }
+        }
+      }
+    },
+    "Cancelled" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelado"
+          }
+        }
+      }
+    },
+    "Blocked by an open app" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueado por um app aberto"
+          }
+        }
+      }
+    },
+    "Location not allowed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local não permitido"
+          }
+        }
+      }
+    },
+    "Unsupported location" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local não suportado"
+          }
+        }
+      }
+    },
+    "Unknown error" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erro desconhecido"
+          }
+        }
+      }
+    },
+    "Items that failed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Itens que falharam"
+          }
+        }
+      }
+    },
+    "Cancelling…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelando…"
+          }
+        }
+      }
+    },
+    "Calculating the space…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculando o espaço…"
+          }
+        }
+      }
+    },
+    "%lld of %lld categories measured" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld de %lld categorias medidas"
+          }
+        }
+      }
+    },
+    "Measuring again…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medindo de novo…"
+          }
+        }
+      }
+    },
+    "estimated" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "estimado"
+          }
+        }
+      }
+    },
+    "Can be freed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pode ser liberado"
+          }
+        }
+      }
+    },
+    "estimated · of %@ found" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "estimado · de %@ encontrados"
+          }
+        }
+      }
+    },
+    "Select at least one category below" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecione ao menos uma categoria abaixo"
+          }
+        }
+      }
+    },
+    "Nothing selected" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nada selecionado"
+          }
+        }
+      }
+    },
+    "All clean" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tudo limpo"
+          }
+        }
+      }
+    },
+    "Nothing to clean in the selected categories" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nada para limpar nas categorias selecionadas"
+          }
+        }
+      }
+    },
+    "Nothing to clean" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nada a limpar"
+          }
+        }
+      }
+    },
+    "Finishing the current item safely" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminando o item atual com segurança"
+          }
+        }
+      }
+    },
+    "Permission denied" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permissão negada"
+          }
+        }
+      }
+    },
+    "macOS blocked access to some folders" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O macOS bloqueou o acesso a algumas pastas"
+          }
+        }
+      }
+    },
+    "Open System Settings" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Ajustes do Sistema"
+          }
+        }
+      }
+    },
+    "Cleaning · %lld of %lld categories" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpando · %lld de %lld categorias"
+          }
+        }
+      }
+    },
+    "Cleanup finished" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpeza concluída"
+          }
+        }
+      }
+    },
+    "%@ went to the Trash" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ foram para a Lixeira"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "Finished with failures" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Concluída com falhas"
+          }
+        }
+      }
+    },
+    "Could not clean" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível limpar"
+          }
+        }
+      }
+    },
+    "Try again (%lld)" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tentar de novo (%lld)"
+          }
+        }
+      }
+    },
+    "Details" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detalhes"
+          }
+        }
+      }
+    },
+    "Cleanup cancelled" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpeza cancelada"
+          }
+        }
+      }
+    },
+    "Removing %@…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removendo %@…"
+          }
+        }
+      }
+    },
+    "Preparing…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparando…"
+          }
+        }
+      }
+    },
+    "Update to %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar para %@"
+          }
+        }
+      }
+    },
+    "%lld items could not be removed" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld item could not be removed"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld items could not be removed"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld item não pôde ser removido"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld itens não puderam ser removidos"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld categories cleaned" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld category cleaned"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld categories cleaned"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld categoria limpa"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld categorias limpas"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld categories finished before cancelling" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld category finished before cancelling"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld categories finished before cancelling"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld categoria concluída antes de cancelar"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld categorias concluídas antes de cancelar"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Some apps are open. Check what happens to each item before continuing." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alguns apps estão abertos. Confira o que acontece com cada item antes de continuar."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

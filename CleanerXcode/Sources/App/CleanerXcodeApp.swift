@@ -20,6 +20,7 @@ struct CleanerXcodeApp: App {
     @State private var updateStore: UpdateStore
     @State private var preferences: Preferences
     @State private var cleanerStore: CleanerStore
+    @State private var cleanerViewModel: CleanerViewModel
 
     // MARK: - Private Variables
 
@@ -28,6 +29,30 @@ struct CleanerXcodeApp: App {
     // MARK: - Public Variables
 
     var body: some Scene {
+        // The single window (R14). It opens at launch; the menu bar item stays until C22.
+        Window("CleanerXcode", id: "main") {
+            CleanerWindowView(
+                viewModel: cleanerViewModel,
+                updates: updateStore,
+                versionText: "\(Bundle.main.version) (\(Bundle.main.build))"
+            )
+            .frame(minWidth: 480, minHeight: 560)
+        }
+        .defaultSize(width: 560, height: 720)
+        .windowResizability(.contentMinSize)
+        // The test host never opens it, so tests leave no window state in the app's domain.
+        .defaultLaunchBehavior(environment.isRunningTests ? .suppressed : .presented)
+
+        // Hosts the current preferences until C22 brings the new Settings.
+        Settings {
+            PreferencesView()
+                .frame(width: 340)
+                .environment(route)
+                .environment(cleanerStore)
+                .environment(preferences)
+                .environment(analytics)
+        }
+
         MenuBarExtra {
             MainView()
                 .frame(width: 340)
@@ -83,6 +108,10 @@ struct CleanerXcodeApp: App {
             preferences: preferences,
             analytics: services.analytics,
             errorReporter: services.errorReporter
+        ))
+        _cleanerViewModel = .init(initialValue: AppContainer.makeCleanerViewModel(
+            environment: environment,
+            services: services
         ))
     }
 

@@ -14,6 +14,9 @@ nonisolated struct CleanupRestrictions: Sendable, Hashable {
 
     let blockedCategoryIDs: Set<CleanupCategoryID>
     let warnings: [CleanupCategoryID: Warning]
+    /// For the fixed notices of the window.
+    let isXcodeRunning: Bool
+    let areSimulatorsActive: Bool
 
     // MARK: - Initializers
 
@@ -33,6 +36,8 @@ nonisolated struct CleanupRestrictions: Sendable, Hashable {
 
         self.blockedCategoryIDs = blocked
         self.warnings = warnings
+        self.isXcodeRunning = isXcodeRunning
+        self.areSimulatorsActive = areSimulatorsActive
     }
 
     // MARK: - Public Methods

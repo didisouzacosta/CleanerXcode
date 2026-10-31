@@ -221,6 +221,61 @@ struct AppContainerTests {
         #expect(factory.reporter.startCount == 1)
     }
 
+    @Test
+    func testsGetACleanerThatNeverReadsTheDiskNorRunsSimctl() async {
+        let environment = AppEnvironment(isRunningTests: true, isDebug: true)
+        let services = AppContainer.makeServices(environment: environment, configuration: configuration)
+        let loginItem = LoginItemSpy(status: .notRegistered)
+
+        let viewModel = AppContainer.makeCleanerViewModel(
+            environment: environment,
+            services: services,
+            loginItem: loginItem
+        )
+        await viewModel.refresh()
+
+        // Every root sits under a folder that does not exist, so nothing on this Mac is read.
+        let roots = viewModel.categories.flatMap(\.targets).map { $0.root.path(percentEncoded: false) }
+
+        #expect(!FileManager.default.fileExists(atPath: CleanupLocations.inertBasePath))
+        #expect(roots.allSatisfy { $0.hasPrefix(CleanupLocations.inertBasePath) })
+
+        for category in viewModel.categories {
+            let needsTools = category.operation.needsSimulatorTools || category.shutsDownSimulators
+            let expected: CategoryRowState = needsTools ? .unavailable(.toolsUnavailable) : .empty
+
+            #expect(viewModel.rows[category.id] == expected, "\(category.id)")
+        }
+        #expect(loginItem.requests.isEmpty)
+    }
+
+    /// The saved choices are migrated to v2 when the window's state is made (section 9).
+    @Test
+    func outsideTestsTheCleanerMigratesThePreferences() {
+        let defaults = TestPreferencesDomain.defaults(named: "container.migration")
+
+        defer { TestPreferencesDomain.remove(named: "container.migration") }
+
+        let environment = AppEnvironment(isRunningTests: false, isDebug: true)
+        let services = AppContainer.makeServices(
+            environment: environment,
+            configuration: configuration,
+            userDefaults: defaults
+        )
+        let loginItem = LoginItemSpy(status: .notRegistered)
+
+        let viewModel = AppContainer.makeCleanerViewModel(
+            environment: environment,
+            services: services,
+            loginItem: loginItem
+        )
+
+        #expect(UserDefaultsPreferencesStore(defaults: defaults).schemaVersion == PreferencesMigrator
+            .currentSchemaVersion)
+        #expect(viewModel.selectedIDs.contains(.removeDerivedData))
+        #expect(!viewModel.selectedIDs.contains(.removeArchives))
+    }
+
 }
 
 private final class SpyAnalytics: Analytics {

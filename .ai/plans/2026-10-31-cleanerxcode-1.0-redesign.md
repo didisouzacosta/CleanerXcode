@@ -1811,3 +1811,81 @@ Nenhuma categoria nova é proposta:
   - trocar o `CleanerStore`/`Preferences` antigos;
   - chamar `windowDidActivate()` na ativação da janela;
   - mostrar os avisos e a ação para os Ajustes no `permissionDenied`.
+
+## Adendo da implementação do C20 (2026-10-31)
+
+- **Cena:** `Window("CleanerXcode", id: "main")`, 560×720 por padrão e
+  480×560 no mínimo, `windowResizability(.contentMinSize)` e
+  `defaultLaunchBehavior(.presented)`. A janela aparece no lançamento
+  (conferido abrindo o build Debug com serviços inertes: uma janela de nível 0
+  na tela), então não foi preciso trocar para `WindowGroup`. No test host a
+  cena usa `.suppressed`, para os testes não gravarem o frame da janela no
+  domínio real do app. `INFOPLIST_KEY_LSUIElement` saiu dos dois configs.
+- **Composição:** `AppContainer.makeCleanerViewModel` roda a
+  `PreferencesMigrator` antes de o ViewModel ler a seleção e monta scanner,
+  `simctl`, remover e executor reais. Test host e previews recebem
+  `CleanupLocations.inert` (raízes sob `/var/empty/CleanerXcode-inert`, que
+  não existe), `InertDiskUsageScanner`, `InertSimulatorManager`,
+  `InertCleanupExecutor` e `InertRunningApplications`, sem migração: nada lê as
+  pastas deste Mac, roda `simctl` ou toca no item de login (revisão B1: antes
+  as pastas temporárias reais ainda eram lidas pelo medidor filtrado).
+- **Interface (Figma, página 03):**
+  - toolbar com Atualizar (desabilitado fora de `allowsMeasurement`) e
+    `SettingsLink`, desenhados em glass pelo sistema;
+  - hero em `glassEffect(.regular)` (fundo sólido com Reduzir transparência),
+    ações num `GlassEffectContainer` com `.glassProminent`/`.glass`;
+  - lista agrupada sem glass (Xcode, Simuladores, Temporários, Dados do
+    usuário e reset), risco crescente dentro de cada seção, seções
+    recolhíveis com estado salvo por seção (`@AppStorage`);
+  - avisos de Xcode aberto, Simulator aberto, ferramentas indisponíveis,
+    permissão negada e itens que vão para a Lixeira;
+  - sheet de confirmação com risco e destino (Lixeira, Definitivo,
+    Redefinir); fechar a sheet só cancela enquanto ainda é confirmação;
+  - relatório no hero, com "Detalhes" mostrando os itens que falharam;
+  - rodapé com a versão e "Atualizar para X" quando há versão nova;
+  - `#Preview` de cada estado com um ViewModel real e fakes
+    (`CleanerWindowPreview`, só em DEBUG; ausente do binário Release).
+- **Lógica nova, com TDD:** `CleanerSection.grouping`, `CategoryPresentation`,
+  `HeroContent` (ações e números por fase), `CleanupReport.finishedCategoryCount`,
+  `foundBytes`, `measuredCategoryCount`, `selectedBytes(of:)`,
+  `areSimulatorToolsUnavailable`, `canToggle` (seleção congelada durante
+  confirmação e limpeza) e `CleanupRestrictions.isXcodeRunning`/
+  `areSimulatorsActive`.
+- **N13 aplicada:** `refresh()` marca `isMeasuring` antes de a tarefa começar
+  (teste `aRefreshCountsAsMeasuringBeforeItsTaskStarts`).
+- **N6 decidida:** um plano sem bytes (só o reset) mostra "Limpar", sem
+  tamanho.
+- **N9 aceita:** a ativação usa `onChange(of: appearsActive)`, não `.task`;
+  uma medição que continua depois de a janela fechar só atualiza o cache.
+- **Strings:** 120 chaves novas com pt-BR (29 → 149) no `Localizable.xcstrings`; as três
+  frases com contagem usam variação de plural em en e pt-BR. A revisão de
+  textos e truncamento fica no C25.
+- **Validação:** lint, testes e build Release (números finais na linha do C20
+  no `PROJECT_GUIDE`). O dono recusou o acesso de tela, então as capturas
+  (AC30b) foram feitas renderizando os `#Preview` fora da tela (harness
+  temporário com `NSHostingView.cacheDisplay`, 18 estados em Light, Dark e
+  Reduzir transparência, mais as duas sheets) e enviadas ao dono. Glass e
+  estilos de botão não aparecem nesse método; o aspecto real fica para o
+  C27. As capturas mostraram que o reset exibia "Zero KB"; agora mostra "—".
+- **Revisão (Manager):** B1 (locais inertes), B2 (preview de confirmação
+  parava em sucesso; preview de "cancelando" adicionado) e B3 (a sheet agora
+  mostra o aviso de app aberto em cada item e muda a introdução quando o plano
+  só pede confirmação por app aberto). NITs aplicados: N1 (contagem), N3
+  (símbolo de sucesso só em sucesso, testado), N7 (nome do teste de migração).
+  NITs registrados: N2 (plurais "1 de 1" e textos do Figma, C25), N4 (contar
+  as categorias do plano no relatório, C25), N5 (Detalhes no
+  `permissionDenied`; as linhas já mostram as falhas), N6 (ordem do TDD do
+  `HeroContent`, vermelho mostrado por mutação), N9 (ajustes pequenos de
+  SwiftUI).
+- **Pendências:**
+  - C21: a linha "Gerenciar simuladores" e a ação "Encerrar agora";
+  - C22: `MenuBarExtra(isInserted:)`, a regra de fechar a última janela (AC14),
+    a nova cena `Settings` (hoje hospeda a `PreferencesView` antiga), o botão
+    "Apoiar o projeto" do rodapé e o texto da idade mínima na Pasta temporária;
+  - C22/C24: o `MenuBarExtra` antigo (`CleanerStore`, `Preferences`,
+    scripts) continua até o C22 e convive com a nova janela; os dois gravam as
+    mesmas chaves de seleção sem sincronizar em memória (revisão N8). O C24
+    remove `CleanerStore`, `Preferences`, `Shell`, `MainView`, `Route` e o
+    pacote LaunchAtLogin;
+  - C25: revisão de strings, truncamento em en e VoiceOver real.
+

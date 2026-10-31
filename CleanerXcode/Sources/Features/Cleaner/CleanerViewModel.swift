@@ -50,6 +50,24 @@ final class CleanerViewModel {
         Set(plannedCategories.filter { $0.operation == .removeContents(.trash) }.map(\.id))
     }
 
+    /// Every measured category, selected or not: "of 87.7 GB found".
+    var foundBytes: Int64 {
+        rows.values.reduce(0) { total, row in
+            guard case let .measured(bytes) = row else { return total }
+
+            return total + bytes
+        }
+    }
+
+    /// For "9 of 15 categories measured".
+    var measuredCategoryCount: Int {
+        rows.values.count { $0 != .measuring }
+    }
+
+    var areSimulatorToolsUnavailable: Bool {
+        rows.values.contains(.unavailable(.toolsUnavailable))
+    }
+
     // MARK: - Private Properties
 
     private var plannedCategories: [CleanupCategory] {
@@ -83,7 +101,8 @@ final class CleanerViewModel {
     @ObservationIgnored private var measurementGeneration = 0
     @ObservationIgnored private var lastMeasuredAt: Date?
     @ObservationIgnored private var hasBootedSimulators = false
-    @ObservationIgnored private var isMeasuring = false
+    /// For tests: a measurement is running or about to start.
+    @ObservationIgnored private(set) var isMeasuring = false
 
     // MARK: - Initializers
 
@@ -134,6 +153,8 @@ final class CleanerViewModel {
 
         measurementGeneration += 1
         measurementTask?.cancel()
+        // Running from here on, before the task starts, so an activation never measures again.
+        isMeasuring = true
 
         let generation = measurementGeneration
         let task = Task { await measure(generation: generation) }
@@ -163,7 +184,26 @@ final class CleanerViewModel {
         await task.value
     }
 
+    /// The selected part of a section, for its header.
+    func selectedBytes(of categories: [CleanupCategory]) -> Int64 {
+        categories.reduce(0) { total, category in
+            guard selectedIDs.contains(category.id), case let .measured(bytes) = rows[category.id] else {
+                return total
+            }
+
+            return total + bytes
+        }
+    }
+
+    /// The selection is frozen while a plan is confirmed or cleaned, and an unavailable row
+    /// cannot be picked.
+    func canToggle(_ id: CleanupCategoryID) -> Bool {
+        phase.allowsMeasurement && !isUnavailable(id)
+    }
+
     func toggle(_ id: CleanupCategoryID) {
+        guard canToggle(id) else { return }
+
         if selectedIDs.contains(id) {
             selectedIDs.remove(id)
         } else {
@@ -263,7 +303,6 @@ final class CleanerViewModel {
 
     private func measure(generation: Int) async {
         measurementCount += 1
-        isMeasuring = true
 
         defer {
             // A newer measurement owns the state from here on.

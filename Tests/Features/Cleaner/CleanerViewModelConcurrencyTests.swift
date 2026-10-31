@@ -115,6 +115,24 @@ struct CleanerViewModelConcurrencyTests {
         #expect(viewModel.rows[.removeDerivedData] == .measured(4_000))
     }
 
+    /// The measurement counts as running from `refresh()` on, before its task starts, so an
+    /// activation in between never measures again (N13).
+    @Test(.timeLimit(.minutes(1)))
+    func aRefreshCountsAsMeasuringBeforeItsTaskStarts() async {
+        let scanner = GatedScannerStub(gatedRoot: derivedData, size: 4_000)
+        let viewModel = makeViewModel(scanner: scanner, selected: [.removeDerivedData])
+
+        let measuring = Task { await viewModel.refresh() }
+        await Task.yield()
+
+        #expect(viewModel.isMeasuring)
+
+        scanner.release()
+        await measuring.value
+
+        #expect(!viewModel.isMeasuring)
+    }
+
     @Test(.timeLimit(.minutes(1)))
     func aMeasurementFinishedDuringTheDebounceIsReused() async {
         let viewModel = makeViewModel(selected: [.removeDerivedData], debounce: .milliseconds(300))

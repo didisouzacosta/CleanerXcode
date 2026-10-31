@@ -333,6 +333,75 @@ struct CleanerViewModelTests {
         #expect(viewModel.measurementCount == 2)
     }
 
+    /// "de 87,7 GB encontrados" counts every measured category, selected or not.
+    @Test
+    func countsWhatWasFoundAndHowManyCategoriesAreMeasured() async {
+        let viewModel = makeViewModel(
+            sizes: [.removeDerivedData: 3_000, .removeArchives: 9_000],
+            preferences: selecting([.removeDerivedData])
+        )
+
+        #expect(viewModel.measuredCategoryCount == 0)
+
+        await viewModel.refresh()
+
+        #expect(viewModel.foundBytes == 12_000)
+        #expect(viewModel.totalBytes == 3_000)
+        #expect(viewModel.measuredCategoryCount == viewModel.categories.count)
+        #expect(viewModel.selectedBytes(of: [catalog[.removeDerivedData], catalog[.removeArchives]]) == 3_000)
+        #expect(viewModel.selectedBytes(of: [catalog[.removeArchives]]) == 0)
+    }
+
+    @Test
+    func tellsWhichAppsAreOpenAndWhetherTheToolsAreMissing() async {
+        let applications = RunningApplicationsFake(log: log, isXcodeRunning: true)
+        applications.isSimulatorRunning = true
+
+        let viewModel = makeViewModel(
+            sizes: [:],
+            simulators: SimulatorManagerStub(failingSets: [.default: .toolUnavailable]),
+            applications: applications
+        )
+
+        #expect(!viewModel.areSimulatorToolsUnavailable)
+
+        await viewModel.refresh()
+
+        #expect(viewModel.restrictions.isXcodeRunning)
+        #expect(viewModel.restrictions.areSimulatorsActive)
+        #expect(viewModel.areSimulatorToolsUnavailable)
+    }
+
+    /// The selection is frozen while a plan is confirmed or cleaned.
+    @Test
+    func theSelectionCannotChangeDuringAConfirmation() async {
+        let preferences = selecting([.removeArchives])
+        let viewModel = makeViewModel(sizes: [.removeArchives: 9_000], preferences: preferences)
+        await viewModel.refresh()
+        await viewModel.requestClean()
+
+        #expect(!viewModel.canToggle(.removeArchives))
+
+        viewModel.toggle(.removeArchives)
+
+        #expect(viewModel.selectedIDs == [.removeArchives])
+        #expect(preferences.isSelected(.removeArchives) == true)
+
+        viewModel.cancel()
+
+        #expect(viewModel.canToggle(.removeArchives))
+    }
+
+    @Test
+    func anUnavailableCategoryCannotBeToggled() async {
+        let applications = RunningApplicationsFake(log: log, isXcodeRunning: true)
+        let viewModel = makeViewModel(sizes: [:], applications: applications)
+        await viewModel.refresh()
+
+        #expect(!viewModel.canToggle(.resetXcodePreferences))
+        #expect(viewModel.canToggle(.removeDerivedData))
+    }
+
     // MARK: - Private Methods
 
     private func makeViewModel(
