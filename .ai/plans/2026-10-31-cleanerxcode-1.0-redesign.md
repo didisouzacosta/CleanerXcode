@@ -1224,3 +1224,43 @@ Nenhuma categoria nova é proposta:
   C15 entrega a medição filtrada pela `TemporaryItemsPolicy` e pelo
   `OrphanSimulatorTempFinder`, e o C19 não pode mandar essas categorias para
   o medidor bruto.
+
+## Adendo da implementação do C12 (2026-10-31)
+
+- **Contrato do `FileRemoving`**, que diverge da seção 5.4:
+  `@concurrent func removeContents(of: CleanupTarget, categoryID:, mode:,
+  filter: @Sendable (URL) -> Bool, onResult: @Sendable (CleanupItemResult) -> Void)
+  async throws`.
+  - A `SafePathPolicy` e as `CleanupLocations` (para o `displayPath`) entram
+    no init, então quem chama não consegue pular a política.
+  - Não há `remove(_:mode:)` avulso, porque nada precisa dele ainda.
+  - Filhos em `excludedNames` nem são listados, e os rejeitados pelo
+    `filter` são ignorados sem resultado.
+- **API estruturada em vez de `AsyncThrowingStream`** (B1 da revisão):
+  - com o stream, cancelar quem consumia encerrava o `next()` na hora e
+    perdia o resultado de um item já removido;
+  - agora o trabalho roda na task de quem chama, fora do ator dele. Cada
+    resultado chega antes do próximo `Task.checkCancellation()`, e o
+    `CancellationError` sobe para quem chama;
+  - o executor (C17) repassa os resultados para o próprio stream de eventos.
+- **Fluxo:**
+  - `validateRoot` roda uma vez. `.unsafePath` gera uma falha para a raiz, e
+    `.unsupportedRoot` gera um pulado.
+  - Raiz inexistente não gera resultado. Raiz ilegível gera
+    `failed(.permissionDenied)` para a raiz, mostrada sem barra final.
+  - Para cada filho: cancelamento, `validate`, tamanho (pasta pelo scanner,
+    link 0, arquivo pela própria alocação), nova verificação de cancelamento
+    e só então a remoção ou a Lixeira, via `FileOperating`.
+  - Uma falha reporta 0 bytes. Uma pasta esvaziada em parte e que falha
+    também reporta 0, então o liberado pode ficar subestimado.
+- **Lixeira:** os testes usam um espião e nunca tocam a Lixeira real. O
+  caminho real do `trashItem` fica para a validação ao vivo do C27.
+- **`SafePathPolicy`:**
+  - (R1 do C09) um symlink entre a base permitida e a raiz torna a raiz
+    `.unsupportedRoot`. A raiz resolvida precisa ser igual à base resolvida
+    mais o mesmo sufixo; symlinks acima da base, como `/var`, continuam
+    aceitos.
+  - (R3 do C09 e B2 da revisão) `PathInspecting.existence(of:)` devolve
+    `.present`, `.missing` (só `ENOENT`/`ENOTDIR`) ou `.unreadable(erro)`.
+    Um item que não pode ser consultado lança o erro real, como
+    `.permissionDenied`, em vez de `.unsafePath`.

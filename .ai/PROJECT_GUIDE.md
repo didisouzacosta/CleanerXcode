@@ -191,7 +191,10 @@ ViewModels por tela.
     - `.unsafePath` é sempre bug e é reportado;
   - `CleanupItemResult` normaliza `.failed(.notFound)` e
     `.failed(.unsupportedRoot)` em `.skipped`, então inexistência nunca vira
-    falha (R6);
+    falha (R6). `PathInspecting.existence(of:)` distingue presente, ausente
+    (`ENOENT`/`ENOTDIR`) e ilegível, e um item ilegível lança o erro real.
+    Um symlink entre a base permitida e a raiz torna a raiz
+    `.unsupportedRoot`;
   - `CategorySize` e `CategorySizeMeasurer` (C11): medem as categorias em
     paralelo com um grupo de tarefas e entregam cada resultado no ator de
     quem chama, só se a medição não foi cancelada. Categorias sem alvo não
@@ -202,6 +205,13 @@ ViewModels por tela.
     chamada, cancelamento a cada 500 itens). Raiz inexistente ou symlink
     mede 0; raiz ilegível lança `CleanupError`; subitem ilegível conta 0 e
     só a contagem é registrada;
+  - remoção (C12): `FileRemoving` e `FileSystemRemover` removem os filhos
+    diretos da raiz um a um, com `@concurrent` e `onResult` por item. A
+    `SafePathPolicy` é injetada no init e consultada antes de cada remoção.
+    `FileOperating` (`FileManagerOperations`: `removeItem` e `trashItem`)
+    isola as operações destrutivas, e os testes usam o
+    `FileOperationsSpy`, que nunca toca a Lixeira real. O cancelamento
+    acontece entre itens, e o resultado de cada item removido sempre chega;
   - `Persistence/`: `Preferences` e `StoragedValue`;
   - `Helpers/`: `Constants` (URLs via `staticURL(_:)`, que falha alto se o
     literal for inválido), `StateValue` e as extensões. `String` conforma a
@@ -405,7 +415,7 @@ validação em dispositivo físico e de serviços externos.
     No C04, com build limpo: 45 passaram, sem avisos. No C08: 96 testes
     (101 execuções com os parametrizados) passaram, sem avisos. No C09: 148
     execuções passaram, sem avisos. No C11: 165 execuções passaram, sem
-    avisos;
+    avisos. No C12: 184 execuções passaram, sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

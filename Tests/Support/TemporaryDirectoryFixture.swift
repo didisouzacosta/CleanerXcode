@@ -45,6 +45,26 @@ final class TemporaryDirectoryFixture {
         return file
     }
 
+    /// The expected size of `files`, read item by item and independently of the code under test.
+    func allocatedSize(of files: [URL]) throws -> Int64 {
+        try files.reduce(into: 0) { total, file in
+            let fresh = URL(filePath: file.path(percentEncoded: false), directoryHint: .notDirectory)
+            let values = try fresh.resourceValues(forKeys: [.totalFileAllocatedSizeKey])
+
+            // A missing size must fail loudly instead of quietly expecting 0.
+            guard let size = values.totalFileAllocatedSize else { throw CocoaError(.fileReadUnknown) }
+
+            total += Int64(size)
+        }
+    }
+
+    func setPermissions(_ permissions: Int, of url: URL) throws {
+        try FileManager.default.setAttributes(
+            [.posixPermissions: permissions],
+            ofItemAtPath: url.path(percentEncoded: false)
+        )
+    }
+
     // MARK: - Deinitializer
 
     deinit {

@@ -27,6 +27,7 @@ nonisolated struct SafePathPolicy: Sendable {
     private let inspector: any PathInspecting
     private let resolvedRoots: [[String]]
     private let resolvedProtectedPaths: [[String]]
+    private let lexicalAllowedBases: [[String]]
     private let resolvedAllowedBases: [[String]]
 
     // MARK: - Initializers
@@ -48,6 +49,7 @@ nonisolated struct SafePathPolicy: Sendable {
         self.inspector = inspector
         self.resolvedRoots = roots.map(Self.resolvedComponents)
         self.resolvedProtectedPaths = protectedPaths.map(Self.resolvedComponents)
+        self.lexicalAllowedBases = allowedBases.map(\.standardizedFileURL.pathComponents)
         self.resolvedAllowedBases = allowedBases.map(Self.resolvedComponents)
     }
 
@@ -71,8 +73,9 @@ nonisolated struct SafePathPolicy: Sendable {
     // MARK: - Public Methods
 
     /// Checks the root once per target. The root itself is never followed when it is a symlink, and
-    /// once its ancestors are resolved it must stay inside an allowed base without containing a
-    /// protected path. Returns the resolved root components.
+    /// no folder between its allowed base and itself may be a symlink either: resolved, the root
+    /// must be exactly the resolved base plus the same path, without containing a protected path.
+    /// Symlinks above the base (such as `/var`) are fine. Returns the resolved root components.
     @discardableResult
     func validateRoot(_ target: CleanupTarget) throws(CleanupError) -> [String] {
         let lexicalRoot = target.root.standardizedFileURL.pathComponents
@@ -82,10 +85,14 @@ nonisolated struct SafePathPolicy: Sendable {
         }
 
         let resolvedRoot = Self.resolvedComponents(of: target.root)
+        let staysUnderABase = zip(lexicalAllowedBases, resolvedAllowedBases).contains { lexicalBase, resolvedBase in
+            let suffix = lexicalRoot.dropFirst(lexicalBase.count)
+            return lexicalRoot.starts(with: lexicalBase) && resolvedRoot == resolvedBase + suffix
+        }
 
         guard
             !inspector.isSymbolicLink(target.root),
-            resolvedAllowedBases.contains(where: { resolvedRoot.starts(with: $0) }),
+            staysUnderABase,
             !resolvedProtectedPaths.contains(where: { $0.starts(with: resolvedRoot) })
         else { throw .unsupportedRoot }
 
@@ -96,7 +103,8 @@ nonisolated struct SafePathPolicy: Sendable {
     /// - is a strict descendant of the target root, without `.` or `..` components;
     /// - is not excluded by the target nor inside another catalog root;
     /// - is not reached through a symlinked folder that leaves the root;
-    /// - exists and lives on the root's volume.
+    /// - exists (an item that cannot be looked up throws the real error, such as
+    ///   `.permissionDenied`) and lives on the root's volume.
     ///
     /// The root never contains a protected path. A symlink item itself is accepted: only the link is
     /// removed.
@@ -117,7 +125,14 @@ nonisolated struct SafePathPolicy: Sendable {
             !nestedRoots.contains(where: { item.starts(with: $0) })
         else { throw .unsafePath }
 
-        guard inspector.exists(url) else { throw .notFound }
+        switch inspector.existence(of: url) {
+        case .present:
+            break
+        case .missing:
+            throw .notFound
+        case let .unreadable(error):
+            throw error
+        }
 
         if !inspector.isSymbolicLink(url) {
             guard let volume = inspector.volumeURL(of: url), volume == inspector.volumeURL(of: target.root) else {
@@ -130,9 +145,15 @@ nonisolated struct SafePathPolicy: Sendable {
 
 nonisolated protocol PathInspecting: Sendable {
     /// Without following a symlink item.
-    func exists(_ url: URL) -> Bool
+    func existence(of url: URL) -> PathExistence
     func isSymbolicLink(_ url: URL) -> Bool
     func volumeURL(of url: URL) -> URL?
+}
+
+nonisolated enum PathExistence: Sendable, Hashable {
+    case present
+    case missing
+    case unreadable(CleanupError)
 }
 
 nonisolated struct FileSystemPathInspector: PathInspecting {
@@ -144,13 +165,31 @@ nonisolated struct FileSystemPathInspector: PathInspecting {
         URL(filePath: url.standardizedFileURL.path(percentEncoded: false), directoryHint: .notDirectory)
     }
 
+    private static func isMissingItemError(_ error: NSError) -> Bool {
+        let posixError = error.domain == NSPOSIXErrorDomain ? error : error.userInfo[NSUnderlyingErrorKey] as? NSError
+
+        if let posixError, posixError.domain == NSPOSIXErrorDomain {
+            return [Int(ENOENT), Int(ENOTDIR)].contains(posixError.code)
+        }
+
+        return error.domain == NSCocoaErrorDomain
+            && [CocoaError.fileNoSuchFile.rawValue, CocoaError.fileReadNoSuchFile.rawValue].contains(error.code)
+    }
+
     // MARK: - Public Methods
 
-    func exists(_ url: URL) -> Bool {
+    /// Only `ENOENT` and `ENOTDIR` mean missing. Any other failure, such as a permission error, is
+    /// passed on so the remover reports the real error.
+    func existence(of url: URL) -> PathExistence {
         let path = Self.withoutTrailingSlash(url).path(percentEncoded: false)
 
         // `attributesOfItem` uses lstat, so a dangling symlink still exists.
-        return (try? FileManager().attributesOfItem(atPath: path)) != nil
+        do {
+            _ = try FileManager().attributesOfItem(atPath: path)
+            return .present
+        } catch {
+            return Self.isMissingItemError(error as NSError) ? .missing : .unreadable(CleanupError(error))
+        }
     }
 
     func isSymbolicLink(_ url: URL) -> Bool {

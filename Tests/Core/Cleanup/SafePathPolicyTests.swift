@@ -109,16 +109,73 @@ struct SafePathPolicyTests {
         #expect(throws: Never.self) { try policy.validate(link, in: CleanupTarget(root: root)) }
     }
 
+    /// For example `/var/folders/…/T`, where `/var` is a symlink above the base.
     @Test
-    func acceptsRootsGivenThroughSymlinkedAncestorsThatStayInsideTheBase() throws {
+    func acceptsRootsWhoseBaseIsReachedThroughASymlink() throws {
         try fixture.makeDirectory("real/T")
         let child = try fixture.makeFile("real/T/item")
-        let alias = fixture.url.appending(path: "alias")
+        let alias = fixture.url.appending(path: "alias", directoryHint: .isDirectory)
         try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: fixture.url.appending(path: "real"))
         let root = alias.appending(path: "T", directoryHint: .isDirectory)
-        let policy = makePolicy(roots: [root])
+        let policy = SafePathPolicy(roots: [root], protectedPaths: [], allowedBases: [alias])
 
         #expect(throws: Never.self) { try policy.validate(child, in: CleanupTarget(root: root)) }
+    }
+
+    /// For example `CoreSimulator` pointing at `~/Library`, which would make `CoreSimulator/Caches`
+    /// land on `~/Library/Caches` while staying inside the base.
+    @Test
+    func rootWithASymlinkBetweenTheBaseAndItselfIsUnsupported() throws {
+        let base = try fixture.makeDirectory("Library")
+        try fixture.makeFile("Library/Caches/com.apple.Safari/Cache.db")
+        try fixture.makeDirectory("Library/Developer")
+        try FileManager.default.createSymbolicLink(
+            at: base.appending(path: "Developer/CoreSimulator"),
+            withDestinationURL: base
+        )
+        let root = base.appending(path: "Developer/CoreSimulator/Caches", directoryHint: .isDirectory)
+        let policy = SafePathPolicy(roots: [root], protectedPaths: [], allowedBases: [base])
+
+        #expect(throws: CleanupError.unsupportedRoot) { try policy.validateRoot(CleanupTarget(root: root)) }
+    }
+
+    @Test
+    func rootOutsideEveryAllowedBaseIsUnsupported() throws {
+        let base = try fixture.makeDirectory("Library")
+        let root = try fixture.makeDirectory("Documents")
+        let policy = SafePathPolicy(roots: [root], protectedPaths: [], allowedBases: [base])
+
+        #expect(throws: CleanupError.unsupportedRoot) { try policy.validateRoot(CleanupTarget(root: root)) }
+    }
+
+    @Test
+    func inspectorOnlyTreatsMissingItemsAsMissing() throws {
+        let inspector = FileSystemPathInspector()
+        let file = try fixture.makeFile("a.txt")
+        let dangling = fixture.url.appending(path: "dangling")
+        try FileManager.default.createSymbolicLink(
+            at: dangling,
+            withDestinationURL: fixture.url.appending(path: "gone")
+        )
+        let locked = try fixture.makeDirectory("locked")
+        let insideLocked = try fixture.makeFile("locked/b.txt")
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o000],
+            ofItemAtPath: locked.path(percentEncoded: false)
+        )
+
+        defer {
+            try? FileManager.default.setAttributes(
+                [.posixPermissions: 0o755],
+                ofItemAtPath: locked.path(percentEncoded: false)
+            )
+        }
+
+        #expect(inspector.existence(of: file) == .present)
+        #expect(inspector.existence(of: dangling) == .present)
+        #expect(inspector.existence(of: insideLocked) == .unreadable(.permissionDenied))
+        #expect(inspector.existence(of: fixture.url.appending(path: "missing")) == .missing)
+        #expect(inspector.existence(of: file.appending(path: "child")) == .missing, "ENOTDIR means missing.")
     }
 
     /// For example `~/Library/Caches/CocoaPods` pointing at `~`: the root itself is never followed.
@@ -191,6 +248,27 @@ struct SafePathPolicyTests {
         #expect(throws: CleanupError.notFound) {
             try policy.validate(root.appending(path: "Gone-abc"), in: CleanupTarget(root: root))
         }
+    }
+
+    /// A folder that can be read but not searched hides its items' attributes.
+    @Test
+    func itemThatCannotBeLookedUpIsPermissionDeniedInsteadOfUnsafe() throws {
+        let root = try fixture.makeDirectory("Caches")
+        let item = try fixture.makeFile("Caches/a.bin")
+        let policy = makePolicy(roots: [root])
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: root.path(percentEncoded: false)
+        )
+
+        defer {
+            try? FileManager.default.setAttributes(
+                [.posixPermissions: 0o755],
+                ofItemAtPath: root.path(percentEncoded: false)
+            )
+        }
+
+        #expect(throws: CleanupError.permissionDenied) { try policy.validate(item, in: CleanupTarget(root: root)) }
     }
 
     @Test
@@ -277,8 +355,8 @@ nonisolated private struct VolumeInspectorStub: PathInspecting {
 
     // MARK: - Public Methods
 
-    func exists(_ url: URL) -> Bool {
-        FileSystemPathInspector().exists(url)
+    func existence(of url: URL) -> PathExistence {
+        FileSystemPathInspector().existence(of: url)
     }
 
     func isSymbolicLink(_ url: URL) -> Bool {
