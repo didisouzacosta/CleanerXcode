@@ -167,6 +167,7 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Atualização | `Sources/Features/Update/UpdateStore.swift`, `Sources/Core/Contracts/ApplicationInfo.swift`, `Sources/Core/Models/Version.swift`, `Sources/Core/Helpers/Extensions/Bundle+Extension.swift`, `Config.xcconfig`, `resources/version.json` |
 | Analytics | `Sources/Core/Integrations/{Analytics,HimetricaAnalytics,NullAnalytics,AnalyticsTracker}.swift`, preferência `send-anonymous-analytics` em `Sources/Core/Persistence/Preferences.swift` |
 | Domínio da limpeza nativa (C09) | `Sources/Core/Cleanup/*.swift` (`CleanupCatalog`, `SafePathPolicy`, `CleanupReport`) |
+| Medição de tamanho (C11) | `Sources/Core/FileSystem/{DiskUsageScanning,FileSystemSizeScanner}.swift`, `Sources/Core/Cleanup/{CategorySize,CategorySizeMeasurer}.swift` |
 | Erros e crashes | `Sources/Core/Integrations/{ErrorReporting,NullErrorReporter,SentryErrorReporter,ErrorReportingConfiguration,SentryEventSanitizer}.swift` |
 | Componentes visuais | `Sources/Features/Cleaner/Components/*.swift` |
 | Distribuição | `releases/CleanerXcode.dmg`, `RELEASE_NOTES.md`, `resources/version.json` |

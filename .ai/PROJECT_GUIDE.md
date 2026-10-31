@@ -192,6 +192,16 @@ ViewModels por tela.
   - `CleanupItemResult` normaliza `.failed(.notFound)` e
     `.failed(.unsupportedRoot)` em `.skipped`, então inexistência nunca vira
     falha (R6);
+  - `CategorySize` e `CategorySizeMeasurer` (C11): medem as categorias em
+    paralelo com um grupo de tarefas e entregam cada resultado no ator de
+    quem chama, só se a medição não foi cancelada. Categorias sem alvo não
+    geram resultado. As categorias temporárias não podem passar pelo medidor
+    bruto; a medição delas vem do C15;
+  - `FileSystem/` (C11): `DiskUsageScanning` e `FileSystemSizeScanner`
+    (`@concurrent`, sem `du`, sem seguir links, `FileManager` próprio por
+    chamada, cancelamento a cada 500 itens). Raiz inexistente ou symlink
+    mede 0; raiz ilegível lança `CleanupError`; subitem ilegível conta 0 e
+    só a contagem é registrada;
   - `Persistence/`: `Preferences` e `StoragedValue`;
   - `Helpers/`: `Constants` (URLs via `staticURL(_:)`, que falha alto se o
     literal for inválido), `StateValue` e as extensões. `String` conforma a
@@ -394,7 +404,8 @@ validação em dispositivo físico e de serviços externos.
     Repetido no C02 com o scheme compartilhado e o test plan: 35 passaram.
     No C04, com build limpo: 45 passaram, sem avisos. No C08: 96 testes
     (101 execuções com os parametrizados) passaram, sem avisos. No C09: 148
-    execuções passaram, sem avisos;
+    execuções passaram, sem avisos. No C11: 165 execuções passaram, sem
+    avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

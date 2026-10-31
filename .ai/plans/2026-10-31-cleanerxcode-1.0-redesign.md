@@ -1173,3 +1173,54 @@ Nenhuma categoria nova é proposta:
   Application Support. Sem categoria.
 - `~/Library/Developer/Xcode/UntitledProjects` contém projetos do usuário e
   nenhuma raiz do catálogo o alcança. Isso continua obrigatório.
+
+## Adendo da implementação do C11 (2026-10-31)
+
+- **`FileSystemSizeScanner`** (`Core/FileSystem`, conforma `DiskUsageScanning`):
+  - `nonisolated struct` com `@concurrent func allocatedSize(of:)`. A
+    enumeração síncrona fica numa função estática, e cada chamada cria o
+    próprio `FileManager` por uma fábrica injetável, que os testes usam para
+    cancelar no meio e observar a thread.
+  - A raiz é lida por `attributesOfItem` (lstat). Raiz inexistente mede 0, e
+    raiz symlink mede 0, como o `.unsupportedRoot` da `SafePathPolicy`. Raiz
+    ilegível lança o `CleanupError` mapeado, por exemplo `.permissionDenied`.
+  - Diretórios e links contam 0, e links nunca são seguidos. Os
+    `excludedNames` valem só no nível 1. Um subitem ilegível conta 0, e só a
+    contagem vai para o `os.Logger`, sem caminho. O protocolo continua
+    devolvendo `Int64`, como na seção 5.4.
+  - O cancelamento é verificado no início e a cada 500 itens. Não há
+    verificação depois do laço, para que o teste do lote seja
+    discriminante. Uma medição cancelada no último lote parcial ainda pode
+    devolver um valor, e quem chama verifica o cancelamento antes de usar o
+    resultado.
+- **`CategorySizeMeasurer`** (`Core/Cleanup`) diverge da seção 5.3:
+  - o grupo de tarefas sai do ViewModel para um helper reutilizável no Core.
+    O `CleanerViewModel` (C19) continua dono do `Task` da medição e cancela a
+    anterior antes de começar outra;
+  - há um filho por categoria com alvo, e os alvos de cada categoria são
+    medidos em sequência. Um alvo que falha fica fora da soma e vai em
+    `CategorySize.failure`;
+  - `measure` recebe `isolation: isolated (any Actor)? = #isolation`, e o
+    corpo do grupo captura o parâmetro, porque pela SE-0420 uma closure só
+    herda o isolamento capturando-o. Sem isso, o teste viu os resultados
+    fora da main thread;
+  - cada resultado só é entregue depois de `Task.checkCancellation()`, então
+    uma medição cancelada não entrega nada;
+  - categorias sem alvo (`remove-old-simulators` e
+    `reset-xcode-preferences`) não geram resultado; o tamanho delas vem do
+    `simctl` (C14).
+- **Limitações aceitas:**
+  - hard links e clones APFS contam por arquivo, como já indica o rótulo
+    "estimado" da R2;
+  - as cerca de 13 medições simultâneas ocupam threads do pool cooperativo
+    com I/O bloqueante. Isso não afeta a interface, porque o main actor não
+    usa o pool, e só pode atrasar outras tarefas assíncronas durante a
+    medição. Limitar os filhos fica para o C19, se a medição real mostrar
+    impacto.
+- **Pendência para o C15 e o C19:** as categorias temporárias são medidas
+  brutas aqui. `clear-orphan-simulator-temp` (ligada por padrão) e
+  `clear-temporary-files` têm `/private/var/tmp` como alvo, então a medição
+  bruta contaria a pasta inteira nas duas e inflaria o "Limpar <total>". O
+  C15 entrega a medição filtrada pela `TemporaryItemsPolicy` e pelo
+  `OrphanSimulatorTempFinder`, e o C19 não pode mandar essas categorias para
+  o medidor bruto.
