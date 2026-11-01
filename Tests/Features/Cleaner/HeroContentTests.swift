@@ -133,6 +133,37 @@ struct HeroContentTests {
         #expect(hero(.permissionDenied(failure)).symbol?.tint == .failure)
     }
 
+    /// The summary card's indicator: a progress bar while the first measurement or a cleanup
+    /// runs, the space bar while idle, and nothing on a report (Figma page 08).
+    @Test
+    func eachPhaseHasItsIndicator() {
+        let progress = CleanupProgress(totalCategories: 4, startedCategories: 2, currentCategory: .removeCaches)
+        let report = CleanupReport(results: [result(.removed)])
+
+        #expect(hero(.measuring(first: true)).indicator == .progress(0.2), "3 of 15 categories measured.")
+        #expect(hero(.cleaning(progress)).indicator == .progress(0.25))
+
+        for phase: CleanerPhase in [
+            .measuring(first: false),
+            .ready,
+            .confirming(CleanupPlan(categories: [])),
+            .nothingSelected,
+            .nothingToClean,
+        ] {
+            #expect(hero(phase).indicator == .breakdown, "\(phase)")
+        }
+
+        for phase: CleanerPhase in [.cancelling(freedBytes: 1), .finished(report), .permissionDenied(report)] {
+            #expect(hero(phase).indicator == HeroContent.Indicator.none, "\(phase)")
+        }
+    }
+
+    /// The window no longer lists the categories below the total (Figma page 08).
+    @Test
+    func nothingSelectedNoLongerPointsBelow() {
+        #expect(hero(.nothingSelected).detail == String(localized: "Select at least one category"))
+    }
+
     // MARK: - Private Methods
 
     private func hero(_ phase: CleanerPhase, totalBytes: Int64 = 0) -> HeroContent {

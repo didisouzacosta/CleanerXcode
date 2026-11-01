@@ -61,7 +61,28 @@ final class SimulatorsViewModel {
         await reload()
     }
 
-    /// The toolbar's Refresh: lists again only a section that was already opened.
+    /// The window's activation lists only the first time, from `idle`, so the overview card and
+    /// the sidebar badge have the lists (D9). With no simulators, without the tools or after a
+    /// failure, activating the window again never runs `simctl` again; the page and Refresh do.
+    func loadOnActivation() async {
+        guard phase == .idle else { return }
+
+        await load()
+    }
+
+    /// Opening the "Simulators and runtimes" page: lists unless the lists are shown, being listed
+    /// or being changed, so an empty list, a failure or missing tools are tried again.
+    func loadIfNeeded() async {
+        switch phase {
+        case .loaded, .loading, .deleting:
+            return
+
+        case .idle, .empty, .toolsUnavailable, .failed:
+            await load()
+        }
+    }
+
+    /// The toolbar's Refresh: lists again only lists that were already loaded once.
     func reloadIfOpened() async {
         switch phase {
         case .idle, .loading, .deleting:

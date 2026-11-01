@@ -2340,3 +2340,53 @@ Nenhuma categoria nova é proposta:
   - o `unreadableOutput` da seção de simuladores não vai para o Sentry (N7
     do C21).
 
+## Adendo da implementação do C32 (2026-10-31)
+
+Pedido do dono: a janela aberta parecia uma coluna; ela passa a ter tamanho
+comum, inspirada em apps de limpeza de espaço e seguindo a HIG. Design na
+página 08 do Figma ("Janela · tamanho comum (C32)").
+
+- **Janela (R29, D1, D2):** `Window` com id novo `WindowID.main` (`"cleaner"`),
+  `defaultSize` 920×620, mínimo 760×520 e `windowResizability(.contentMinSize)`.
+  O frame de 560 pt salvo na era da coluna (`NSWindow Frame main`) fica órfão e
+  não é restaurado. `WindowHeightFitter` e `WindowFitting` saíram, com os testes.
+- **Navegação (R30, D3, D4, D5):** `NavigationSplitView` com barra lateral
+  nativa; a seleção é `SidebarDestination` em `@SceneStorage`
+  (`sidebar-destination`, padrão Visão geral, nunca vazia). ⌘1–⌘6 no menu
+  Visualizar (`CleanerCommands`, `@FocusedBinding`), ⌃⌘S por `SidebarCommands`,
+  ⌘R no Atualizar. Limpar e Tentar de novo não têm atalho; Esc só cancela uma
+  limpeza e Return só fecha o relatório.
+- **Barra de ação (R36, R41, D6):** `ActionBarContent` adapta o `HeroContent`
+  (que continua a fonte única e serve o painel sem mudança): o principal fica à
+  direita, "Ver detalhes" vira "Ocultar detalhes", o medindo inicial mostra
+  "Calculando o espaço…" e "—", e a limpeza mostra "Limpando · n de m" com a
+  barra fina. Fica em `.safeAreaBar(edge: .bottom)` do detalhe, sem fundo
+  próprio: o conteúdo rola por baixo do vidro e o último item sobe acima da
+  barra pelo próprio inset.
+- **Bordas da rolagem (R42):** `.scrollEdgeEffectStyle(.soft, for: .all)` no
+  detalhe da janela, na lista da barra lateral (com o rodapé em `.safeAreaBar`,
+  correção B3), no `ScrollView` dos Ajustes › Sobre, no `Form` dos Ajustes
+  › Geral e na preview da página de simuladores.
+- **Visão geral (R33, R37, D7, D8, D11):** o hero virou o `OverviewSummaryCard`
+  (cartão sólido, sem botões), com `HeroContent.indicator` (progresso no
+  medindo inicial e na limpeza, `SpaceBreakdown` nos estados parados, nada nos
+  relatórios). Os avisos aparecem por página (`CleanerNotice`). Os cartões de
+  seção usam `SectionSummary` com estilo `.count` nas fases paradas e `.bytes`
+  nas outras; a barra lateral usa `sidebarText`.
+- **Simuladores e runtimes (R35, D9):** `SimulatorsPageView` sem seções
+  recolhíveis; `SimulatorsViewModel.loadOnActivation()` lista só na primeira
+  ativação da janela (fase `idle`), para o cartão e o selo da barra lateral; ao
+  abrir a página, `loadIfNeeded()` lista de novo depois de lista vazia, falha ou
+  ferramentas ausentes (correção B2 da revisão 1).
+  `SimulatorPresentation` ganhou `statusDetail`, `duplicateBadgeCount`,
+  `devicesCaption` e `runtimesCaption`; o antigo `sectionSummary` saiu.
+- **Removidos:** `CleanerHeroView`, `CategorySectionView`,
+  `CollapsibleSectionHeader`, `WindowFooterView`, `SimulatorsSectionView`,
+  `WindowHeightFitter` e `WindowFitting`. As chaves `@AppStorage` de seções
+  recolhidas ficam órfãs, sem migração.
+- **Textos (D12):** "Select at least one category below" virou "Select at
+  least one category"; chaves novas com pt-BR; cinco chaves sem uso removidas.
+- **Validação:** 432 testes únicos (476 casos executados) passaram, sem avisos; lint sem violações;
+  Release sem avisos; auditoria de strings sem chave faltando ou sobrando.
+  A conferência visual (AC33l) ficou pendente porque a sessão do Mac estava
+  bloqueada; o harness está pronto fora de `Tests/`.

@@ -7,16 +7,16 @@
 
 import SwiftUI
 
-/// The single window (R14, Figma page 03): the hero with the total and the main action, the fixed
-/// notices, and the grouped list. Glass stays on the controls layer only (the toolbar and the
-/// hero); the list content has none.
+/// The single window (R14, Figma page 08): a native sidebar with the overview, the four cleanup
+/// sections and "Simulators and runtimes", and a detail column that scrolls under the fixed action
+/// bar. The selected page is kept per window. The cleanup confirmation sheet lives here, so it
+/// shows on any page and when the menu bar panel asks for it.
 struct CleanerWindowView: View {
 
     // MARK: - States
 
-    @State private var isShowingFailures = false
-    @State private var contentHeight: CGFloat = 0
-    @State private var footerHeight: CGFloat = 0
+    @SceneStorage("sidebar-destination") private var destination: SidebarDestination = .overview
+    @State private var isShowingFailures: Bool
 
     // MARK: - Environments
 
@@ -29,70 +29,44 @@ struct CleanerWindowView: View {
     let updates: UpdateViewModel
     let versionText: String
     /// Logs the donation; the footer opens the page.
-    var onSupport: () -> Void = {}
+    let onSupport: () -> Void
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 18) {
-                CleanerHeroView(isShowingFailures: $isShowingFailures, viewModel: viewModel)
-                    // A cleanup never starts while simulators or a runtime are being deleted.
-                    .disabled(simulators.phase.isDeleting)
-
-                if CleanerNoticesView.hasNotices(viewModel) {
-                    CleanerNoticesView(viewModel: viewModel, isDeletingSimulators: simulators.phase.isDeleting)
-                        .subtleTransition()
-                }
-
-                if isShowingFailures, let report = viewModel.phase.report, !report.failedResults.isEmpty {
-                    FailedItemsCard(
-                        results: report.failedResults,
-                        title: report.outcome == .failure ? "No item was removed" : "Items that failed"
-                    )
-                    .subtleTransition()
-                }
-
-                ForEach(sections) { group in
-                    CategorySectionView(group: group, viewModel: viewModel)
-                }
-
-                SimulatorsSectionView(viewModel: simulators, isLocked: !viewModel.phase.allowsMeasurement)
-            }
-            .padding(EdgeInsets(top: 4, leading: 16, bottom: 14, trailing: 16))
-            .subtleAnimation(value: viewModel.phase.kind)
-            .subtleAnimation(value: viewModel.rows)
-            .subtleAnimation(value: viewModel.selectedIDs)
-            .subtleAnimation(value: viewModel.restrictions)
-            .subtleAnimation(value: isShowingFailures)
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
-        }
-        .background(Palette.window)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            WindowFooterView(updates: updates, versionText: versionText, onSupport: onSupport)
-                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { footerHeight = $0 }
-        }
-        // The window follows the content up to the screen, smoothly, with no empty band below it.
-        .background(WindowHeightFitter(contentHeight: contentHeight > 0 ? contentHeight + footerHeight : 0))
-        .toolbar {
-            CleanerToolbar(viewModel: viewModel, simulators: simulators)
+        NavigationSplitView {
+            CleanerSidebarView(
+                selection: $destination,
+                viewModel: viewModel,
+                simulators: simulators,
+                updates: updates,
+                versionText: versionText,
+                onSupport: onSupport
+            )
+            .navigationSplitViewColumnWidth(min: 220, ideal: 244, max: 320)
+            // As in the layout; ⌃⌘S and the View menu still show or hide the sidebar.
+            .toolbar(removing: .sidebarToggle)
+        } detail: {
+            CleanerDetailView(
+                destination: $destination,
+                isShowingFailures: $isShowingFailures,
+                viewModel: viewModel,
+                simulators: simulators
+            )
         }
         .sheet(isPresented: isConfirming) {
             CleanupConfirmationSheet(viewModel: viewModel)
         }
+        .focusedSceneValue(\.sidebarDestination, $destination)
         .onChange(of: viewModel.phase.report) {
             isShowingFailures = false
         }
         .onChange(of: appearsActive, initial: true) {
             guard appearsActive else { return }
 
-            Task { await viewModel.windowDidActivate() }
+            activate()
         }
     }
 
     // MARK: - Private Properties
-
-    private var sections: [CleanerSection.Group] {
-        CleanerSection.grouping(viewModel.categories)
-    }
 
     /// Closing the sheet only cancels while it is still a confirmation, never a running cleanup.
     private var isConfirming: Binding<Bool> {
@@ -109,32 +83,35 @@ struct CleanerWindowView: View {
         }
     }
 
-}
+    // MARK: - Initializers
 
-/// Refresh and Settings, icons with labels for VoiceOver; the system draws them in glass.
-private struct CleanerToolbar: ToolbarContent {
+    /// Previews start on a page, with the failed items open.
+    init(
+        viewModel: CleanerViewModel,
+        simulators: SimulatorsViewModel,
+        updates: UpdateViewModel,
+        versionText: String,
+        initialDestination: SidebarDestination = .overview,
+        isShowingFailuresInitially: Bool = false,
+        onSupport: @escaping () -> Void = {}
+    ) {
+        self.viewModel = viewModel
+        self.simulators = simulators
+        self.updates = updates
+        self.versionText = versionText
+        self.onSupport = onSupport
+        _destination = SceneStorage(wrappedValue: initialDestination, "sidebar-destination")
+        _isShowingFailures = State(initialValue: isShowingFailuresInitially)
+    }
 
-    // MARK: - Public Properties
+    // MARK: - Private Methods
 
-    let viewModel: CleanerViewModel
-    let simulators: SimulatorsViewModel
-
-    var body: some ToolbarContent {
-        ToolbarItemGroup(placement: .primaryAction) {
-            Button("Refresh", systemImage: "arrow.clockwise") {
-                Task {
-                    await viewModel.refresh()
-                    await simulators.reloadIfOpened()
-                }
-            }
-            .help("Measure every category again")
-            .disabled(!viewModel.phase.allowsMeasurement)
-
-            SettingsLink {
-                Label("Settings", systemImage: "gearshape")
-            }
-            .help("Settings")
-        }
+    /// Measures past the debounce and the cache (R1), and lists the simulators only on the first
+    /// activation, so the overview card and the sidebar badge have them (D9). Both tasks are
+    /// unstructured: closing the window never turns them into a failure.
+    private func activate() {
+        Task { await viewModel.windowDidActivate() }
+        Task { await simulators.loadOnActivation() }
     }
 
 }
@@ -180,6 +157,10 @@ private struct CleanerToolbar: ToolbarContent {
         CleanerWindowPreview(.finished(.partialFailure))
     }
 
+    #Preview("Partial failure · details open") {
+        CleanerWindowPreview(.finished(.partialFailure), isShowingFailures: true)
+    }
+
     #Preview("Failure") {
         CleanerWindowPreview(.finished(.failure))
     }
@@ -196,6 +177,10 @@ private struct CleanerToolbar: ToolbarContent {
         CleanerWindowPreview(.xcodeOpen)
     }
 
+    #Preview("User data · Xcode open") {
+        CleanerWindowPreview(.xcodeOpen, destination: .userData)
+    }
+
     #Preview("Simulator open") {
         CleanerWindowPreview(.simulatorOpen)
     }
@@ -204,11 +189,16 @@ private struct CleanerToolbar: ToolbarContent {
         CleanerWindowPreview(.toolsUnavailable)
     }
 
-    // macOS ignores `dynamicTypeSize` for these text styles (renders are identical); the real
-    // large-text check is in C27.
-    #Preview("Large text") {
-        CleanerWindowPreview(.ready)
-            .dynamicTypeSize(.xxxLarge)
+    #Preview("Xcode page") {
+        CleanerWindowPreview(.ready, destination: .xcode)
+    }
+
+    #Preview("Simulators and runtimes page") {
+        CleanerWindowPreview(.ready, destination: .simulatorsAndRuntimes)
+    }
+
+    #Preview("Minimum size") {
+        CleanerWindowPreview(.ready, size: CGSize(width: 760, height: 520))
     }
 
     #Preview("Reduce transparency") {
@@ -217,6 +207,21 @@ private struct CleanerToolbar: ToolbarContent {
 
     #Preview("Dark") {
         CleanerWindowPreview(.ready)
+            .preferredColorScheme(.dark)
+    }
+
+    #Preview("Dark · Xcode page") {
+        CleanerWindowPreview(.ready, destination: .xcode)
+            .preferredColorScheme(.dark)
+    }
+
+    #Preview("Dark · Success") {
+        CleanerWindowPreview(.finished(.success))
+            .preferredColorScheme(.dark)
+    }
+
+    #Preview("Dark · Simulators and runtimes") {
+        CleanerWindowPreview(.ready, destination: .simulatorsAndRuntimes)
             .preferredColorScheme(.dark)
     }
 #endif

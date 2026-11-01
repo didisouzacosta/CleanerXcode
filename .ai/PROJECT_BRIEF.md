@@ -17,13 +17,18 @@
 
 Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
 
-- A janela principal acompanha a altura do conteúdo até o limite da tela;
-  acima disso, a lista rola. Nunca sobra faixa vazia entre o conteúdo e o
-  rodapé. A mudança de altura é suave, com o topo da janela fixo.
+- A janela principal abre com tamanho comum (920×620, mínimo 760×520), é
+  redimensionável e o macOS lembra o tamanho e a posição; a navegação usa
+  barra lateral nativa (Visão geral, as quatro seções e Simuladores e
+  runtimes); o conteúdo do detalhe rola e a barra de ação, com o total e a
+  ação principal, fica sempre visível (C32, Figma página 08).
+- O conteúdo rola por baixo da toolbar e da barra de ação, sem corte seco, e
+  toda rolagem usa o efeito de borda suave (blur) no topo e na base (pedido do
+  dono no C32).
 - Toda mudança na tela tem uma animação sutil: nada aparece, some ou muda de
   forma brusca (seções, avisos, cartões, textos, números e botões). Com
-  Reduzir movimento, nada desliza nem muda de escala: as mudanças, inclusive o
-  tamanho da janela, acontecem de uma vez.
+  Reduzir movimento, nada desliza nem muda de escala: as mudanças acontecem de
+  uma vez.
 
 ### Fluxos
 
@@ -148,7 +153,8 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 - Regra obrigatória de conferência visual (pedido do dono em 2026-10-31): toda
   tarefa que cria ou altera uma tela tem uma etapa própria, antes da revisão do
   Manager e do commit, que compara a tela feita com o layout aprovado no Figma
-  (arquivo `n2zvygzbWufumwsOYd1PAj`, páginas 03 a 05). A comparação é feita
+  (arquivo `n2zvygzbWufumwsOYd1PAj`, páginas 03 a 05 e 08; a página 08,
+  "Janela · tamanho comum (C32)", substitui a janela em coluna da página 03). A comparação é feita
   estado a estado, com o render da tela ao lado do frame correspondente,
   conferindo estrutura, hierarquia, textos, cores, espaçamentos, formas e
   componentes. Não precisa ser idêntica pixel a pixel, mas a igualdade tem de
@@ -192,7 +198,8 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Migração de preferências e abrir no login (C18) | `Sources/Core/Persistence/{PreferencesStoring,UserDefaultsPreferencesStore,PreferencesMigrator}.swift`, `Sources/Core/Platform/LoginItemManaging.swift` |
 | ViewModel da limpeza (C19) | `Sources/Features/Cleaner/{CleanerPhase,CleanupProgress,CategoryRowState,SimulatorSnapshot,CleanerViewModel,CleanupOutcomeReporter}.swift`, `Sources/Core/Cleanup/Executor/CleanupExecuting.swift` |
 | Janela única (C20) | `Sources/Features/Cleaner/Window/*.swift`, `Sources/Features/Cleaner/Presentation/*.swift`, `Sources/Core/Cleanup/InertCleanupServices.swift`, `Sources/App/{CleanerXcodeApp,AppContainer}.swift` |
-| Simuladores e runtimes (C21) | `Sources/Features/Simulators/*.swift`, `Sources/Features/Cleaner/Window/CollapsibleSectionHeader.swift` |
+| Simuladores e runtimes (C21) | `Sources/Features/Simulators/*.swift` |
+| Janela de tamanho comum com barra lateral (C32) | `Sources/App/{CleanerXcodeApp,WindowID}.swift`, `Sources/Features/Cleaner/Window/{CleanerWindowView,CleanerSidebarView,SidebarFooterView,CleanerDetailView,ActionBarView,OverviewView,OverviewSummaryCard,SpaceBreakdownBar,SectionCardView,CategoryPageView,SectionHeaderView,GlassSurface,CleanerCommands}.swift`, `Sources/Features/Cleaner/Presentation/{SidebarDestination,ActionBarContent,SpaceBreakdown,CleanerNotice,OverviewPresentation}.swift`, `Sources/Features/Simulators/SimulatorsPageView.swift` |
 | Ajustes, barra de menus e Sobre (C22) | `Sources/Features/Settings/*.swift`, `Sources/App/CleanerXcodeApp.swift` (`AppDelegate`) |
 | Atualização (C23) | `Sources/Core/Update/{SemanticVersion,VersionChecking}.swift`, `Sources/Features/Update/{UpdateViewModel,UpdatePreview}.swift` |
 | Erros e crashes | `Sources/Core/Integrations/{ErrorReporting,NullErrorReporter,SentryErrorReporter,ErrorReportingConfiguration,SentryEventSanitizer}.swift` |

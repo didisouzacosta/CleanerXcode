@@ -1,0 +1,266 @@
+//
+//  CleanerDetailView.swift
+//  CleanerXcode
+//
+//  Created by Adriano Costa on 31/10/26.
+//
+
+import SwiftUI
+
+/// The detail column (Figma page 08): the page of the selected destination, scrolling under the
+/// toolbar and under the fixed action bar with the soft edge effect at the top and the bottom
+/// (R41, R42). The bar sits in the bottom safe area, with no background of its own.
+struct CleanerDetailView: View {
+
+    // MARK: - States
+
+    @State private var scrollPosition = ScrollPosition(edge: .top)
+
+    // MARK: - Environments
+
+    @Environment(\.openURL) private var openURL
+
+    // MARK: - Bindings
+
+    @Binding var destination: SidebarDestination
+    @Binding var isShowingFailures: Bool
+
+    // MARK: - Public Properties
+
+    let viewModel: CleanerViewModel
+    let simulators: SimulatorsViewModel
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                CleanerPageView(
+                    destination: destination,
+                    isShowingFailures: isShowingFailures,
+                    viewModel: viewModel,
+                    simulators: simulators,
+                    onSelect: select
+                )
+                .id(destination)
+                .subtleTransition()
+            }
+            .padding(EdgeInsets(top: 4, leading: 20, bottom: 12, trailing: 20))
+            .subtleAnimation(value: destination)
+        }
+        .scrollPosition($scrollPosition)
+        .scrollEdgeEffectStyle(.soft, for: .all)
+        .background(Palette.window)
+        .navigationTitle(Text(destination.title))
+        .navigationSubtitle(Text(verbatim: subtitle))
+        .toolbar {
+            CleanerToolbar(viewModel: viewModel, simulators: simulators)
+        }
+        .safeAreaBar(edge: .bottom) {
+            ActionBarView(content: barContent, onAction: perform)
+                .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
+                // A cleanup never starts while simulators or a runtime are being deleted.
+                .disabled(simulators.phase.isDeleting)
+                .subtleAnimation(value: viewModel.phase.kind)
+        }
+        .onChange(of: destination) {
+            scrollToTop()
+        }
+    }
+
+    // MARK: - Private Properties
+
+    private var barContent: ActionBarContent {
+        ActionBarContent(
+            hero: HeroContent(viewModel: viewModel),
+            phase: viewModel.phase,
+            isShowingDetails: isShowingFailures
+        )
+    }
+
+    /// The section's count, the simulators' status, and nothing on the overview.
+    private var subtitle: String {
+        switch destination {
+        case .overview:
+            return ""
+
+        case .simulatorsAndRuntimes:
+            return SimulatorPresentation.statusDetail(
+                phase: simulators.phase,
+                devices: simulators.devices,
+                duplicateUDIDs: simulators.duplicateUDIDs,
+                runtimes: simulators.runtimes
+            )
+
+        case .xcode, .simulators, .temporary, .userData:
+            guard
+                let group = CleanerSection.grouping(viewModel.categories)
+                    .first(where: { $0.section == destination.section })
+            else {
+                return ""
+            }
+
+            return SectionSummary(
+                categories: group.categories,
+                selectedIDs: viewModel.selectedIDs,
+                selectedBytes: viewModel.selectedBytes(of: group.categories),
+                rows: viewModel.rows,
+                phase: viewModel.phase,
+                style: .count
+            )
+            .text
+        }
+    }
+
+    // MARK: - Private Methods
+
+    private func select(_ newDestination: SidebarDestination) {
+        destination = newDestination
+    }
+
+    /// A new page starts at its top; the jump has no animation, so only the page's fade shows.
+    private func scrollToTop() {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+
+        withTransaction(transaction) {
+            scrollPosition.scrollTo(edge: .top)
+        }
+    }
+
+    private func perform(_ kind: HeroContent.Action.Kind) {
+        switch kind {
+        case .clean:
+            Task { await viewModel.requestClean() }
+
+        case .cancel:
+            viewModel.cancel()
+
+        case .dismiss:
+            viewModel.dismissReport()
+
+        case .retry:
+            Task { await viewModel.retryFailed() }
+
+        case .toggleDetails:
+            toggleDetails()
+
+        case .openPrivacySettings:
+            openURL(HeroContent.fullDiskAccessURL)
+        }
+    }
+
+    /// The failed items live on the overview: from another page, the button opens it with them.
+    private func toggleDetails() {
+        if destination == .overview {
+            isShowingFailures.toggle()
+        } else {
+            destination = .overview
+            isShowingFailures = true
+        }
+    }
+
+}
+
+/// The notices of the page, then its content.
+private struct CleanerPageView: View {
+
+    // MARK: - Public Properties
+
+    let destination: SidebarDestination
+    let isShowingFailures: Bool
+    let viewModel: CleanerViewModel
+    let simulators: SimulatorsViewModel
+    let onSelect: (SidebarDestination) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if !notices.isEmpty {
+                CleanerNoticesView(
+                    notices: notices,
+                    viewModel: viewModel,
+                    isDeletingSimulators: simulators.phase.isDeleting
+                )
+                .subtleTransition()
+            }
+
+            switch destination {
+            case .overview:
+                OverviewView(
+                    viewModel: viewModel,
+                    simulators: simulators,
+                    isShowingFailures: isShowingFailures,
+                    onSelect: onSelect
+                )
+
+            case .simulatorsAndRuntimes:
+                SimulatorsPageView(viewModel: simulators, isLocked: !viewModel.phase.allowsMeasurement)
+
+            case .xcode, .simulators, .temporary, .userData:
+                if let group {
+                    CategoryPageView(group: group, viewModel: viewModel)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .subtleAnimation(value: viewModel.phase.kind)
+        .subtleAnimation(value: viewModel.rows)
+        .subtleAnimation(value: viewModel.selectedIDs)
+        .subtleAnimation(value: viewModel.restrictions)
+        .subtleAnimation(value: isShowingFailures)
+    }
+
+    // MARK: - Private Properties
+
+    private var notices: [CleanerNotice] {
+        CleanerNotice.notices(
+            for: destination,
+            phase: viewModel.phase,
+            restrictions: viewModel.restrictions,
+            areSimulatorToolsUnavailable: viewModel.areSimulatorToolsUnavailable,
+            trashBound: viewModel.trashBoundCategoryIDs
+        )
+    }
+
+    private var group: CleanerSection.Group? {
+        CleanerSection.grouping(viewModel.categories).first { $0.section == destination.section }
+    }
+
+}
+
+/// Refresh (⌘R) and Settings, icons with labels for VoiceOver; the system draws them in glass.
+private struct CleanerToolbar: ToolbarContent {
+
+    // MARK: - Public Properties
+
+    let viewModel: CleanerViewModel
+    let simulators: SimulatorsViewModel
+
+    var body: some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+            Button("Refresh", systemImage: "arrow.clockwise", action: refresh)
+                .help("Measure every category again")
+                .keyboardShortcut("r")
+                .disabled(!viewModel.phase.allowsMeasurement)
+
+            SettingsLink {
+                Label("Settings", systemImage: "gearshape")
+            }
+            .help("Settings")
+        }
+    }
+
+    // MARK: - Private Methods
+
+    private func refresh() {
+        Task {
+            await viewModel.refresh()
+            await simulators.reloadIfOpened()
+        }
+    }
+
+}
+
+#if DEBUG
+    #Preview("Xcode") {
+        CleanerWindowPreview(.ready, destination: .xcode)
+    }
+#endif

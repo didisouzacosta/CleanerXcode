@@ -116,6 +116,23 @@ Desde o C20 o app tem uma janela única (`Window`), a cena `Settings` e o
 e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
 às Views. Os detalhes de cada card estão nos adendos do plano.
 
+- Janela (C32, Figma página 08): a cena `Window` usa o id `WindowID.main`
+  (`"cleaner"`), abre com `defaultSize` 920×620, aceita no mínimo 760×520
+  (`windowResizability(.contentMinSize)`) e o macOS lembra o frame; não há
+  ajuste de altura ao conteúdo (`WindowHeightFitter` saiu). A raiz
+  `CleanerWindowView` é um `NavigationSplitView`: a barra lateral nativa
+  (`CleanerSidebarView`, `List(selection:)` com `.listStyle(.sidebar)`, rodapé
+  `SidebarFooterView` em `.safeAreaBar`, com `.scrollEdgeEffectStyle(.soft,
+  for: .all)`) e o detalhe (`CleanerDetailView`), um `ScrollView` com a
+  página do destino, `.scrollEdgeEffectStyle(.soft, for: .all)` e a
+  `ActionBarView` em `.safeAreaBar(edge: .bottom)`. A seleção é o enum puro
+  `SidebarDestination`, guardado por janela em `@SceneStorage`; ⌘1–⌘6 vêm de
+  `CleanerCommands` (`@FocusedBinding`) e ⌃⌘S de `SidebarCommands`. A sheet de
+  confirmação da limpeza fica na raiz. Os textos e as regras ficam em tipos
+  puros testados: `ActionBarContent` (adaptador sobre `HeroContent`),
+  `SpaceBreakdown`, `CleanerNotice`, `OverviewPresentation`, `SectionSummary`
+  e `SimulatorPresentation`.
+
 - Layout (card C04): código em `CleanerXcode/Sources/{App,Core,Features}`,
   recursos em `CleanerXcode/Resources` e testes em `Tests/`, na raiz do repo,
   como root group sincronizado do target `CleanerXcodeTests`.
@@ -146,7 +163,7 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
   `Sources/Core/Update` (`SemanticVersion`, `VersionChecking`).
 - Features (`Sources/Features`):
   - `Cleaner/`: `CleanerViewModel`, `Presentation/` e `Window/` (a janela);
-  - `Simulators/`: a seção "Gerenciar simuladores";
+  - `Simulators/`: a página "Simuladores e runtimes" (`SimulatorsPageView`);
   - `Settings/`: Ajustes, painel e rótulo da barra de menus;
   - `Update/`: `UpdateViewModel`.
 - Infraestrutura (`Sources/Core`):
@@ -296,13 +313,18 @@ existente por conta própria.
   - `CleanerViewModel`: fase da janela (`CleanerPhase`), linhas por categoria,
     seleção (persistida no `PreferencesStoring`), restrições de apps abertos e
     o relatório da última limpeza;
-  - `SimulatorsViewModel`: fase da seção, simuladores, runtimes, seleção e a
-    confirmação pendente;
+  - `SimulatorsViewModel`: fase das listas, simuladores, runtimes, seleção e a
+    confirmação pendente; `loadOnActivation()` lista só na primeira ativação
+    da janela (a partir de `idle`), e `loadIfNeeded()`, ao abrir a página
+    "Simuladores e runtimes", lista de novo depois de lista vazia, falha ou
+    ferramentas ausentes. Reativar a janela nunca roda o `simctl` de novo;
   - `SettingsViewModel`: os switches dos Ajustes (store) e o status do login
     item (`SMAppService`);
   - `UpdateViewModel`: a atualização disponível;
-  - estado local de View: seções recolhidas (`@AppStorage`) e "Detalhes" do
-    relatório.
+  - estado local de View: a página da barra lateral (`@SceneStorage`
+    `sidebar-destination`) e "Detalhes" do relatório. Não há seções
+    recolhidas desde o C32; as chaves antigas `section-collapsed-*` e
+    `simulators-list-expanded` ficam órfãs, sem migração.
 - Isolamento de atores e tarefas:
   - com `MainActor` como isolamento padrão, os ViewModels são isolados no main
     actor; o I/O de disco e de processo roda em serviços `@concurrent`
@@ -463,7 +485,7 @@ validação em dispositivo físico e de serviços externos.
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
     passaram, sem avisos. No C18: 295 execuções passaram, sem avisos. No C19: 325 execuções
     passaram, sem avisos. No C20: 345 execuções passaram, sem avisos. No C21: 370
-    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos;
+    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

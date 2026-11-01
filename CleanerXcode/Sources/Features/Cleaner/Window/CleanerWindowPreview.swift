@@ -9,15 +9,15 @@
     import SwiftUI
 
     /// Drives a real `CleanerViewModel` with fakes over `CleanupLocations.inert` into each state of
-    /// the Figma page 03, so the previews never read this Mac's folders, run `simctl` or remove
-    /// anything.
+    /// the Figma page 08, at the window's default size, so the previews never read this Mac's
+    /// folders, run `simctl` or remove anything.
     struct CleanerWindowPreview: View {
 
         // MARK: - States
 
         @State private var viewModel: CleanerViewModel
         @State private var simulators = SimulatorsSectionPreview.makeViewModel(for: .loaded)
-        @State private var updates = UpdatePreview.makeViewModel()
+        @State private var updates = UpdatePreview.makeViewModel(hasUpdate: true)
 
         // MARK: - Public Properties
 
@@ -26,11 +26,15 @@
                 viewModel: viewModel,
                 simulators: simulators,
                 updates: updates,
-                versionText: "1.0.0 (115)"
+                versionText: "1.0.0 (115)",
+                initialDestination: destination,
+                isShowingFailuresInitially: isShowingFailures
             )
             .environment(\.reducesTransparencyOverride, reducesTransparency ? true : nil)
-            .frame(width: 560)
+            .frame(width: size.width, height: size.height)
             .task {
+                await updates.check()
+                await simulators.load()
                 await Self.prepare(viewModel, for: scenario)
             }
         }
@@ -38,13 +42,25 @@
         // MARK: - Private Properties
 
         private let scenario: Scenario
+        private let destination: SidebarDestination
+        private let isShowingFailures: Bool
         private let reducesTransparency: Bool
+        private let size: CGSize
 
         // MARK: - Initializers
 
-        init(_ scenario: Scenario, reducesTransparency: Bool = false) {
+        init(
+            _ scenario: Scenario,
+            destination: SidebarDestination = .overview,
+            isShowingFailures: Bool = false,
+            reducesTransparency: Bool = false,
+            size: CGSize = CGSize(width: 920, height: 620)
+        ) {
             self.scenario = scenario
+            self.destination = destination
+            self.isShowingFailures = isShowingFailures
             self.reducesTransparency = reducesTransparency
+            self.size = size
             _viewModel = State(initialValue: Self.makeViewModel(for: scenario))
         }
 
@@ -131,6 +147,78 @@
             case xcodeOpen
             case simulatorOpen
             case toolsUnavailable
+        }
+
+    }
+
+    /// The notices on their own, prepared by the same fakes.
+    struct NoticesPreview: View {
+
+        // MARK: - States
+
+        @State private var viewModel: CleanerViewModel
+
+        // MARK: - Public Properties
+
+        var body: some View {
+            // Always-present content, so the task runs before any notice exists.
+            ZStack {
+                Color.clear
+
+                CleanerNoticesView(notices: notices, viewModel: viewModel, isDeletingSimulators: isDeletingSimulators)
+                    .padding()
+            }
+            .frame(width: 668, height: 200)
+            .task {
+                await CleanerWindowPreview.prepare(viewModel, for: scenario)
+            }
+        }
+
+        // MARK: - Private Properties
+
+        private let scenario: CleanerWindowPreview.Scenario
+        private let notices: [CleanerNotice]
+        private let isDeletingSimulators: Bool
+
+        // MARK: - Initializers
+
+        init(scenario: CleanerWindowPreview.Scenario, notices: [CleanerNotice], isDeletingSimulators: Bool = false) {
+            self.scenario = scenario
+            self.notices = notices
+            self.isDeletingSimulators = isDeletingSimulators
+            _viewModel = State(initialValue: CleanerWindowPreview.makeViewModel(for: scenario))
+        }
+
+    }
+
+    /// The action bar of a phase on its own, at the detail's width.
+    struct ActionBarPreview: View {
+
+        // MARK: - Public Properties
+
+        let phase: CleanerPhase
+
+        var isShowingDetails = false
+
+        var body: some View {
+            ActionBarView(content: content) { _ in }
+                .padding(16)
+                .frame(width: 668)
+                .background(Palette.window)
+        }
+
+        // MARK: - Private Properties
+
+        private var content: ActionBarContent {
+            let hero = HeroContent(
+                phase: phase,
+                totalBytes: 35_800_000_000,
+                foundBytes: 87_700_000_000,
+                measuredCategoryCount: 15,
+                categoryCount: 15
+            )
+
+            return ActionBarContent(hero: hero, phase: phase, isShowingDetails: isShowingDetails)
         }
 
     }

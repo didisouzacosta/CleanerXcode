@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// The groups of the main list, in the approved order (Figma, page 03): Xcode, Simulators,
+/// The cleanup sections, in the approved order (Figma pages 03 and 08): Xcode, Simulators,
 /// Temporary files, and User data and reset. Inside each group the riskier items come last.
 enum CleanerSection: String, CaseIterable, Identifiable {
 
@@ -33,14 +33,24 @@ enum CleanerSection: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Kept per section, so a collapsed section stays collapsed (owner adjustment to C01).
-    var collapsedStorageKey: String {
-        "section-collapsed-\(rawValue)"
+    /// The sidebar, the menu and the space legend use the short title (Figma page 08).
+    var shortTitle: LocalizedStringResource {
+        switch self {
+        case .userData: "User data"
+        case .xcode, .simulators, .temporary: title
+        }
     }
 
-    // MARK: - Private Properties
+    var systemImage: String {
+        switch self {
+        case .xcode: "square.stack.3d.up"
+        case .simulators: "macbook.and.iphone"
+        case .temporary: "clock"
+        case .userData: "person"
+        }
+    }
 
-    private var categoryIDs: [CleanupCategoryID] {
+    var categoryIDs: [CleanupCategoryID] {
         switch self {
         case .xcode:
             [.removeDerivedData, .removeCaches, .clearDeviceSupport, .removeSwiftPMCache, .removeXcodeProducts]

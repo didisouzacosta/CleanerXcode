@@ -44,8 +44,9 @@ struct CleanerXcodeApp: App {
     // MARK: - Public Variables
 
     var body: some Scene {
-        // The single window (R14). It opens at launch.
-        Window("CleanerXcode", id: "main") {
+        // The single window (R14). It opens at launch with a common size (Figma page 08); it is
+        // resizable and macOS keeps its frame. The content scrolls, so nothing fits the height.
+        Window("CleanerXcode", id: WindowID.main) {
             CleanerWindowView(
                 viewModel: cleanerViewModel,
                 simulators: simulatorsViewModel,
@@ -54,17 +55,20 @@ struct CleanerXcodeApp: App {
             ) {
                 settingsViewModel.logDonation()
             }
-            .frame(minWidth: 480, minHeight: 320)
+            .frame(minWidth: 760, minHeight: 520)
             .task {
                 // Inert in the test host and previews; errors stay silent (R16).
                 await updateViewModel.check()
             }
         }
-        .defaultSize(width: 560, height: 720)
-        // The height follows the content (`WindowHeightFitter`), animated.
+        .defaultSize(width: 920, height: 620)
         .windowResizability(.contentMinSize)
         // The test host never opens it, so tests leave no window state in the app's domain.
         .defaultLaunchBehavior(environment.isRunningTests ? .suppressed : .presented)
+        .commands {
+            SidebarCommands()
+            CleanerCommands()
+        }
 
         Settings {
             SettingsView(viewModel: settingsViewModel, updates: updateViewModel, versionText: versionText)

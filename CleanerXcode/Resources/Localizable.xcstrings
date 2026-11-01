@@ -1,16 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " "
-          }
-        }
-      }
-    },
     "Dedication" : {
       "localizations" : {
         "pt-BR" : {
@@ -467,26 +457,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Os simuladores abertos serão encerrados"
-          }
-        }
-      }
-    },
-    "Collapsed" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recolhida"
-          }
-        }
-      }
-    },
-    "Expanded" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Expandida"
           }
         }
       }
@@ -971,16 +941,6 @@
         }
       }
     },
-    "Select at least one category below" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selecione ao menos uma categoria abaixo"
-          }
-        }
-      }
-    },
     "Nothing selected" : {
       "localizations" : {
         "pt-BR" : {
@@ -1315,16 +1275,6 @@
         }
       }
     },
-    "Shows or hides the items of this section" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra ou oculta os itens desta seção"
-          }
-        }
-      }
-    },
     "%@ · %@ · %@" : {
       "localizations" : {
         "pt-BR" : {
@@ -1481,16 +1431,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "e mais %lld"
-          }
-        }
-      }
-    },
-    "Manage simulators" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gerenciar simuladores"
           }
         }
       }
@@ -1949,16 +1889,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remover %@"
-          }
-        }
-      }
-    },
-    "%lld" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld"
           }
         }
       }
@@ -2711,6 +2641,158 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld categories with selected items" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "no categories with selected items"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld category with selected items"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld categories with selected items"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "nenhuma categoria com itens selecionados"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld categoria com itens selecionados"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld categorias com itens selecionados"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Cleanup" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpeza"
+          }
+        }
+      }
+    },
+    "Hide details" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar detalhes"
+          }
+        }
+      }
+    },
+    "Manage" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerenciar"
+          }
+        }
+      }
+    },
+    "Opens this section" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre esta seção"
+          }
+        }
+      }
+    },
+    "Overview" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visão geral"
+          }
+        }
+      }
+    },
+    "Sections" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seções"
+          }
+        }
+      }
+    },
+    "Select at least one category" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecione ao menos uma categoria"
+          }
+        }
+      }
+    },
+    "Space by section" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espaço por seção"
+          }
+        }
+      }
+    },
+    "User data" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dados do usuário"
+          }
+        }
+      }
+    },
+    "cleaning…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "limpando…"
           }
         }
       }

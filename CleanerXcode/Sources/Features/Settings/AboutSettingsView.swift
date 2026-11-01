@@ -58,6 +58,8 @@ struct AboutSettingsView: View {
             }
             .padding(20)
         }
+        // R42: the soft edge effect at the top and the bottom of every scroll.
+        .scrollEdgeEffectStyle(.soft, for: .all)
         .frame(height: 560)
     }
 

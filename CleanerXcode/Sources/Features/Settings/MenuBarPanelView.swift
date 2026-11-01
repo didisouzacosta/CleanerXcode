@@ -222,7 +222,7 @@ struct MenuBarPanelView: View {
     }
 
     private func openMainWindow() {
-        openWindow(id: "main")
+        openWindow(id: WindowID.main)
         NSApplication.shared.activate()
     }
 

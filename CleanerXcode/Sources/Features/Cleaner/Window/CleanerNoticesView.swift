@@ -7,91 +7,24 @@
 
 import SwiftUI
 
-/// The fixed notices (plan section 2.4): Xcode open, simulators open, the Xcode tools missing,
-/// a permission denied, and the selected items that go to the Trash.
+/// The fixed notices (plan section 2.4) a page shows (Figma page 08, `CleanerNotice`): a
+/// permission denied, Xcode open, simulators open, the Xcode tools missing, and the selected items
+/// that go to the Trash.
 struct CleanerNoticesView: View {
 
     // MARK: - Public Properties
 
+    let notices: [CleanerNotice]
     let viewModel: CleanerViewModel
     /// Simulators or a runtime are being deleted: shutting everything down now could break it.
     var isDeletingSimulators = false
 
     var body: some View {
         VStack(spacing: 8) {
-            if case let .permissionDenied(report) = viewModel.phase {
-                NoticeView(
-                    systemImage: "lock.fill",
-                    tint: .red,
-                    title: "Full Disk Access needed",
-                    message: permissionMessage(report)
-                )
-            }
-
-            if viewModel.restrictions.isXcodeRunning {
-                NoticeView(
-                    systemImage: "exclamationmark.triangle.fill",
-                    tint: .orange,
-                    title: "Xcode is open",
-                    message: "Close Xcode to clean its user data and preferences. DerivedData may have items in use."
-                )
-            }
-
-            if viewModel.restrictions.areSimulatorsActive {
-                NoticeView(
-                    systemImage: "ipad.and.iphone",
-                    tint: .orange,
-                    title: "Simulators are open",
-                    message: "They will be shut down before the Simulators items are cleaned.",
-                    action: NoticeView.Action(
-                        title: "Shut down now",
-                        isEnabled: viewModel.phase.allowsMeasurement && !isDeletingSimulators
-                    ) {
-                        Task { await viewModel.shutDownSimulators() }
-                    }
-                )
-            }
-
-            if viewModel.areSimulatorToolsUnavailable {
-                NoticeView(
-                    systemImage: "wrench.and.screwdriver.fill",
-                    tint: .orange,
-                    title: "Xcode tools unavailable",
-                    message: """
-                    Install Xcode or select it in Xcode › Settings › Locations. \
-                    The other categories keep working.
-                    """
-                )
-            }
-
-            if !viewModel.trashBoundCategoryIDs.isEmpty {
-                NoticeView(
-                    systemImage: "trash",
-                    tint: .secondary,
-                    title: "Some items go to the Trash",
-                    message: "They only free space after you empty the Trash."
-                )
+            ForEach(notices) { notice in
+                view(for: notice)
             }
         }
-    }
-
-}
-
-extension CleanerNoticesView {
-
-    // MARK: - Public Methods
-
-    /// Whether any notice shows; without one the window leaves no empty gap (same conditions as
-    /// `body`).
-    static func hasNotices(_ viewModel: CleanerViewModel) -> Bool {
-        if case .permissionDenied = viewModel.phase {
-            return true
-        }
-
-        return viewModel.restrictions.isXcodeRunning
-            || viewModel.restrictions.areSimulatorsActive
-            || viewModel.areSimulatorToolsUnavailable
-            || !viewModel.trashBoundCategoryIDs.isEmpty
     }
 
 }
@@ -100,9 +33,66 @@ private extension CleanerNoticesView {
 
     // MARK: - Private Methods
 
+    @ViewBuilder
+    func view(for notice: CleanerNotice) -> some View {
+        switch notice {
+        case .permissionDenied:
+            NoticeView(
+                systemImage: "lock.fill",
+                tint: .red,
+                title: "Full Disk Access needed",
+                message: permissionMessage(viewModel.phase.report)
+            )
+
+        case .xcodeOpen:
+            NoticeView(
+                systemImage: "exclamationmark.triangle.fill",
+                tint: .orange,
+                title: "Xcode is open",
+                message: "Close Xcode to clean its user data and preferences. DerivedData may have items in use."
+            )
+
+        case .simulatorsOpen:
+            NoticeView(
+                systemImage: "ipad.and.iphone",
+                tint: .orange,
+                title: "Simulators are open",
+                message: "They will be shut down before the Simulators items are cleaned.",
+                action: NoticeView.Action(
+                    title: "Shut down now",
+                    isEnabled: viewModel.phase.allowsMeasurement && !isDeletingSimulators,
+                    perform: shutDownSimulators
+                )
+            )
+
+        case .toolsUnavailable:
+            NoticeView(
+                systemImage: "wrench.and.screwdriver.fill",
+                tint: .orange,
+                title: "Xcode tools unavailable",
+                message: """
+                Install Xcode or select it in Xcode › Settings › Locations. \
+                The other categories keep working.
+                """
+            )
+
+        case .trashBound:
+            NoticeView(
+                systemImage: "trash",
+                tint: .secondary,
+                title: "Some items go to the Trash",
+                message: "They only free space after you empty the Trash."
+            )
+        }
+    }
+
+    func shutDownSimulators() {
+        Task { await viewModel.shutDownSimulators() }
+    }
+
     /// Names the folder when macOS blocked only one, as in the approved layout.
-    func permissionMessage(_ report: CleanupReport) -> LocalizedStringResource {
-        let blocked = report.permissionDeniedResults
+    func permissionMessage(_ report: CleanupReport?) -> LocalizedStringResource {
+        let blocked = report?.permissionDeniedResults ?? []
 
         if blocked.count == 1 {
             return """
@@ -176,58 +166,22 @@ private struct NoticeView: View {
 
 #if DEBUG
     #Preview("Xcode open") {
-        @Previewable @State var viewModel = CleanerWindowPreview.makeViewModel(for: .xcodeOpen)
-
-        // Always-present content, so the task runs before any notice exists.
-        ZStack {
-            Color.clear
-
-            CleanerNoticesView(viewModel: viewModel)
-                .padding()
-        }
-        .frame(width: 560, height: 160)
-        .task { await viewModel.refresh() }
+        NoticesPreview(scenario: .xcodeOpen, notices: [.xcodeOpen])
     }
 
     #Preview("Simulator open") {
-        @Previewable @State var viewModel = CleanerWindowPreview.makeViewModel(for: .simulatorOpen)
-
-        // Always-present content, so the task runs before any notice exists.
-        ZStack {
-            Color.clear
-
-            CleanerNoticesView(viewModel: viewModel)
-                .padding()
-        }
-        .frame(width: 560, height: 160)
-        .task { await viewModel.refresh() }
+        NoticesPreview(scenario: .simulatorOpen, notices: [.simulatorsOpen])
     }
 
     #Preview("Simulator open · deleting simulators") {
-        @Previewable @State var viewModel = CleanerWindowPreview.makeViewModel(for: .simulatorOpen)
-
-        // Always-present content, so the task runs before any notice exists.
-        ZStack {
-            Color.clear
-
-            CleanerNoticesView(viewModel: viewModel, isDeletingSimulators: true)
-                .padding()
-        }
-        .frame(width: 560, height: 160)
-        .task { await viewModel.refresh() }
+        NoticesPreview(scenario: .simulatorOpen, notices: [.simulatorsOpen], isDeletingSimulators: true)
     }
 
     #Preview("Xcode tools unavailable") {
-        @Previewable @State var viewModel = CleanerWindowPreview.makeViewModel(for: .toolsUnavailable)
+        NoticesPreview(scenario: .toolsUnavailable, notices: [.toolsUnavailable])
+    }
 
-        // Always-present content, so the task runs before any notice exists.
-        ZStack {
-            Color.clear
-
-            CleanerNoticesView(viewModel: viewModel)
-                .padding()
-        }
-        .frame(width: 560, height: 160)
-        .task { await viewModel.refresh() }
+    #Preview("Permission denied and Trash") {
+        NoticesPreview(scenario: .permissionDenied, notices: [.permissionDenied, .trashBound])
     }
 #endif

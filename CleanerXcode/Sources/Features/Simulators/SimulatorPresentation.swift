@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Names and symbols of the Simulators section, derived from the `simctl` identifiers.
+/// Names, symbols and summaries of the "Simulators and runtimes" page, derived from `simctl`.
 enum SimulatorPresentation {
 
     // MARK: - Private Properties
@@ -81,47 +81,85 @@ enum SimulatorPresentation {
         }
     }
 
-    /// Next to the section title: the duplicates when expanded, both counts when collapsed
-    /// (Figma page 03), and nothing before the lists are loaded.
-    static func sectionSummary(
-        deviceCount: Int,
-        duplicateCount: Int,
-        isLoaded: Bool,
-        isCollapsed: Bool
-    ) -> SectionSummary? {
-        guard isLoaded else { return nil }
+    /// "14 simulators · 3 duplicates (7.2 GB) · 2 runtimes (15.1 GB)" once listed, or why there is
+    /// nothing to show: the overview card and the page subtitle (Figma page 08). Already localized:
+    /// the loaded summary joins several plurals.
+    static func statusDetail(
+        phase: SimulatorsPhase,
+        devices: [SimulatorDevice],
+        duplicateUDIDs: Set<String>,
+        runtimes: [SimulatorRuntime]
+    ) -> String {
+        switch phase {
+        case .idle, .loading:
+            String(localized: "Loading the simulators…")
 
-        if duplicateCount == 0 {
-            return .simulators(deviceCount)
+        case .empty:
+            String(localized: "No simulators or runtimes")
+
+        case .toolsUnavailable:
+            String(localized: "Unavailable without Xcode")
+
+        case let .failed(error):
+            String(localized: "Could not list the simulators: \(String(localized: error.summary))")
+
+        case .loaded, .deleting:
+            loadedDetail(devices: devices, duplicateUDIDs: duplicateUDIDs, runtimes: runtimes)
         }
-
-        return isCollapsed ? .simulatorsAndDuplicates(deviceCount, duplicateCount) : .duplicates(duplicateCount)
     }
 
-    // MARK: - Nested Types
+    /// The sidebar badge: the duplicates, only once listed and when there are any.
+    static func duplicateBadgeCount(phase: SimulatorsPhase, duplicateCount: Int) -> Int? {
+        phase.showsLists && duplicateCount > 0 ? duplicateCount : nil
+    }
 
-    enum SectionSummary: Equatable {
+    /// "14 · 3 duplicates (5.2 GB)" next to the "Simulators" header.
+    static func devicesCaption(devices: [SimulatorDevice], duplicateUDIDs: Set<String>) -> String {
+        let duplicates = devices.filter { duplicateUDIDs.contains($0.udid) }
 
-        // MARK: - Cases
+        guard !duplicates.isEmpty else { return devices.count.formatted() }
 
-        case simulators(Int)
-        case duplicates(Int)
-        case simulatorsAndDuplicates(Int, Int)
+        let duplicateCount = String(localized: "\(duplicates.count) duplicates")
 
-        // MARK: - Public Properties
+        return String(localized: "\(devices.count) · \(duplicateCount) (\(format(totalBytes(of: duplicates))))")
+    }
 
-        /// Already localized: the collapsed summary joins two plurals.
-        var text: String {
-            switch self {
-            case let .simulators(count):
-                String(localized: "\(count) simulators")
-            case let .duplicates(count):
-                String(localized: "\(count) duplicates")
-            case let .simulatorsAndDuplicates(devices, duplicates):
-                "\(String(localized: "\(devices) simulators")) · \(String(localized: "\(duplicates) duplicates"))"
-            }
+    /// "15.1 GB in 2 runtimes" next to the "Runtimes" header.
+    static func runtimesCaption(runtimes: [SimulatorRuntime]) -> String {
+        let bytes = format(runtimes.reduce(0) { $0 + $1.sizeBytes })
+
+        return String(localized: "\(bytes) in \(String(localized: "\(runtimes.count) runtimes"))")
+    }
+
+    // MARK: - Private Methods
+
+    private static func loadedDetail(
+        devices: [SimulatorDevice],
+        duplicateUDIDs: Set<String>,
+        runtimes: [SimulatorRuntime]
+    ) -> String {
+        let duplicates = devices.filter { duplicateUDIDs.contains($0.udid) }
+        let runtimeBytes = runtimes.reduce(0) { $0 + $1.sizeBytes }
+
+        var parts = [String(localized: "\(devices.count) simulators")]
+
+        if !duplicates.isEmpty {
+            let duplicateCount = String(localized: "\(duplicates.count) duplicates")
+
+            parts.append("\(duplicateCount) (\(format(totalBytes(of: duplicates))))")
         }
 
+        parts.append("\(String(localized: "\(runtimes.count) runtimes")) (\(format(runtimeBytes)))")
+
+        return parts.joined(separator: " · ")
+    }
+
+    private static func totalBytes(of devices: [SimulatorDevice]) -> Int64 {
+        devices.reduce(0) { $0 + $1.sizeBytes }
+    }
+
+    private static func format(_ bytes: Int64) -> String {
+        bytes.formatted(.byteCount(style: .file))
     }
 
 }

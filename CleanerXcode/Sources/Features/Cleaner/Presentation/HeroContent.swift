@@ -31,6 +31,8 @@ struct HeroContent {
     let progress: Double?
     let symbol: Symbol?
     let actions: [Action]
+    /// What the overview's summary card shows under the total (Figma page 08).
+    let indicator: Indicator
 
     // MARK: - Initializers
 
@@ -63,15 +65,17 @@ struct HeroContent {
                 eyebrow: "Can be freed",
                 amount: total,
                 detail: String(localized: "estimated · of \(Self.format(foundBytes)) found"),
-                actions: [.clean(totalBytes: totalBytes, isEnabled: isReady)]
+                actions: [.clean(totalBytes: totalBytes, isEnabled: isReady)],
+                indicator: .breakdown
             )
 
         case .nothingSelected:
             self.init(
                 eyebrow: "Can be freed",
                 amount: total,
-                detail: String(localized: "Select at least one category below"),
-                actions: [Action(.clean, "Nothing selected", isEnabled: false)]
+                detail: String(localized: "Select at least one category"),
+                actions: [Action(.clean, "Nothing selected", isEnabled: false)],
+                indicator: .breakdown
             )
 
         case .nothingToClean:
@@ -79,7 +83,8 @@ struct HeroContent {
                 eyebrow: "All clean",
                 amount: total,
                 detail: String(localized: "Nothing to clean in the selected categories"),
-                actions: [Action(.clean, "Nothing to clean", isEnabled: false)]
+                actions: [Action(.clean, "Nothing to clean", isEnabled: false)],
+                indicator: .breakdown
             )
 
         case let .cleaning(progress):
@@ -98,21 +103,25 @@ struct HeroContent {
             self.init(report: report)
 
         case let .permissionDenied(report):
-            self.init(
-                eyebrow: "Permission denied",
-                amount: Self.format(report.freedBytes),
-                isFreedAmount: report.freedBytes > 0,
-                isAmountDimmed: report.freedBytes == 0,
-                detail: String(
-                    localized: "macOS blocked access to \(max(report.permissionDeniedResults.count, 1)) items"
-                ),
-                symbol: Symbol(name: "lock.fill", tint: .failure),
-                actions: [
-                    Action(.openPrivacySettings, "Open System Settings"),
-                    Action(.retry, "Try again", style: .secondary),
-                ]
-            )
+            self.init(permissionDenied: report)
         }
+    }
+
+    private init(permissionDenied report: CleanupReport) {
+        self.init(
+            eyebrow: "Permission denied",
+            amount: Self.format(report.freedBytes),
+            isFreedAmount: report.freedBytes > 0,
+            isAmountDimmed: report.freedBytes == 0,
+            detail: String(
+                localized: "macOS blocked access to \(max(report.permissionDeniedResults.count, 1)) items"
+            ),
+            symbol: Symbol(name: "lock.fill", tint: .failure),
+            actions: [
+                Action(.openPrivacySettings, "Open System Settings"),
+                Action(.retry, "Try again", style: .secondary),
+            ]
+        )
     }
 
     private init(measuringFirst isFirst: Bool, total: String, measuredCategoryCount: Int, categoryCount: Int) {
@@ -123,14 +132,16 @@ struct HeroContent {
                 eyebrow: "Calculating the space…",
                 amount: String(localized: "Measuring…"),
                 detail: String(localized: "\(measuredCategoryCount) of \(categoryCount) categories measured"),
-                actions: [clean]
+                actions: [clean],
+                indicator: .progress(Double(measuredCategoryCount) / Double(max(categoryCount, 1)))
             )
         } else {
             self.init(
                 eyebrow: "Measuring again…",
                 amount: total,
                 detail: String(localized: "estimated"),
-                actions: [clean]
+                actions: [clean],
+                indicator: .breakdown
             )
         }
     }
@@ -138,14 +149,16 @@ struct HeroContent {
     private init(cleaning progress: CleanupProgress) {
         let finished = max(progress.startedCategories - 1, 0)
         let current = progress.currentCategory.map { String(localized: CategoryPresentation($0).title) }
+        let fraction = Double(finished) / Double(max(progress.totalCategories, 1))
 
         self.init(
             eyebrow: "Cleaning · \(progress.startedCategories) of \(progress.totalCategories) categories",
             amount: Self.format(progress.freedBytes),
             isFreedAmount: progress.freedBytes > 0,
             detail: current.map { String(localized: "Removing \($0)…") } ?? String(localized: "Preparing…"),
-            progress: Double(finished) / Double(max(progress.totalCategories, 1)),
-            actions: [Action(.cancel, "Cancel", style: .destructive)]
+            progress: fraction,
+            actions: [Action(.cancel, "Cancel", style: .destructive)],
+            indicator: .progress(fraction)
         )
     }
 
@@ -224,7 +237,8 @@ struct HeroContent {
         detail: String,
         progress: Double? = nil,
         symbol: Symbol? = nil,
-        actions: [Action]
+        actions: [Action],
+        indicator: Indicator = .none
     ) {
         self.eyebrow = eyebrow
         self.amount = amount
@@ -234,6 +248,7 @@ struct HeroContent {
         self.progress = progress
         self.symbol = symbol
         self.actions = actions
+        self.indicator = indicator
     }
 
     // MARK: - Private Methods
@@ -294,6 +309,14 @@ struct HeroContent {
             case secondary
         }
 
+    }
+
+    enum Indicator: Equatable {
+        case none
+        /// The share of categories measured, or of the cleanup done.
+        case progress(Double)
+        /// The space bar with the legend of each section.
+        case breakdown
     }
 
     struct Symbol {

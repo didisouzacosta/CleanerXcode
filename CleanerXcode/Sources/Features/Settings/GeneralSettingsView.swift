@@ -93,6 +93,8 @@ struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        // R42: the soft edge effect at the top and the bottom of every scroll.
+        .scrollEdgeEffectStyle(.soft, for: .all)
         .subtleAnimation(value: viewModel.loginItemNeedsApproval)
         .subtleAnimation(value: viewModel.loginItemFailure)
         .scrollContentBackground(.hidden)

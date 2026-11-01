@@ -36,6 +36,11 @@ nonisolated final class SimulatorsServiceSpy: SimulatorManaging, Sendable {
         state.withLock { $0.deletedRuntimes }
     }
 
+    /// How many device listings ran.
+    var listingCount: Int {
+        state.withLock { $0.listingCount }
+    }
+
     // MARK: - Private Properties
 
     private let state: Mutex<State>
@@ -129,6 +134,8 @@ nonisolated final class SimulatorsServiceSpy: SimulatorManaging, Sendable {
         }
 
         return try state.withLock { state in
+            state.listingCount += 1
+
             if let failure = state.listFailure {
                 throw failure
             }
@@ -228,6 +235,7 @@ nonisolated final class SimulatorsServiceSpy: SimulatorManaging, Sendable {
         var calls: [String] = []
         var deletedDevices: [[SimulatorDevice]] = []
         var deletedRuntimes: [String] = []
+        var listingCount = 0
 
     }
 

@@ -9,8 +9,8 @@ import Foundation
 import Testing
 @testable import CleanerXcode
 
-/// The text next to each section title (Figma page 03): what is selected, what was cleaned, or
-/// how many failed.
+/// The summary of each section (Figma page 08): what is selected, what is being cleaned, what was
+/// cleaned, or how many failed, as a count, as bytes or as the short sidebar text.
 struct SectionSummaryTests {
 
     // MARK: - Private Properties
@@ -32,21 +32,22 @@ struct SectionSummaryTests {
 
     // MARK: - Public Methods
 
+    /// "4.5 GB selected" while something runs, or "nothing selected".
     @Test
-    func anExpandedSectionShowsTheSelectedSize() {
+    func theBytesStyleShowsTheSelectedSize() {
         #expect(summary(xcode, selected: [.removeDerivedData], bytes: 700) == .selected(bytes: 700))
         #expect(summary(xcode, selected: []) == .nothingSelected)
     }
 
     /// "3 of 5 selected · 4.5 GB", and "· dangerous" for a section with dangerous items.
     @Test
-    func aCollapsedSectionCountsTheSelectedItems() {
+    func theCountStyleCountsTheSelectedItems() {
         #expect(
-            summary(xcode, selected: [.removeDerivedData, .removeCaches], bytes: 700, isCollapsed: true)
+            summary(xcode, selected: [.removeDerivedData, .removeCaches], bytes: 700, style: .count)
                 == .count(selected: 2, total: 3, bytes: 700, isDangerous: false)
         )
         #expect(
-            summary(userData, selected: [], isCollapsed: true)
+            summary(userData, selected: [], style: .count)
                 == .count(selected: 0, total: 2, bytes: 0, isDangerous: true)
         )
     }
@@ -55,8 +56,18 @@ struct SectionSummaryTests {
     func aSectionStillBeingMeasuredSaysSo() {
         let rows: [CleanupCategoryID: CategoryRowState] = [.removeDerivedData: .measuring]
 
-        #expect(summary(xcode, selected: [.removeDerivedData], after: (rows, nil)) == .measuring)
-        #expect(summary(xcode, selected: [.removeDerivedData], isCollapsed: true, after: (rows, nil)) == .measuring)
+        #expect(summary(xcode, selected: [.removeDerivedData], rows: rows) == .measuring)
+        #expect(summary(xcode, selected: [.removeDerivedData], style: .count, rows: rows) == .measuring)
+    }
+
+    /// Only the section of the category being cleaned says "cleaning…".
+    @Test
+    func theSectionBeingCleanedSaysSo() {
+        let progress = CleanupProgress(totalCategories: 3, startedCategories: 1, currentCategory: .removeCaches)
+
+        #expect(summary(xcode, selected: [.removeCaches], phase: .cleaning(progress)) == .cleaning)
+        #expect(summary(xcode, selected: [.removeCaches], style: .count, phase: .cleaning(progress)) == .cleaning)
+        #expect(summary(userData, selected: [], phase: .cleaning(progress)) == .nothingSelected)
     }
 
     /// After a run, a section is "cleaned" or tells how many of its categories failed; sections
@@ -70,9 +81,10 @@ struct SectionSummaryTests {
             result(.removeCaches, .failed(.inUse)),
         ])
 
-        #expect(summary(xcode, selected: [.removeDerivedData], after: ([:], success)) == .cleaned)
-        #expect(summary(xcode, selected: [.removeDerivedData, .removeCaches], after: ([:], failure)) == .failed(2))
-        #expect(summary(userData, selected: [], after: ([:], success)) == .nothingSelected)
+        #expect(summary(xcode, selected: [.removeDerivedData], phase: .finished(success)) == .cleaned)
+        #expect(summary(xcode, selected: [.removeDerivedData, .removeCaches], phase: .finished(failure)) == .failed(2))
+        #expect(summary(xcode, selected: [.removeDerivedData], phase: .permissionDenied(failure)) == .failed(2))
+        #expect(summary(userData, selected: [], phase: .finished(success)) == .nothingSelected)
     }
 
     /// A cancelled run keeps the usual summary, as in the approved layout.
@@ -81,9 +93,30 @@ struct SectionSummaryTests {
         let cancelled = CleanupReport(results: [result(.removeDerivedData, .removed)], wasCancelled: true)
 
         #expect(
-            summary(xcode, selected: [.removeDerivedData], bytes: 700, after: ([:], cancelled))
+            summary(xcode, selected: [.removeDerivedData], bytes: 700, phase: .finished(cancelled))
                 == .selected(bytes: 700)
         )
+    }
+
+    @Test
+    func theCleaningTextIsLowercase() {
+        #expect(SectionSummary.cleaning.text == String(localized: "cleaning…"))
+    }
+
+    /// The short text on the right of each sidebar row: "Measuring…", "Cleaning…", "cleaned",
+    /// "1 failed", the selected size, or a dash.
+    @Test
+    func theSidebarTextIsShort() {
+        let size = Int64(700).formatted(.byteCount(style: .file))
+
+        #expect(SectionSummary.measuring.sidebarText == String(localized: "Measuring…"))
+        #expect(SectionSummary.cleaning.sidebarText == String(localized: "Cleaning…"))
+        #expect(SectionSummary.cleaned.sidebarText == String(localized: "cleaned"))
+        #expect(SectionSummary.failed(1).sidebarText == String(localized: "\(1) failed"))
+        #expect(SectionSummary.selected(bytes: 700).sidebarText == size)
+        #expect(SectionSummary.nothingSelected.sidebarText == "—")
+        #expect(SectionSummary.count(selected: 2, total: 5, bytes: 700, isDangerous: true).sidebarText == size)
+        #expect(SectionSummary.count(selected: 0, total: 5, bytes: 0, isDangerous: false).sidebarText == "—")
     }
 
     // MARK: - Private Methods
@@ -92,16 +125,17 @@ struct SectionSummaryTests {
         _ categories: [CleanupCategory],
         selected: Set<CleanupCategoryID>,
         bytes: Int64 = 0,
-        isCollapsed: Bool = false,
-        after run: (rows: [CleanupCategoryID: CategoryRowState], report: CleanupReport?) = ([:], nil)
+        style: SectionSummary.Style = .bytes,
+        rows: [CleanupCategoryID: CategoryRowState] = [:],
+        phase: CleanerPhase = .ready
     ) -> SectionSummary {
         SectionSummary(
             categories: categories,
             selectedIDs: selected,
             selectedBytes: bytes,
-            rows: run.rows,
-            report: run.report,
-            isCollapsed: isCollapsed
+            rows: rows,
+            phase: phase,
+            style: style
         )
     }
 

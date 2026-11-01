@@ -78,30 +78,108 @@ struct SimulatorPresentationTests {
         #expect(SimulatorPresentation.spokenType(name: "My test phone", deviceType: type) == "iPhone 17 Pro")
     }
 
-    /// "3 duplicates" next to the expanded section, "14 simulators · 3 duplicates" next to the
-    /// collapsed one (Figma page 03), and nothing before the lists are loaded.
+    /// "14 simulators · 3 duplicates (7.2 GB) · 2 runtimes (15.1 GB)" once listed, or why there
+    /// is nothing to show: the overview card and the page subtitle (Figma page 08).
     @Test
-    func summarizesTheSimulatorsNextToTheSectionTitle() {
-        #expect(summary(14, 3, isCollapsed: false) == .duplicates(3))
-        #expect(summary(14, 0, isCollapsed: false) == .simulators(14))
-        #expect(summary(14, 3, isCollapsed: true) == .simulatorsAndDuplicates(14, 3))
-        #expect(summary(14, 0, isCollapsed: true) == .simulators(14))
+    func describesTheStatusOfTheLists() {
+        let devices = [device("A", bytes: 1_000), device("B", bytes: 2_000), device("C", bytes: 4_000)]
+        let runtimes = [runtime("R1", bytes: 7_000), runtime("R2", bytes: 8_000)]
+        let loaded = [
+            String(localized: "\(3) simulators"),
+            "\(String(localized: "\(2) duplicates")) (\(format(6_000)))",
+            "\(String(localized: "\(2) runtimes")) (\(format(15_000)))",
+        ].joined(separator: " · ")
+
+        #expect(status(.loaded, devices, duplicates: ["B", "C"], runtimes) == loaded)
+        #expect(status(.deleting(["B"]), devices, duplicates: ["B", "C"], runtimes) == loaded)
         #expect(
-            SimulatorPresentation.sectionSummary(deviceCount: 0, duplicateCount: 0, isLoaded: false, isCollapsed: true)
-                == nil
+            status(.loaded, devices, duplicates: [], runtimes)
+                == "\(String(localized: "\(3) simulators")) · \(String(localized: "\(2) runtimes")) (\(format(15_000)))"
+        )
+        #expect(status(.idle) == String(localized: "Loading the simulators…"))
+        #expect(status(.loading) == String(localized: "Loading the simulators…"))
+        #expect(status(.empty) == String(localized: "No simulators or runtimes"))
+        #expect(status(.toolsUnavailable) == String(localized: "Unavailable without Xcode"))
+        #expect(
+            status(.failed(.timedOut))
+                ==
+                String(
+                    localized: "Could not list the simulators: \(String(localized: CleanupError.timedOut.summary))"
+                )
+        )
+    }
+
+    /// The sidebar badge counts the duplicates, only once listed and when there are any.
+    @Test
+    func theBadgeCountsTheDuplicatesOfTheLoadedList() {
+        #expect(SimulatorPresentation.duplicateBadgeCount(phase: .loaded, duplicateCount: 3) == 3)
+        #expect(SimulatorPresentation.duplicateBadgeCount(phase: .deleting(["A"]), duplicateCount: 3) == 3)
+        #expect(SimulatorPresentation.duplicateBadgeCount(phase: .loaded, duplicateCount: 0) == nil)
+        #expect(SimulatorPresentation.duplicateBadgeCount(phase: .loading, duplicateCount: 3) == nil)
+        #expect(SimulatorPresentation.duplicateBadgeCount(phase: .idle, duplicateCount: 3) == nil)
+    }
+
+    /// "14 · 3 duplicates (5.2 GB)" and "15.1 GB in 2 runtimes" next to the page's headers.
+    @Test
+    func captionsTheTwoLists() {
+        let devices = [device("A", bytes: 1_000), device("B", bytes: 2_000)]
+
+        #expect(
+            SimulatorPresentation.devicesCaption(devices: devices, duplicateUDIDs: ["B"])
+                == String(localized: "\(2) · \(String(localized: "\(1) duplicates")) (\(format(2_000)))")
+        )
+        #expect(SimulatorPresentation.devicesCaption(devices: devices, duplicateUDIDs: []) == 2.formatted())
+        #expect(
+            SimulatorPresentation.runtimesCaption(runtimes: [runtime("R1", bytes: 7_000)])
+                == String(localized: "\(format(7_000)) in \(String(localized: "\(1) runtimes"))")
         )
     }
 
     // MARK: - Private Methods
 
-    private func summary(_ devices: Int, _ duplicates: Int, isCollapsed: Bool) -> SimulatorPresentation
-        .SectionSummary?
-    {
-        SimulatorPresentation.sectionSummary(
-            deviceCount: devices,
-            duplicateCount: duplicates,
-            isLoaded: true,
-            isCollapsed: isCollapsed
+    private func status(
+        _ phase: SimulatorsPhase,
+        _ devices: [SimulatorDevice] = [],
+        duplicates: Set<String> = [],
+        _ runtimes: [SimulatorRuntime] = []
+    ) -> String {
+        SimulatorPresentation.statusDetail(
+            phase: phase,
+            devices: devices,
+            duplicateUDIDs: duplicates,
+            runtimes: runtimes
+        )
+    }
+
+    private func format(_ bytes: Int64) -> String {
+        bytes.formatted(.byteCount(style: .file))
+    }
+
+    private func device(_ udid: String, bytes: Int64) -> SimulatorDevice {
+        SimulatorDevice(
+            udid: udid,
+            name: "iPhone 17 Pro",
+            deviceTypeIdentifier: "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+            runtimeIdentifier: "com.apple.CoreSimulator.SimRuntime.iOS-27-2",
+            state: .shutdown,
+            isAvailable: true,
+            lastUsedAt: nil,
+            sizeBytes: bytes
+        )
+    }
+
+    private func runtime(_ identifier: String, bytes: Int64) -> SimulatorRuntime {
+        SimulatorRuntime(
+            identifier: identifier,
+            runtimeIdentifier: "com.apple.CoreSimulator.SimRuntime.iOS-27-2",
+            version: "27",
+            build: "24A1",
+            platformIdentifier: "com.apple.platform.iphonesimulator",
+            sizeBytes: bytes,
+            lastUsedAt: nil,
+            isDeletable: true,
+            state: "Ready",
+            kind: "Patchable Cryptex Disk Image"
         )
     }
 

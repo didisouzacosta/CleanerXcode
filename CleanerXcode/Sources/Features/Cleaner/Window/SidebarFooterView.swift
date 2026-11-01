@@ -1,5 +1,5 @@
 //
-//  WindowFooterView.swift
+//  SidebarFooterView.swift
 //  CleanerXcode
 //
 //  Created by Adriano Costa on 31/10/26.
@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-/// "Support the project", the version and, when there is a newer one, the button that opens
-/// its download.
-struct WindowFooterView: View {
+/// The bottom of the sidebar (Figma page 08): "Support the project", the version and, when there
+/// is a newer one, the button that opens its download.
+struct SidebarFooterView: View {
 
     // MARK: - Environments
 
@@ -22,11 +22,8 @@ struct WindowFooterView: View {
     let onSupport: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
-            Button {
-                openURL(Constants.donateURL)
-                onSupport()
-            } label: {
+        VStack(alignment: .leading, spacing: 8) {
+            Button(action: support) {
                 Label("Support the project", systemImage: "heart.fill")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Palette.support)
@@ -38,40 +35,49 @@ struct WindowFooterView: View {
 
             Text("Version \(versionText)")
                 .font(.caption)
-                .foregroundStyle(.tertiary)
-                .frame(maxWidth: .infinity)
+                .foregroundStyle(.secondary)
 
             if let update = updates.availableUpdate {
-                Button {
-                    openURL(update.downloadURL)
-                    updates.logUpdateOpened()
-                } label: {
+                Button(action: openUpdate) {
                     Text("Update to \(update.version)")
-                        .padding(.horizontal, 8)
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .subtleTransition()
             }
         }
-        .frame(minHeight: 28)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(EdgeInsets(top: 8, leading: 16, bottom: 12, trailing: 16))
         .subtleAnimation(value: updates.availableUpdate != nil)
-        .padding(EdgeInsets(top: 8, leading: 20, bottom: 14, trailing: 20))
-        .background(Palette.window)
+    }
+
+    // MARK: - Private Methods
+
+    private func support() {
+        openURL(Constants.donateURL)
+        onSupport()
+    }
+
+    private func openUpdate() {
+        guard let update = updates.availableUpdate else { return }
+
+        openURL(update.downloadURL)
+        updates.logUpdateOpened()
     }
 
 }
 
 #if DEBUG
     #Preview("Up to date") {
-        WindowFooterView(updates: UpdatePreview.makeViewModel(), versionText: "1.0.0 (115)") {}
-            .frame(width: 560)
+        SidebarFooterView(updates: UpdatePreview.makeViewModel(), versionText: "1.0.0 (115)") {}
+            .frame(width: 244)
     }
 
     #Preview("Update available") {
         @Previewable @State var updates = UpdatePreview.makeViewModel(hasUpdate: true)
 
-        WindowFooterView(updates: updates, versionText: "1.0.0 (115)") {}
-            .frame(width: 560)
+        SidebarFooterView(updates: updates, versionText: "1.0.0 (115)") {}
+            .frame(width: 244)
             .task { await updates.check() }
     }
 #endif

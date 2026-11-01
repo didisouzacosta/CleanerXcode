@@ -9,7 +9,7 @@
     import SwiftUI
 
     /// Drives a real `SimulatorsViewModel` with an in-memory service into each state of the
-    /// section; nothing runs `simctl`.
+    /// "Simulators and runtimes" page; nothing runs `simctl`.
     struct SimulatorsSectionPreview: View {
 
         // MARK: - States
@@ -20,15 +20,12 @@
 
         var body: some View {
             ScrollView {
-                SimulatorsSectionView(
-                    viewModel: viewModel,
-                    isLocked: false,
-                    isInitiallyCollapsed: false,
-                    isListInitiallyExpanded: true
-                )
-                .padding(16)
+                SimulatorsPageView(viewModel: viewModel, isLocked: isLocked)
+                    .padding(20)
             }
-            .frame(width: 560, height: 720)
+            .scrollEdgeEffectStyle(.soft, for: .all)
+            .frame(width: 668, height: 620)
+            .background(Palette.window)
             .task {
                 await Self.prepare(viewModel, for: scenario)
             }
@@ -37,11 +34,13 @@
         // MARK: - Private Properties
 
         private let scenario: Scenario
+        private let isLocked: Bool
 
         // MARK: - Initializers
 
-        init(_ scenario: Scenario) {
+        init(_ scenario: Scenario, isLocked: Bool = false) {
             self.scenario = scenario
+            self.isLocked = isLocked
             _viewModel = State(initialValue: Self.makeViewModel(for: scenario))
         }
 
@@ -51,7 +50,7 @@
             SimulatorsViewModel(simulators: PreviewSimulatorsService(scenario: scenario), analytics: NullAnalytics())
         }
 
-        /// Brings the view model to the scenario's phase. The section also loads when it expands,
+        /// Brings the view model to the scenario's phase. The page also loads when it appears,
         /// which can supersede this load, so each step waits for the list first.
         static func prepare(_ viewModel: SimulatorsViewModel, for scenario: Scenario) async {
             await viewModel.load()
