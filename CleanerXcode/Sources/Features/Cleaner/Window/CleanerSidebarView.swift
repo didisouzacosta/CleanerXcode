@@ -36,11 +36,15 @@ struct CleanerSidebarView: View {
             }
 
             Section("Manage") {
-                SidebarRow(destination: .simulatorsAndRuntimes)
-                    .badge(badgeCount)
+                SidebarRow(destination: .simulatorsAndRuntimes, badge: badgeCount)
             }
         }
         .listStyle(.sidebar)
+        // No toggle in the toolbar, as in the layout; ⌃⌘S and the View menu still show or hide
+        // the sidebar. It must come before the column width: applied after it, the width is
+        // dropped and the sidebar opens at about 144 pt (review V2).
+        .toolbar(removing: .sidebarToggle)
+        .navigationSplitViewColumnWidth(min: 220, ideal: 244, max: 320)
         // R42: the list scrolls under the pinned footer with the soft edge at the top and the
         // bottom; `safeAreaBar` (unlike `safeAreaInset`) drives the bottom edge effect.
         .scrollEdgeEffectStyle(.soft, for: .all)
@@ -102,6 +106,9 @@ private struct SidebarRow: View {
     /// Already localized.
     var trailing: String?
 
+    /// Hidden at zero.
+    var badge = 0
+
     var body: some View {
         HStack(spacing: 6) {
             Label {
@@ -121,9 +128,12 @@ private struct SidebarRow: View {
                 .contentTransition(.opacity)
                 .accessibilityHidden(true)
         }
-        .tag(destination)
         .accessibilityElement(children: .combine)
         .accessibilityValue(Text(verbatim: trailing ?? ""))
+        // The tag must be the outermost modifier the list sees: a badge applied around the row
+        // hides it and the list ignores the selection.
+        .badge(badge)
+        .tag(destination)
     }
 
 }

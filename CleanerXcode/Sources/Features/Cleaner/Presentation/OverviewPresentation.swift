@@ -32,4 +32,10 @@ enum OverviewPresentation {
         }
     }
 
+    /// The failed items close when their report is dismissed or replaced. A first report keeps
+    /// them as they were: closed in the app, open in the previews that start with them.
+    static func closesFailures(whenReportChangesFrom oldReport: CleanupReport?) -> Bool {
+        oldReport != nil
+    }
+
 }

@@ -47,4 +47,14 @@ struct OverviewPresentationTests {
         }
     }
 
+    /// The failed items close when their report is dismissed or replaced; a first report keeps
+    /// them as they were, so a preview can start with them open (review V2).
+    @Test
+    func theFailedItemsCloseOnlyWhenAReportLeaves() {
+        let report = CleanupReport(results: [])
+
+        #expect(!OverviewPresentation.closesFailures(whenReportChangesFrom: nil))
+        #expect(OverviewPresentation.closesFailures(whenReportChangesFrom: report))
+    }
+
 }

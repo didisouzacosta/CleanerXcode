@@ -2386,7 +2386,38 @@ página 08 do Figma ("Janela · tamanho comum (C32)").
   recolhidas ficam órfãs, sem migração.
 - **Textos (D12):** "Select at least one category below" virou "Select at
   least one category"; chaves novas com pt-BR; cinco chaves sem uso removidas.
-- **Validação:** 432 testes únicos (476 casos executados) passaram, sem avisos; lint sem violações;
-  Release sem avisos; auditoria de strings sem chave faltando ou sobrando.
-  A conferência visual (AC33l) ficou pendente porque a sessão do Mac estava
-  bloqueada; o harness está pronto fora de `Tests/`.
+- **Correções da conferência visual (V2, V4):** a barra lateral abria com cerca
+  de 144 pt porque o `.toolbar(removing: .sidebarToggle)`, aplicado depois do
+  `.navigationSplitViewColumnWidth`, descartava a largura; os dois ficam na
+  `List`, com o `toolbar(removing:)` antes, e ela abre com 244 pt. A legenda da
+  barra de espaço usa um `FlowLayout` (quebras em `FlowRows`, testado): numa
+  linha em 920 pt, em mais linhas no mínimo, sem truncar. Os detalhes de falha
+  só fecham quando um relatório sai (`OverviewPresentation.closesFailures`), o
+  que deixa as previews começarem com eles abertos. 438 testes únicos (482
+  casos executados).
+- **Validação:** 438 testes únicos (482 casos executados) passaram, sem avisos;
+  lint sem violações; Release sem avisos; auditoria de strings sem chave faltando
+  ou sobrando.
+- **Conferência visual (AC33l):** feita em janelas reais (20 capturas do harness e
+  o app real em Debug, pt-BR, claro e escuro), acima de 98% em todos os frames da
+  página 08 do Figma. Achou e corrigiu a barra lateral estreita no primeiro
+  lançamento (ordem de `toolbar(removing:)` e `navigationSplitViewColumnWidth`)
+  e a legenda truncada no tamanho mínimo (`FlowRows`/`FlowLayout`). As imagens
+  foram enviadas ao dono.
+- **Ajustes de design declarados no Figma:** onde o macOS desenha componentes
+  nativos, o Figma foi alinhado ao sistema: barra lateral de altura total com
+  ícones na cor de destaque, título da toolbar no tamanho do sistema, glifos dos
+  cartões na cor da seção e o selo nativo como número simples.
+- **Divergências mantidas:**
+  - o aviso fixo "Alguns itens vão para a Lixeira", exigido pelo plano e ausente
+    no Figma (divergência 2 do AC30b, pendente de decisão do dono);
+  - os ícones de status em `.fill` colorido, como no painel, contra o contorno
+    do Figma (desvio 8, decisão do dono pendente).
+- **Armadilha da barra lateral:** em `SidebarRow`, `.badge` e `.tag(destination)`
+  têm de ser os últimos modificadores, com o `.tag` por fora. Um `.badge` aplicado
+  por fora da linha esconde a tag da `List`, e o item deixa de ser selecionável
+  (aconteceu com "Simuladores e runtimes"). Nenhum teste automatizado protege
+  essa ordem, porque o teste de UI é proibido.
+- **Pendente:** a verificação manual dos atalhos (⌘1–⌘6, ⌃⌘S, ⌘R, Esc, Return)
+  e do tamanho mínimo da janela real. A automação foi negada pelo macOS, por
+  falta de permissão de Acessibilidade.

@@ -32,7 +32,8 @@ struct SpaceBreakdownBar: View {
             }
             .frame(height: 10)
 
-            HStack(spacing: 16) {
+            // One row when it fits, as in the layout; more rows at narrow widths, never truncated.
+            FlowLayout(horizontalSpacing: 16, verticalSpacing: 6) {
                 ForEach(breakdown.legend) { item in
                     LegendLabel(item: item)
                 }
@@ -85,6 +86,12 @@ private struct LegendLabel: View {
         ]))
         .padding()
         .frame(width: 628)
+    }
+
+    #Preview("Narrow · the legend wraps") {
+        SpaceBreakdownBar(breakdown: SpaceBreakdown(bytesBySection: [.xcode: 31_300_000_000, .simulators: 820_000_000]))
+            .padding()
+            .frame(width: 420)
     }
 
     #Preview("Nothing selected") {

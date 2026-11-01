@@ -41,9 +41,6 @@ struct CleanerWindowView: View {
                 versionText: versionText,
                 onSupport: onSupport
             )
-            .navigationSplitViewColumnWidth(min: 220, ideal: 244, max: 320)
-            // As in the layout; ⌃⌘S and the View menu still show or hide the sidebar.
-            .toolbar(removing: .sidebarToggle)
         } detail: {
             CleanerDetailView(
                 destination: $destination,
@@ -56,8 +53,8 @@ struct CleanerWindowView: View {
             CleanupConfirmationSheet(viewModel: viewModel)
         }
         .focusedSceneValue(\.sidebarDestination, $destination)
-        .onChange(of: viewModel.phase.report) {
-            isShowingFailures = false
+        .onChange(of: viewModel.phase.report) { oldReport, _ in
+            closeFailures(after: oldReport)
         }
         .onChange(of: appearsActive, initial: true) {
             guard appearsActive else { return }
@@ -105,6 +102,13 @@ struct CleanerWindowView: View {
     }
 
     // MARK: - Private Methods
+
+    /// `OverviewPresentation.closesFailures` decides; a first report keeps the previews' state.
+    private func closeFailures(after oldReport: CleanupReport?) {
+        guard OverviewPresentation.closesFailures(whenReportChangesFrom: oldReport) else { return }
+
+        isShowingFailures = false
+    }
 
     /// Measures past the debounce and the cache (R1), and lists the simulators only on the first
     /// activation, so the overview card and the sidebar badge have them (D9). Both tasks are
