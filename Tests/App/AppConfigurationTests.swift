@@ -109,4 +109,16 @@ struct AppConfigurationTests {
         #expect(customKeys == ["HIMETRICA_API_KEY", "SENTRY_DSN", "VERSION_FILE_URL"])
     }
 
+    /// GitHub raw paths are case-sensitive, and the published 0.7.0 reads this same lowercase
+    /// path: renaming the folder would break its update check (C33).
+    @Test
+    func theVersionFileURLKeepsTheLowercasePublishedPath() {
+        let configuration = AppConfiguration(infoDictionary: Bundle.main.infoDictionary ?? [:])
+
+        #expect(
+            configuration.versionFileURL?.absoluteString
+                == "https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/main/resources/version.json"
+        )
+    }
+
 }

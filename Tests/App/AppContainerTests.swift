@@ -335,7 +335,8 @@ struct AppContainerTests {
         _ = AppContainer.makeCleanerViewModel(
             environment: AppEnvironment(isRunningTests: false, isDebug: true),
             services: services,
-            loginItem: LoginItemSpy(status: .notRegistered, failure: .permissionDenied)
+            loginItem: LoginItemSpy(status: .notRegistered, failure: .permissionDenied),
+            legacyPreferences: { nil }
         )
 
         #expect(reporter.stages == [.preferencesRestored, .loginItemMigrationFailed])
@@ -359,7 +360,8 @@ struct AppContainerTests {
         let viewModel = AppContainer.makeCleanerViewModel(
             environment: environment,
             services: services,
-            loginItem: loginItem
+            loginItem: loginItem,
+            legacyPreferences: { nil }
         )
 
         #expect(UserDefaultsPreferencesStore(defaults: defaults).schemaVersion == PreferencesMigrator

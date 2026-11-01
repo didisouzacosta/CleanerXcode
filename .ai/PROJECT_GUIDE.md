@@ -44,8 +44,14 @@ nomes, pastas ou arquitetura sem escopo explícito.
     são identificadores públicos de cliente. O objetivo é só tirá-los do
     repositório.
 - Schemes ou targets:
-  - targets `CleanerXcode` (app, bundle `didisouzacosta.CleanerXcode`) e
-    `CleanerXcodeTests` (bundle de testes);
+  - targets `CleanerXcode` (app, bundle `com.didisouzacosta.CleanerXcode`
+    desde o C33; até a 0.7: `didisouzacosta.CleanerXcode`) e
+    `CleanerXcodeTests` (bundle de testes, `didisouzacosta.CleanerXcodeTests`);
+  - assinatura (C33): o target do app usa `CODE_SIGN_IDENTITY[sdk=macosx*] =
+    "-"` (ad hoc) em Debug e Release, para compilar sem certificado. A
+    notarização rejeita ad hoc: antes de distribuir, o C26 troca a Release
+    para Developer ID. Em Debug o cdhash muda a cada build, e o macOS pode
+    pedir de novo a aprovação do item de login;
   - scheme `CleanerXcode`, com o test plan `CleanerXcode.xctestplan`
     (paralelizável);
   - o scheme é compartilhado em
@@ -154,6 +160,13 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     senão `NullErrorReporter`. O container chama `start()` uma vez; a fábrica
     (`makeErrorReporter`) é injetável e os testes nunca iniciam o SDK real.
     O release é `bundleID@versão+build` e o `dist` é o build;
+  - fora de teste e de preview, o `makeCleanerViewModel` roda primeiro o
+    `PreferencesDomainMigrator` (C33), que copia do domínio do id antigo as
+    chaves de `AppContainer.legacyDomainKeys`, e depois o
+    `PreferencesMigrator`. Tudo acontece antes de qualquer ViewModel, dos
+    Ajustes, do analytics ou do `AppDelegate` lerem o domínio. Não roda se o
+    app for compilado com o id antigo. O leitor do domínio antigo é injetável
+    (`legacyPreferences`); os testes passam `{ nil }` ou um domínio de teste;
   - o `HimetricaAnalytics` checa a preferência `send-anonymous-analytics`
     (padrão ligado) a cada evento e só chama `Himetrica.configure` no
     primeiro evento permitido. Ele nunca usa `identify`, `trackScreen` nem os
@@ -278,7 +291,13 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
   - `Persistence/`: desde o C18, `PreferencesStoring`,
     `UserDefaultsPreferencesStore` (formato legado `Data` com JSON de
     `Bool`) e `PreferencesMigrator` (v1→v2, uma vez; valores salvos
-    preservados; `launch-at-login` entregue ao `SMAppService` uma vez);
+    preservados; `launch-at-login` entregue ao `SMAppService` uma vez) e,
+    desde o C33, `PreferencesDomainMigrator`: cópia crua, uma vez (marcador
+    `legacy-domain-migration-version`), sem sobrescrever e sem copiar o schema,
+    do domínio `didisouzacosta.CleanerXcode`, lido com
+    `persistentDomain(forName:)`. O domínio antigo nunca é gravado nem apagado.
+    Vindo da 0.7 (schema < 2), `launch-at-login` é copiado e, se ausente, vira
+    `true`; vindo de uma build 1.0 de desenvolvimento, não é copiado;
   - `Platform/` (C18): `MainAppLoginItem` (`SMAppService.mainApp` via
     `AppServiceControlling`; testes com serviço falso);
   - `Helpers/`: `Constants` (URLs via `staticURL(_:)`, que falha alto se o
@@ -351,8 +370,10 @@ existente por conta própria.
     com chave e com a preferência "Enviar estatísticas de uso" ligada (opt-out,
     padrão ligado), aos eventos do Himetrica;
   - o Himetrica 1.0.0 grava `hm_visitor_id` (UUID aleatório) em
-    `UserDefaults.standard` e envia `visitorId`, `sessionId`, um User-Agent
-    com as versões do app e do macOS e, como toda requisição, o IP. Isso é
+    `UserDefaults.standard` (o C33 o copia do domínio do id antigo, com o nome
+    espelhado em `HimetricaAnalytics.visitorIDKey`) e envia `visitorId`,
+    `sessionId`, um User-Agent com as versões do app e do macOS e, como toda
+    requisição, o IP. Isso é
     dado pseudônimo, não anônimo;
   - **limitação do SDK (C07):** a fila offline fica em
     `~/Library/Application Support/Himetrica/EventQueue`, sem namespace por
@@ -485,7 +506,7 @@ validação em dispositivo físico e de serviços externos.
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
     passaram, sem avisos. No C18: 295 execuções passaram, sem avisos. No C19: 325 execuções
     passaram, sem avisos. No C20: 345 execuções passaram, sem avisos. No C21: 370
-    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos;
+    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

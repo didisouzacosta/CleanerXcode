@@ -28,7 +28,7 @@ nonisolated struct FileSystemSizeScanner: DiskUsageScanning {
         .fileResourceTypeKey,
     ]
 
-    private static let logger = Logger(subsystem: "didisouzacosta.CleanerXcode", category: "DiskUsage")
+    private static let logger = Logger(subsystem: "com.didisouzacosta.CleanerXcode", category: "DiskUsage")
 
     private let makeFileManager: @Sendable () -> FileManager
 

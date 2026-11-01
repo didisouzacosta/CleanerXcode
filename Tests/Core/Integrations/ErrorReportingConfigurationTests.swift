@@ -60,7 +60,7 @@ struct ErrorReportingConfigurationTests {
             isDebug: false
         )
 
-        #expect(configuration.releaseName == "didisouzacosta.CleanerXcode@unknown+unknown")
+        #expect(configuration.releaseName == "com.didisouzacosta.CleanerXcode@unknown+unknown")
         #expect(configuration.dist == "unknown")
     }
 

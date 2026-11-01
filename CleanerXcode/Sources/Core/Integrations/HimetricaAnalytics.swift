@@ -11,6 +11,12 @@ import Himetrica
 /// allows, so nothing is initialised while "Send usage statistics" is off.
 final class HimetricaAnalytics: Analytics {
 
+    // MARK: - Public Properties
+
+    /// Mirrors `StorageManager.Keys.visitorId` in Himetrica 1.0.0 (internal to the SDK), so the
+    /// visitor survives the bundle id change (C33). If the SDK renames it, the copy just does nothing.
+    static let visitorIDKey = "hm_visitor_id"
+
     // MARK: - Private Properties
 
     private let isEnabled: () -> Bool

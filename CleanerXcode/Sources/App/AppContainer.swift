@@ -23,6 +23,15 @@ enum AppContainer {
     // MARK: - Public Properties
 
     static let testHostSuiteName = "didisouzacosta.CleanerXcode.test-host"
+    /// The user's choices copied from the 0.7 bundle id (C33, D3). "Launch at login" has its own
+    /// rule inside `PreferencesDomainMigrator`; window state and the schema version stay behind.
+    static let legacyDomainKeys: [String] = CleanupCategoryID.allCases.map(\.rawValue) + [
+        PreferencesMigrator.showSizeInMenuBarKey,
+        PreferencesMigrator.showMenuBarExtraKey,
+        SettingsViewModel.minimumAgeKey,
+        SettingsViewModel.usageStatisticsKey,
+        HimetricaAnalytics.visitorIDKey,
+    ]
 
     // MARK: - Public Methods
 
@@ -74,10 +83,14 @@ enum AppContainer {
 
     /// The main window's state. The test host and previews get inert services over folders that
     /// do not exist, so the window opens and measures without reading this Mac or running `simctl`.
+    /// `legacyPreferences` reads the 0.7 domain; tests pass their own reader.
     static func makeCleanerViewModel(
         environment: AppEnvironment,
         services: AppServices,
-        loginItem: any LoginItemManaging = MainAppLoginItem()
+        loginItem: any LoginItemManaging = MainAppLoginItem(),
+        legacyPreferences: () -> [String: Any]? = {
+            PreferencesDomainMigrator.persistentDomain(named: PreferencesDomainMigrator.legacyDomain)
+        }
     ) -> CleanerViewModel {
         let store = UserDefaultsPreferencesStore(defaults: services.userDefaults)
         let appBundleIdentifier = services.configuration.bundleIdentifier ?? ""
@@ -100,16 +113,12 @@ enum AppContainer {
         let locations = CleanupLocations.current()
         let catalog = CleanupCatalog(locations: locations)
 
-        // Before the view model reads the selection; the outcome goes to Sentry without the keys.
-        let outcome = PreferencesMigrator(categories: catalog.categories).migrate(store, loginItem: loginItem)
-
-        if outcome.restoredCorruptedValueCount > 0 {
-            services.errorReporter.breadcrumb(.preferencesRestored)
-        }
-
-        if outcome.loginItemFailure != nil {
-            services.errorReporter.breadcrumb(.loginItemMigrationFailed)
-        }
+        migratePreferences(
+            services: services,
+            categories: catalog.categories,
+            loginItem: loginItem,
+            legacyPreferences: legacyPreferences
+        )
 
         let scanner = FileSystemSizeScanner()
         let simulators = SimctlSimulatorService(scanner: scanner)
@@ -184,6 +193,34 @@ enum AppContainer {
     }
 
     // MARK: - Private Methods
+
+    /// Before the view model, Settings, analytics or the app delegate read the domain: first the
+    /// 0.7 domain is copied (C33), then v1 → v2. The outcome goes to Sentry without the keys.
+    private static func migratePreferences(
+        services: AppServices,
+        categories: [CleanupCategory],
+        loginItem: any LoginItemManaging,
+        legacyPreferences: () -> [String: Any]?
+    ) {
+        // Built with the old id, the app would read and mark its own domain.
+        if services.configuration.bundleIdentifier != PreferencesDomainMigrator.legacyDomain {
+            PreferencesDomainMigrator(keys: legacyDomainKeys).migrate(
+                into: services.userDefaults,
+                legacy: legacyPreferences
+            )
+        }
+
+        let store = UserDefaultsPreferencesStore(defaults: services.userDefaults)
+        let outcome = PreferencesMigrator(categories: categories).migrate(store, loginItem: loginItem)
+
+        if outcome.restoredCorruptedValueCount > 0 {
+            services.errorReporter.breadcrumb(.preferencesRestored)
+        }
+
+        if outcome.loginItemFailure != nil {
+            services.errorReporter.breadcrumb(.loginItemMigrationFailed)
+        }
+    }
 
     /// Sentry runs in Debug and Release, in separate environments, whenever a DSN is configured.
     private static func errorReporter(

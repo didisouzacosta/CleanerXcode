@@ -2421,3 +2421,71 @@ página 08 do Figma ("Janela · tamanho comum (C32)").
 - **Pendente:** a verificação manual dos atalhos (⌘1–⌘6, ⌃⌘S, ⌘R, Esc, Return)
   e do tamanho mínimo da janela real. A automação foi negada pelo macOS, por
   falta de permissão de Acessibilidade.
+
+## Adendo do C33 (2026-11-01)
+
+Card C33 (AC34). Pedido do dono: "Manter e migrar". O app fica com o bundle id
+`com.didisouzacosta.CleanerXcode`, e as preferências vêm do id antigo
+`didisouzacosta.CleanerXcode` (até a 0.7). O card também fixa o caminho da
+pasta `resources/` (R11).
+
+- **D1. Onde e quando:** `PreferencesDomainMigrator`
+  (`Sources/Core/Persistence`) roda dentro de `AppContainer.makeCleanerViewModel`,
+  só fora de teste e de preview, logo antes do `PreferencesMigrator`. Nenhum
+  ViewModel, nem os Ajustes, o analytics ou o `AppDelegate`, lê o domínio antes.
+  Não roda se o app for compilado com o id antigo.
+- **D2. Leitura e cópia:** `persistentDomain(forName:)` traz só o que foi salvo no
+  domínio antigo, sem as chaves globais ou de argumentos que
+  `UserDefaults(suiteName:)` incluiria. A cópia é crua, chave a chave, e preserva
+  a codificação. Um valor ilegível volta ao padrão no `PreferencesMigrator`, com o
+  breadcrumb `preferences_restored`.
+- **D3. O que é copiado** (`AppContainer.legacyDomainKeys`): as 15 categorias,
+  `display-free-up-space-in-menu-bar`, `show-menu-bar-extra`,
+  `temporary-minimum-age-days`, `send-anonymous-analytics` e `hm_visitor_id`
+  (`HimetricaAnalytics.visitorIDKey`, espelho de `StorageManager.Keys.visitorId`
+  do SDK 1.0.0).
+- **D4. O que fica:** `preferences-schema-version` (diverge do card de propósito:
+  o v1→v2 roda de novo sob o id novo, mantém os valores copiados e entrega o item
+  de login ao `SMAppService`), frames de janela e de split view, a aba dos Ajustes,
+  `NSStatusItem *`, o estado de cena, as chaves órfãs `section-collapsed-*` e
+  `simulators-list-expanded`, `hm_session_*`, `hm_original_referrer` e chaves
+  `Apple*`/`NS*` ou do Firebase.
+- **D5. Uma vez só, sem sobrescrever, sem apagar:** marcador
+  `legacy-domain-migration-version = 1` no domínio novo, gravado também quando o
+  antigo não existe. Com o marcador, o antigo nem é lido. Uma chave só é copiada
+  se o novo não a tem. O antigo nunca é gravado nem apagado, então um downgrade
+  para a 0.7 funciona. Limitação: voltar à 0.7 e atualizar de novo não traz o que
+  mudou na 0.7 nesse meio-tempo.
+- **D6. Item de login:** vindo da 0.7 (schema < 2), `launch-at-login` é copiado
+  cru e, se ausente, vira `true` (a 0.7 registrava a cada lançamento). Vindo de
+  uma build 1.0 de desenvolvimento (schema ≥ 2), não é copiado. O
+  `PreferencesMigrator` registra uma vez com o id novo. A entrada antiga não pode
+  ser desregistrada pelo app novo; pode sobrar uma entrada "CleanerXcode" a mais
+  em Itens de Início (conferir no C27; Release Notes no C29).
+- **D7. Sentry:** o release passa a ser `com.didisouzacosta.CleanerXcode@versão+build`;
+  o fallback de `ErrorReportingConfiguration` acompanha. A 0.7 usava Crashlytics,
+  então não há continuidade a preservar.
+- **D8. Literais:** o subsystem do `Logger` do `FileSystemSizeScanner`, a preview
+  da janela e o fallback do Sentry usam o id novo. Fixtures de teste,
+  `testHostSuiteName`, `TestPreferencesDomain.prefix` e o bundle do target de
+  testes ficam.
+- **D9. Pasta temporária:** o `TemporaryItemsPolicy` deixa de proteger itens com
+  o prefixo do id antigo. Eles continuam passando pela idade mínima e pelo dono do
+  arquivo. Aceito.
+- **R11. Pasta `resources/`:** a pasta continua `resources/` minúsculo, porque a
+  0.7.0 publicada consulta `.../main/resources/version.json`; renomear quebraria a
+  checagem de atualização dela (o GitHub raw diferencia maiúsculas). A
+  renomeação para `Resources/` chegou a ser preparada e foi desfeita pelo dono. O
+  teste `theVersionFileURLKeepsTheLowercasePublishedPath` lê o `Info.plist`
+  compilado e fixa `VERSION_FILE_URL` em `.../main/resources/version.json`.
+- **Q1 (máquina do dono):** o domínio novo dele já tem schema 2 e os padrões, e a
+  regra de não sobrescrever fica no código. Para trazer as escolhas antigas, o
+  dono roda uma vez, com o app fechado, `defaults delete com.didisouzacosta.CleanerXcode`.
+  Como o domínio antigo dele está no schema 2, "abrir no login" não é migrado.
+- **Q2 (assinatura):** ad hoc (`"-"`) em Debug e Release por enquanto. Antes de
+  distribuir, o C26 troca a Release para Developer ID (a notarização rejeita ad
+  hoc). Não verificado: ad hoc com Hardened Runtime numa Release distribuída.
+- **Validação:** 458 testes únicos (507 casos executados) passaram, sem avisos;
+  lint sem violações; Release compila sem avisos, com
+  `Identifier=com.didisouzacosta.CleanerXcode` e `Signature=adhoc`. O app não foi
+  aberto durante a tarefa, para não migrar os domínios reais do dono.

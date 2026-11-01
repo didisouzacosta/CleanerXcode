@@ -134,17 +134,29 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
 - Fonte primária dos dados: o sistema de arquivos do usuário, via scripts
   bash empacotados e executados com `/bin/bash` por `Shell`, e o
   `version.json` remoto.
-- Armazenamento local: `UserDefaults.standard` via `StoragedValue<T>` (valor
-  em JSON). As chaves das opções são os nomes dos scripts
+- Armazenamento local (até a 0.7; na 1.0 o acesso é o `PreferencesStoring` do
+  C18): `UserDefaults.standard` via `StoragedValue<T>` (valor em JSON). As chaves das opções são os nomes dos scripts
   (`remove-archives` etc.) mais `display-free-up-space-in-menu-bar` e
   `launch-at-login`.
 - Sincronização ou serviços externos:
   - GitHub raw (`VERSION_FILE_URL` em `Config.xcconfig` → `Info.plist`) para
     a versão e o DMG;
   - links externos (GitHub, X, LinkedIn, Stripe).
-- Regras de migração e recuperação: não há migração versionada. Valor ausente
+- Regras de migração e recuperação: até a 0.7 não havia migração versionada;
+  a 1.0 traz o `PreferencesMigrator` (C18) e o `PreferencesDomainMigrator`
+  (C33, abaixo). Valor ausente
   ou que falha ao decodificar volta ao `defaultValue`. Renomear um script muda
   a chave da preferência e perde a escolha salva do usuário.
+- Bundle id (C33): a 1.0 passa de `didisouzacosta.CleanerXcode` (até a 0.7)
+  para `com.didisouzacosta.CleanerXcode`, e o domínio do `UserDefaults` começa
+  vazio. No primeiro lançamento, antes do `PreferencesMigrator`, o
+  `PreferencesDomainMigrator` copia do domínio antigo, uma vez e sem
+  sobrescrever o que já existe no novo, as 15 categorias, as duas opções da
+  barra de menus, a idade mínima dos temporários, o opt-out de estatísticas e o
+  `hm_visitor_id`. O schema, frames de janela e chaves do sistema não vêm. O
+  domínio antigo nunca é gravado nem apagado. Vindo da 0.7, "abrir no login"
+  ausente vira ligado (era o comportamento efetivo) e o item é registrado de
+  novo com o id novo.
 
 ## Validação
 
@@ -196,6 +208,7 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Reset do Xcode e apps abertos (C16) | `Sources/Core/Xcode/{XcodePreferencesResetting,RunningApplicationsProviding}.swift`, `Sources/Core/Cleanup/CleanupRestrictions.swift` |
 | Executor da limpeza (C17) | `Sources/Core/Cleanup/Executor/{CleanupPlan,CleanupExecutor}.swift` |
 | Migração de preferências e abrir no login (C18) | `Sources/Core/Persistence/{PreferencesStoring,UserDefaultsPreferencesStore,PreferencesMigrator}.swift`, `Sources/Core/Platform/LoginItemManaging.swift` |
+| Migração do bundle id antigo (C33) | `Sources/Core/Persistence/PreferencesDomainMigrator.swift`, `Sources/App/AppContainer.swift` (`legacyDomainKeys`) |
 | ViewModel da limpeza (C19) | `Sources/Features/Cleaner/{CleanerPhase,CleanupProgress,CategoryRowState,SimulatorSnapshot,CleanerViewModel,CleanupOutcomeReporter}.swift`, `Sources/Core/Cleanup/Executor/CleanupExecuting.swift` |
 | Janela única (C20) | `Sources/Features/Cleaner/Window/*.swift`, `Sources/Features/Cleaner/Presentation/*.swift`, `Sources/Core/Cleanup/InertCleanupServices.swift`, `Sources/App/{CleanerXcodeApp,AppContainer}.swift` |
 | Simuladores e runtimes (C21) | `Sources/Features/Simulators/*.swift` |
@@ -230,6 +243,19 @@ Caminhos relativos a `CleanerXcode/`, exceto `resources/`, `releases/` e
   reenvio à loja.
 - Resolvido no C24: o fork `LaunchAtLogin` (por SSH) e o `swift-timeout`
   saíram; o "abrir no login" usa `SMAppService`.
+- Decisão do C33: manter o bundle id `com.didisouzacosta.CleanerXcode` e
+  migrar as preferências do id antigo (ver o adendo do C33 no plano 1.0).
+- Pendência (C27 e C29): o `SMAppService` é ligado ao bundle id, e o app novo
+  não consegue desregistrar a entrada de login da 0.7. Pode sobrar uma entrada
+  "CleanerXcode" a mais em Ajustes do Sistema › Geral › Itens de Início, que o
+  usuário remove à mão. Conferir no C27 e avisar nas Release Notes (C29).
+- Pendência (C26): Debug e Release usam assinatura ad hoc
+  (`CODE_SIGN_IDENTITY[sdk=macosx*] = "-"`). A notarização rejeita ad hoc, então
+  antes de distribuir a Release passa a Developer ID.
+- Decisão do C33: a pasta continua `resources/` minúsculo, porque a 0.7.0
+  publicada consulta `.../main/resources/version.json`; renomear quebraria a
+  checagem de atualização dela (o GitHub raw diferencia maiúsculas). O teste
+  `theVersionFileURLKeepsTheLowercasePublishedPath` protege o caminho.
 - Próximo passo: definir o escopo da v1.0.0 (branch atual `v1.0.0`, versão
   publicada 0.7.0 build 114) e priorizar: migração para Swift 6, erro visível
   na limpeza, encerramento do processo no cancelamento e remoção do token.

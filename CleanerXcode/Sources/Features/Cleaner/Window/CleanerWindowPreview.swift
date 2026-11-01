@@ -85,7 +85,7 @@
                 runningApplications: PreviewRunningApplications(scenario: scenario),
                 analytics: NullAnalytics(),
                 errorReporter: NullErrorReporter(),
-                appBundleIdentifier: "didisouzacosta.CleanerXcode"
+                appBundleIdentifier: "com.didisouzacosta.CleanerXcode"
             )
         }
 

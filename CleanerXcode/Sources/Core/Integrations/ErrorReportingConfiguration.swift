@@ -24,7 +24,7 @@ nonisolated struct ErrorReportingConfiguration: Equatable, Sendable {
 
         self.dsn = dsn
         self.environment = isDebug ? "debug" : "production"
-        self.releaseName = "\(bundleIdentifier ?? "didisouzacosta.CleanerXcode")@\(version ?? "unknown")+\(build)"
+        self.releaseName = "\(bundleIdentifier ?? "com.didisouzacosta.CleanerXcode")@\(version ?? "unknown")+\(build)"
         self.dist = build
         self.sampleRate = 1.0
         self.tracesSampleRate = 0.0
