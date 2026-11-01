@@ -22,24 +22,24 @@ struct WindowFooterView: View {
     let onSupport: () -> Void
 
     var body: some View {
-        HStack {
+        HStack(spacing: 8) {
             Button {
                 openURL(Constants.donateURL)
                 onSupport()
             } label: {
                 Label("Support the project", systemImage: "heart.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Palette.support)
+                    .padding(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 12))
+                    .background(Palette.support.opacity(0.1), in: .capsule)
+                    .contentShape(.capsule)
             }
-            .buttonStyle(.glass)
-            .tint(.pink)
-            .controlSize(.small)
-
-            Spacer()
+            .buttonStyle(.plain)
 
             Text("Version \(versionText)")
                 .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Spacer()
+                .foregroundStyle(.tertiary)
+                .frame(maxWidth: .infinity)
 
             if let update = updates.availableUpdate {
                 Button {
@@ -47,14 +47,16 @@ struct WindowFooterView: View {
                     updates.logUpdateOpened()
                 } label: {
                     Text("Update to \(update.version)")
+                        .padding(.horizontal, 8)
                 }
-                .buttonStyle(.glassProminent)
-                .controlSize(.small)
+                .buttonStyle(.borderedProminent)
+                .subtleTransition()
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(.bar)
+        .frame(minHeight: 28)
+        .subtleAnimation(value: updates.availableUpdate != nil)
+        .padding(EdgeInsets(top: 8, leading: 20, bottom: 14, trailing: 20))
+        .background(Palette.window)
     }
 
 }

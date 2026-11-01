@@ -19,15 +19,12 @@ struct CleanerNoticesView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            if case .permissionDenied = viewModel.phase {
+            if case let .permissionDenied(report) = viewModel.phase {
                 NoticeView(
                     systemImage: "lock.fill",
                     tint: .red,
                     title: "Full Disk Access needed",
-                    message: """
-                    macOS blocked access to some folders. Open System Settings › Privacy & Security › \
-                    Full Disk Access, turn on CleanerXcode and try again.
-                    """
+                    message: permissionMessage(report)
                 )
             }
 
@@ -80,6 +77,48 @@ struct CleanerNoticesView: View {
 
 }
 
+extension CleanerNoticesView {
+
+    // MARK: - Public Methods
+
+    /// Whether any notice shows; without one the window leaves no empty gap (same conditions as
+    /// `body`).
+    static func hasNotices(_ viewModel: CleanerViewModel) -> Bool {
+        if case .permissionDenied = viewModel.phase {
+            return true
+        }
+
+        return viewModel.restrictions.isXcodeRunning
+            || viewModel.restrictions.areSimulatorsActive
+            || viewModel.areSimulatorToolsUnavailable
+            || !viewModel.trashBoundCategoryIDs.isEmpty
+    }
+
+}
+
+private extension CleanerNoticesView {
+
+    // MARK: - Private Methods
+
+    /// Names the folder when macOS blocked only one, as in the approved layout.
+    func permissionMessage(_ report: CleanupReport) -> LocalizedStringResource {
+        let blocked = report.permissionDeniedResults
+
+        if blocked.count == 1 {
+            return """
+            macOS blocked \(blocked[0].displayPath). Open System Settings › Privacy & Security › \
+            Full Disk Access, turn on CleanerXcode and try again.
+            """
+        }
+
+        return """
+        macOS blocked access to some folders. Open System Settings › Privacy & Security › \
+        Full Disk Access, turn on CleanerXcode and try again.
+        """
+    }
+
+}
+
 private struct NoticeView: View {
 
     // MARK: - Environments
@@ -122,6 +161,7 @@ private struct NoticeView: View {
         .padding(12)
         .badgeBackground(tint, in: .rect(cornerRadius: 12), contrast: contrast)
         .accessibilityElement(children: .contain)
+        .subtleTransition()
     }
 
     // MARK: - Nested Types

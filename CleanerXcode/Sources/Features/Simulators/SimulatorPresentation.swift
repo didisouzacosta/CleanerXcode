@@ -81,4 +81,47 @@ enum SimulatorPresentation {
         }
     }
 
+    /// Next to the section title: the duplicates when expanded, both counts when collapsed
+    /// (Figma page 03), and nothing before the lists are loaded.
+    static func sectionSummary(
+        deviceCount: Int,
+        duplicateCount: Int,
+        isLoaded: Bool,
+        isCollapsed: Bool
+    ) -> SectionSummary? {
+        guard isLoaded else { return nil }
+
+        if duplicateCount == 0 {
+            return .simulators(deviceCount)
+        }
+
+        return isCollapsed ? .simulatorsAndDuplicates(deviceCount, duplicateCount) : .duplicates(duplicateCount)
+    }
+
+    // MARK: - Nested Types
+
+    enum SectionSummary: Equatable {
+
+        // MARK: - Cases
+
+        case simulators(Int)
+        case duplicates(Int)
+        case simulatorsAndDuplicates(Int, Int)
+
+        // MARK: - Public Properties
+
+        /// Already localized: the collapsed summary joins two plurals.
+        var text: String {
+            switch self {
+            case let .simulators(count):
+                String(localized: "\(count) simulators")
+            case let .duplicates(count):
+                String(localized: "\(count) duplicates")
+            case let .simulatorsAndDuplicates(devices, duplicates):
+                "\(String(localized: "\(devices) simulators")) · \(String(localized: "\(duplicates) duplicates"))"
+            }
+        }
+
+    }
+
 }

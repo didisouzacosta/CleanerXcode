@@ -5,6 +5,7 @@
 //  Created by Adriano Costa on 31/10/26.
 //
 
+import Foundation
 import Testing
 @testable import CleanerXcode
 
@@ -20,7 +21,8 @@ struct MenuBarPresentationTests {
         #expect(MenuBarPresentation.label(phase: .ready, totalBytes: 5_000, showsSize: true) == .size(5_000))
         #expect(MenuBarPresentation
             .label(phase: .measuring(first: false), totalBytes: 5_000, showsSize: true) == .size(5_000))
-        #expect(MenuBarPresentation.label(phase: .cancelling, totalBytes: 5_000, showsSize: true) == .cleaning)
+        #expect(MenuBarPresentation
+            .label(phase: .cancelling(freedBytes: 0), totalBytes: 5_000, showsSize: true) == .cleaning)
         #expect(
             MenuBarPresentation.label(
                 phase: .cleaning(CleanupProgress(totalCategories: 1)),
@@ -101,6 +103,42 @@ struct MenuBarPresentationTests {
             isDeletingSimulators: true,
             reviewsInWindow: false
         ) == .content)
+    }
+
+    /// The panel is shorter than the window: "Cleaning · 3 of 5", and no detail under a total
+    /// that is just waiting to be cleaned (Figma page 05).
+    @Test
+    func thePanelShortensWhatTheWindowSpellsOut() {
+        let progress = CleanupProgress(totalCategories: 5, startedCategories: 3)
+
+        #expect(MenuBarPresentation.eyebrow(phase: .cleaning(progress))?.key == "Cleaning · %lld of %lld")
+        #expect(MenuBarPresentation.eyebrow(phase: .ready) == nil)
+        #expect(!MenuBarPresentation.showsDetail(phase: .ready, detail: .content))
+        #expect(MenuBarPresentation.showsDetail(phase: .ready, detail: .reviewInWindow))
+        #expect(MenuBarPresentation.showsDetail(phase: .cleaning(progress), detail: .content))
+    }
+
+    /// With failures to look at, the link under the action becomes "See details".
+    @Test
+    func theLinkOffersTheDetailsOfAFailedRun() {
+        #expect(MenuBarPresentation.link(for: [.retry, .toggleDetails]) == .seeDetails)
+        #expect(MenuBarPresentation.link(for: [.clean]) == .openApp)
+    }
+
+    /// The panel names the risk it will confirm, never "dangerous" for an attention-only plan or
+    /// one that only waits for an open app.
+    @Test
+    func theReviewNoteNamesTheRiskOfThePlan() {
+        #expect(MenuBarPresentation.ReviewNote(risks: [.attention, .dangerous]) == .dangerous)
+        #expect(MenuBarPresentation.ReviewNote(risks: [.safe, .attention]) == .attention)
+        #expect(MenuBarPresentation.ReviewNote(risks: [.safe]) == .appsOpen)
+        #expect(MenuBarPresentation.ReviewNote(risks: []) == .appsOpen)
+    }
+
+    /// A failed run or a permission denial both offer their details from the panel.
+    @Test
+    func aPermissionDenialAlsoOffersItsDetails() {
+        #expect(MenuBarPresentation.link(for: [.openPrivacySettings, .retry]) == .seeDetails)
     }
 
 }

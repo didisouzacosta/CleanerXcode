@@ -15,6 +15,16 @@
 
 ## Experiência principal
 
+Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
+
+- A janela principal acompanha a altura do conteúdo até o limite da tela;
+  acima disso, a lista rola. Nunca sobra faixa vazia entre o conteúdo e o
+  rodapé. A mudança de altura é suave, com o topo da janela fixo.
+- Toda mudança na tela tem uma animação sutil: nada aparece, some ou muda de
+  forma brusca (seções, avisos, cartões, textos, números e botões). Com
+  Reduzir movimento, nada desliza nem muda de escala: as mudanças, inclusive o
+  tamanho da janela, acontecem de uma vez.
+
 ### Fluxos
 
 - Fluxo de entrada: o app abre como agente na barra de menus (opcionalmente
@@ -134,6 +144,17 @@
 ## Validação
 
 Evidências separadas por tipo. Validação local não comprova comportamento live.
+
+- Regra obrigatória de conferência visual (pedido do dono em 2026-10-31): toda
+  tarefa que cria ou altera uma tela tem uma etapa própria, antes da revisão do
+  Manager e do commit, que compara a tela feita com o layout aprovado no Figma
+  (arquivo `n2zvygzbWufumwsOYd1PAj`, páginas 03 a 05). A comparação é feita
+  estado a estado, com o render da tela ao lado do frame correspondente,
+  conferindo estrutura, hierarquia, textos, cores, espaçamentos, formas e
+  componentes. Não precisa ser idêntica pixel a pixel, mas a igualdade tem de
+  ficar acima de 98%; abaixo disso a tela volta para correção e a tarefa não é
+  concluída. O relatório da tarefa registra os frames comparados, as diferenças
+  restantes com a justificativa de cada uma e as imagens enviadas ao dono.
 
 - Validações concluídas:
   - Código: leitura do código conectado em 2026-10-31 (branch `v1.0.0`,

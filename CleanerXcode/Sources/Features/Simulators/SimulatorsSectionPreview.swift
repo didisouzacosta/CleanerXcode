@@ -20,8 +20,13 @@
 
         var body: some View {
             ScrollView {
-                SimulatorsSectionView(viewModel: viewModel, isLocked: false, isInitiallyCollapsed: false)
-                    .padding(16)
+                SimulatorsSectionView(
+                    viewModel: viewModel,
+                    isLocked: false,
+                    isInitiallyCollapsed: false,
+                    isListInitiallyExpanded: true
+                )
+                .padding(16)
             }
             .frame(width: 560, height: 720)
             .task {

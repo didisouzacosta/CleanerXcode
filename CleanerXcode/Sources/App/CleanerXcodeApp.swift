@@ -54,13 +54,14 @@ struct CleanerXcodeApp: App {
             ) {
                 settingsViewModel.logDonation()
             }
-            .frame(minWidth: 480, minHeight: 560)
+            .frame(minWidth: 480, minHeight: 320)
             .task {
                 // Inert in the test host and previews; errors stay silent (R16).
                 await updateViewModel.check()
             }
         }
         .defaultSize(width: 560, height: 720)
+        // The height follows the content (`WindowHeightFitter`), animated.
         .windowResizability(.contentMinSize)
         // The test host never opens it, so tests leave no window state in the app's domain.
         .defaultLaunchBehavior(environment.isRunningTests ? .suppressed : .presented)

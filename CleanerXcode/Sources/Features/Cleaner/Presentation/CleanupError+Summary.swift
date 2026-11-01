@@ -15,10 +15,10 @@ extension CleanupError {
     var summary: LocalizedStringResource {
         switch self {
         case .permissionDenied: "No permission"
-        case .inUse: "In use by another process"
+        case .inUse: "In use by another process (EBUSY)"
         case .notFound: "Not found"
         case .toolUnavailable: "The Xcode tools are unavailable"
-        case .commandFailed: "The command failed"
+        case let .commandFailed(exitCode, _): "The command failed (code \(Int(exitCode)))"
         case .timedOut: "Timed out"
         case .cancelled: "Cancelled"
         case .blockedByRunningApp: "Blocked by an open app"

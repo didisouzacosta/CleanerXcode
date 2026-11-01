@@ -20,7 +20,7 @@ struct CategorySectionView: View {
     let viewModel: CleanerViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             CollapsibleSectionHeader(isCollapsed: $isCollapsed, title: group.section.title, summary: summary)
 
             if !isCollapsed {
@@ -29,21 +29,24 @@ struct CategorySectionView: View {
                         CategoryRowView(category: category, viewModel: viewModel)
                     }
                 }
-                .padding(.vertical, 4)
-                .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 12))
+                .background(Palette.card, in: .rect(cornerRadius: 12))
+                .subtleTransition()
             }
         }
     }
 
     // MARK: - Private Properties
 
-    private var summary: LocalizedStringResource {
-        let isSelected = group.categories.contains { viewModel.selectedIDs.contains($0.id) }
-
-        guard isSelected else { return "nothing selected" }
-
-        let bytes = viewModel.selectedBytes(of: group.categories)
-        return "\(bytes.formatted(.byteCount(style: .file))) selected"
+    private var summary: String {
+        SectionSummary(
+            categories: group.categories,
+            selectedIDs: viewModel.selectedIDs,
+            selectedBytes: viewModel.selectedBytes(of: group.categories),
+            rows: viewModel.rows,
+            report: viewModel.phase.report,
+            isCollapsed: isCollapsed
+        )
+        .text
     }
 
     // MARK: - Initializers

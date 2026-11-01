@@ -24,6 +24,8 @@ struct HeroContent {
     let eyebrow: LocalizedStringResource
     let amount: String
     let isFreedAmount: Bool
+    /// A run that freed nothing shows its "0 KB" in grey (Figma 9:3490, 17:10078).
+    let isAmountDimmed: Bool
     /// Already localized: some details join two phrases, each with its own plural.
     let detail: String
     let progress: Double?
@@ -83,10 +85,11 @@ struct HeroContent {
         case let .cleaning(progress):
             self.init(cleaning: progress)
 
-        case .cancelling:
+        case let .cancelling(freedBytes):
             self.init(
                 eyebrow: "Cancelling…",
-                amount: String(localized: "Cancelling…"),
+                amount: Self.format(freedBytes),
+                isFreedAmount: freedBytes > 0,
                 detail: String(localized: "Finishing the current item safely"),
                 actions: [Action(.cancel, "Cancelling…", style: .destructive, isEnabled: false)]
             )
@@ -98,8 +101,11 @@ struct HeroContent {
             self.init(
                 eyebrow: "Permission denied",
                 amount: Self.format(report.freedBytes),
-                isFreedAmount: true,
-                detail: String(localized: "macOS blocked access to some folders"),
+                isFreedAmount: report.freedBytes > 0,
+                isAmountDimmed: report.freedBytes == 0,
+                detail: String(
+                    localized: "macOS blocked access to \(max(report.permissionDeniedResults.count, 1)) items"
+                ),
                 symbol: Symbol(name: "lock.fill", tint: .failure),
                 actions: [
                     Action(.openPrivacySettings, "Open System Settings"),
@@ -136,7 +142,7 @@ struct HeroContent {
         self.init(
             eyebrow: "Cleaning · \(progress.startedCategories) of \(progress.totalCategories) categories",
             amount: Self.format(progress.freedBytes),
-            isFreedAmount: true,
+            isFreedAmount: progress.freedBytes > 0,
             detail: current.map { String(localized: "Removing \($0)…") } ?? String(localized: "Preparing…"),
             progress: Double(finished) / Double(max(progress.totalCategories, 1)),
             actions: [Action(.cancel, "Cancel", style: .destructive)]
@@ -156,26 +162,45 @@ struct HeroContent {
             self.init(
                 eyebrow: "Cleanup finished",
                 amount: freed,
-                isFreedAmount: true,
+                isFreedAmount: report.freedBytes > 0,
+                isAmountDimmed: report.freedBytes == 0,
                 detail: report.trashedBytes > 0
                     ? "\(cleaned) · \(String(localized: "\(trashed) went to the Trash"))"
                     : cleaned,
                 symbol: Symbol(name: "checkmark.circle.fill", tint: .success),
-                actions: [Action(.dismiss, "OK")]
+                actions: [Action(.dismiss, "OK", style: .secondary)]
             )
 
-        case .partialFailure, .failure:
-            let isPartial = report.outcome == .partialFailure
+        case .partialFailure:
+            let items = String(localized: "\(report.failedResults.count) items could not be removed")
+            let categories = String(localized: "in \(failedCategories) categories")
 
             self.init(
-                eyebrow: isPartial ? "Finished with failures" : "Could not clean",
+                eyebrow: "Finished with failures",
                 amount: freed,
-                isFreedAmount: true,
-                detail: String(localized: "\(report.failedResults.count) items could not be removed"),
+                isFreedAmount: report.freedBytes > 0,
+                isAmountDimmed: report.freedBytes == 0,
+                detail: "\(items) \(categories)",
                 symbol: Symbol(name: "exclamationmark.triangle.fill", tint: .attention),
                 actions: [
-                    Action(.retry, "Try again (\(failedCategories))"),
-                    Action(.toggleDetails, "Details", style: .secondary),
+                    Action(.retry, "Try again (\(report.failedResults.count))"),
+                    Action(.toggleDetails, "See details", style: .secondary),
+                ]
+            )
+
+        case .failure:
+            let categories = String(localized: "\(failedCategories) categories failed")
+
+            self.init(
+                eyebrow: "Could not clean",
+                amount: freed,
+                isFreedAmount: report.freedBytes > 0,
+                isAmountDimmed: report.freedBytes == 0,
+                detail: "\(String(localized: "No item was removed")) · \(categories)",
+                symbol: Symbol(name: "xmark.circle.fill", tint: .failure),
+                actions: [
+                    Action(.retry, "Try again"),
+                    Action(.toggleDetails, "See details", style: .secondary),
                 ]
             )
 
@@ -183,9 +208,10 @@ struct HeroContent {
             self.init(
                 eyebrow: "Cleanup cancelled",
                 amount: freed,
-                isFreedAmount: true,
+                isFreedAmount: report.freedBytes > 0,
+                isAmountDimmed: report.freedBytes == 0,
                 detail: String(localized: "\(finished) categories finished before cancelling"),
-                actions: [Action(.dismiss, "OK")]
+                actions: [Action(.dismiss, "OK", style: .secondary)]
             )
         }
     }
@@ -194,6 +220,7 @@ struct HeroContent {
         eyebrow: LocalizedStringResource,
         amount: String,
         isFreedAmount: Bool = false,
+        isAmountDimmed: Bool = false,
         detail: String,
         progress: Double? = nil,
         symbol: Symbol? = nil,
@@ -202,6 +229,7 @@ struct HeroContent {
         self.eyebrow = eyebrow
         self.amount = amount
         self.isFreedAmount = isFreedAmount
+        self.isAmountDimmed = isAmountDimmed
         self.detail = detail
         self.progress = progress
         self.symbol = symbol

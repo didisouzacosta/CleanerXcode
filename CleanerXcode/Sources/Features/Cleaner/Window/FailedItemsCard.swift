@@ -13,10 +13,12 @@ struct FailedItemsCard: View {
     // MARK: - Public Properties
 
     let results: [CleanupItemResult]
+    /// "No item was removed" when the whole run failed.
+    var title: LocalizedStringResource = "Items that failed"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Items that failed")
+            Text(title)
                 .font(.headline)
 
             ForEach(Array(results.enumerated()), id: \.offset) { _, result in
@@ -43,7 +45,7 @@ struct FailedItemsCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 12))
+        .background(Palette.card, in: .rect(cornerRadius: 12))
     }
 
 }

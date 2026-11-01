@@ -28,35 +28,40 @@ struct CleanerHeroView: View {
     var body: some View {
         let content = HeroContent(viewModel: viewModel)
 
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             if let symbol = content.symbol {
                 Image(systemName: symbol.name)
                     .font(.title2)
                     .foregroundStyle(symbol.tint.color)
                     .accessibilityHidden(true)
+                    .subtleTransition()
             }
 
             Text(content.eyebrow)
-                .font(.subheadline)
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
+                .contentTransition(.opacity)
 
             amount(content)
 
             if let progress = content.progress {
                 ProgressView(value: progress)
                     .padding(.horizontal, 24)
+                    .subtleAnimation(value: progress)
+                    .subtleTransition()
             }
 
             Text(content.detail)
-                .font(.caption)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .contentTransition(.opacity)
                 .multilineTextAlignment(.center)
 
             actions(content.actions)
-                .padding(.top, 8)
+                .padding(.top, 12)
         }
         .frame(maxWidth: .infinity)
-        .padding(24)
+        .padding(EdgeInsets(top: 24, leading: 24, bottom: 22, trailing: 24))
         .modifier(HeroBackground(reducesTransparency: reducesTransparency))
         .accessibilityElement(children: .contain)
     }
@@ -72,14 +77,19 @@ struct CleanerHeroView: View {
     private func amount(_ content: HeroContent) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text(content.amount)
-                .font(.system(.largeTitle, weight: .bold))
+                .font(.system(size: 44, weight: .bold, design: .rounded))
+                .foregroundStyle(content.isAmountDimmed ? .tertiary : .primary)
+                // The amount and the bar follow the cleanup item by item; the layout only animates
+                // when the phase changes.
+                .subtleAnimation(value: content.amount)
                 .monospacedDigit()
                 .contentTransition(.numericText())
 
             if content.isFreedAmount {
                 Text("freed")
-                    .font(.title3)
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
+                    .subtleTransition()
             }
         }
         .accessibilityElement(children: .combine)
@@ -90,6 +100,7 @@ struct CleanerHeroView: View {
             HStack(spacing: 12) {
                 ForEach(actions) { action in
                     button(for: action)
+                        .subtleTransition()
                 }
             }
         }
@@ -101,7 +112,10 @@ struct CleanerHeroView: View {
             perform(action.kind)
         } label: {
             Text(action.title)
-                .frame(minWidth: 140)
+                .font(.title3.weight(.semibold))
+                .contentTransition(.opacity)
+                .padding(.horizontal, 22)
+                .frame(minWidth: 144, minHeight: 30)
         }
         .controlSize(.large)
         .disabled(!action.isEnabled)
@@ -154,16 +168,22 @@ private struct HeroBackground: ViewModifier {
     // MARK: - Public Methods
 
     func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 22)
+
         if reducesTransparency {
-            content.background(.background.secondary, in: .rect(cornerRadius: 24))
+            content.background(Palette.card, in: shape)
         } else {
-            content.glassEffect(.regular, in: .rect(cornerRadius: 24))
+            content
+                .background(Palette.heroFill, in: shape)
+                .overlay(shape.strokeBorder(Palette.heroEdge, lineWidth: 1))
+                .glassEffect(.regular, in: shape)
+                .shadow(color: .black.opacity(0.1), radius: 12, y: 8)
         }
     }
 
 }
 
-private extension HeroContent.Symbol.Tint {
+extension HeroContent.Symbol.Tint {
 
     var color: Color {
         switch self {

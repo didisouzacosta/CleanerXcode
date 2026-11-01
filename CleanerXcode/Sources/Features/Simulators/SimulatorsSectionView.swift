@@ -8,12 +8,14 @@
 import SwiftUI
 
 /// "Manage simulators" at the end of the list (R8, R9, flow 2.3): expanding it loads the
-/// simulators and the runtimes. Collapsed by default, and the choice is kept.
+/// simulators and the runtimes, summed up in the "Simulators and runtimes" row that opens the
+/// lists (Figma page 03). Collapsed by default, and both choices are kept.
 struct SimulatorsSectionView: View {
 
     // MARK: - States
 
     @AppStorage private var isCollapsed: Bool
+    @AppStorage private var isListExpanded: Bool
 
     // MARK: - Public Properties
 
@@ -26,9 +28,17 @@ struct SimulatorsSectionView: View {
             CollapsibleSectionHeader(isCollapsed: $isCollapsed, title: "Manage simulators", summary: summary)
 
             if !isCollapsed {
-                content
+                SimulatorsSummaryRow(isListExpanded: $isListExpanded, viewModel: viewModel, onRetry: retry)
+                    .subtleTransition()
+
+                if isListExpanded, viewModel.phase.showsLists {
+                    SimulatorsListView(viewModel: viewModel, isLocked: isLocked)
+                        .subtleTransition()
+                }
             }
         }
+        .subtleAnimation(value: viewModel.phase)
+        .subtleAnimation(value: viewModel.selectedUDIDs)
         .sheet(item: confirmation) { confirmation in
             SimulatorsConfirmationSheet(confirmation: confirmation, viewModel: viewModel)
         }
@@ -41,40 +51,14 @@ struct SimulatorsSectionView: View {
 
     // MARK: - Private Properties
 
-    @ViewBuilder
-    private var content: some View {
-        switch viewModel.phase {
-        case .idle, .loading:
-            SimulatorsMessage(systemImage: nil, text: "Loading the simulators…", onRetry: nil)
-
-        case .empty:
-            SimulatorsMessage(systemImage: "checkmark.circle", text: "No simulators or runtimes", onRetry: retry)
-
-        case .toolsUnavailable:
-            SimulatorsMessage(systemImage: "wrench.and.screwdriver", text: "Needs the Xcode tools", onRetry: retry)
-
-        case let .failed(error):
-            SimulatorsMessage(
-                systemImage: "exclamationmark.triangle",
-                text: "Could not list the simulators: \(error.summary)",
-                onRetry: retry
-            )
-
-        case .loaded, .deleting:
-            SimulatorsListView(viewModel: viewModel, isLocked: isLocked)
-        }
-    }
-
-    private var summary: LocalizedStringResource {
-        let duplicates = viewModel.duplicateUDIDs.count
-
-        switch viewModel.phase {
-        case .loaded, .deleting:
-            return duplicates > 0 ? "\(duplicates) duplicates" : "\(viewModel.devices.count) simulators"
-
-        default:
-            return ""
-        }
+    private var summary: String {
+        SimulatorPresentation.sectionSummary(
+            deviceCount: viewModel.devices.count,
+            duplicateCount: viewModel.duplicateUDIDs.count,
+            isLoaded: viewModel.phase.showsLists,
+            isCollapsed: isCollapsed
+        )?
+            .text ?? ""
     }
 
     /// Lists again on expanding unless the lists are shown or being changed.
@@ -97,11 +81,18 @@ struct SimulatorsSectionView: View {
 
     // MARK: - Initializers
 
-    /// Previews start expanded; the app starts collapsed until the owner opens it.
-    init(viewModel: SimulatorsViewModel, isLocked: Bool, isInitiallyCollapsed: Bool = true) {
+    /// The section starts collapsed, so `simctl` only runs once the owner opens it (C21; the
+    /// layout's open section is pending the owner's decision). Previews start open.
+    init(
+        viewModel: SimulatorsViewModel,
+        isLocked: Bool,
+        isInitiallyCollapsed: Bool = true,
+        isListInitiallyExpanded: Bool = false
+    ) {
         self.viewModel = viewModel
         self.isLocked = isLocked
         _isCollapsed = AppStorage(wrappedValue: isInitiallyCollapsed, "section-collapsed-manage-simulators")
+        _isListExpanded = AppStorage(wrappedValue: isListInitiallyExpanded, "simulators-list-expanded")
     }
 
     // MARK: - Private Methods
@@ -112,8 +103,13 @@ struct SimulatorsSectionView: View {
 
 }
 
-/// The two lists with their actions.
+/// The two lists with their actions, each collapsible like in the approved layout (Figma 9:1366).
 private struct SimulatorsListView: View {
+
+    // MARK: - States
+
+    @AppStorage("section-collapsed-simulator-devices") private var areDevicesCollapsed = false
+    @AppStorage("section-collapsed-simulator-runtimes") private var areRuntimesCollapsed = false
 
     // MARK: - Public Properties
 
@@ -132,26 +128,39 @@ private struct SimulatorsListView: View {
                 .font(.callout)
             }
 
-            subheader("Simulators", detail: simulatorsDetail)
+            CollapsibleSectionHeader(
+                isCollapsed: $areDevicesCollapsed,
+                title: "Simulators",
+                summary: String(localized: simulatorsDetail)
+            )
 
-            actions
+            if !areDevicesCollapsed {
+                actions
+                    .subtleTransition()
 
-            if !viewModel.devices.isEmpty {
-                card {
-                    ForEach(viewModel.devices) { device in
-                        SimulatorRowView(device: device, viewModel: viewModel, isLocked: isLocked)
+                if !viewModel.devices.isEmpty {
+                    card {
+                        ForEach(viewModel.devices) { device in
+                            SimulatorRowView(device: device, viewModel: viewModel, isLocked: isLocked)
+                        }
                     }
+                    .subtleTransition()
                 }
             }
 
-            subheader("Runtimes", detail: runtimesDetail)
+            CollapsibleSectionHeader(
+                isCollapsed: $areRuntimesCollapsed,
+                title: "Runtimes",
+                summary: String(localized: runtimesDetail)
+            )
 
-            if !viewModel.runtimes.isEmpty {
+            if !areRuntimesCollapsed, !viewModel.runtimes.isEmpty {
                 card {
                     ForEach(viewModel.runtimes) { runtime in
                         RuntimeRowView(runtime: runtime, viewModel: viewModel, isLocked: isLocked)
                     }
                 }
+                .subtleTransition()
             }
         }
     }
@@ -186,8 +195,10 @@ private struct SimulatorsListView: View {
                     viewModel.selectDuplicates()
                 } label: {
                     Text("Select duplicates (\(viewModel.duplicateUDIDs.count))")
+                        .font(.title3.weight(.semibold))
                 }
                 .buttonStyle(.glass)
+                .controlSize(.large)
                 .disabled(isBusy || viewModel.duplicateUDIDs.isEmpty)
 
                 Button {
@@ -196,8 +207,10 @@ private struct SimulatorsListView: View {
                     let count = viewModel.selectedUDIDs.count
 
                     Text(count > 0 ? "Remove \(count) simulators" : "Remove simulators")
+                        .font(.title3.weight(.semibold))
                 }
                 .buttonStyle(.glassProminent)
+                .controlSize(.large)
                 .tint(.red)
                 .disabled(isBusy || viewModel.selectedUDIDs.isEmpty)
             }
@@ -206,63 +219,156 @@ private struct SimulatorsListView: View {
 
     // MARK: - Private Methods
 
-    private func subheader(_ title: LocalizedStringResource, detail: LocalizedStringResource) -> some View {
-        HStack {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-
-            Spacer()
-
-            Text(detail)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
     private func card(@ViewBuilder _ rows: () -> some View) -> some View {
         VStack(spacing: 0) {
             rows()
         }
         .padding(.vertical, 4)
-        .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 12))
+        .background(Palette.card, in: .rect(cornerRadius: 12))
     }
 
 }
 
-/// Loading, empty, missing tools and failures.
-private struct SimulatorsMessage: View {
+/// "Simulators and runtimes": what the lists hold, or why there are none. Once loaded, it opens
+/// and closes the lists.
+private struct SimulatorsSummaryRow: View {
+
+    // MARK: - Bindings
+
+    @Binding var isListExpanded: Bool
 
     // MARK: - Public Properties
 
-    let systemImage: String?
-    let text: LocalizedStringResource
-    let onRetry: (() -> Void)?
+    let viewModel: SimulatorsViewModel
+    let onRetry: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
-            if let systemImage {
-                Image(systemName: systemImage)
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
+        Group {
+            // Only the loaded lists open; a "Try again" never sits inside another button.
+            if viewModel.phase.showsLists {
+                Button {
+                    withAnimation(.snappy) {
+                        isListExpanded.toggle()
+                    }
+                } label: {
+                    content
+                }
+                .buttonStyle(.plain)
+                .accessibilityValue(isListExpanded ? Text("Expanded") : Text("Collapsed"))
+                .accessibilityHint("Shows or hides the items of this section")
             } else {
-                ProgressView()
-                    .controlSize(.small)
-            }
-
-            Text(text)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-
-            Spacer(minLength: 0)
-
-            if let onRetry {
-                Button("Try again", action: onRetry)
-                    .controlSize(.small)
+                content
+                    .accessibilityElement(children: .contain)
             }
         }
-        .padding(12)
-        .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 12))
-        .accessibilityElement(children: .contain)
+        .background(Palette.card, in: .rect(cornerRadius: 12))
+    }
+
+    // MARK: - Private Properties
+
+    private var content: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "macbook.and.iphone")
+                .frame(width: 20)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Simulators and runtimes")
+
+                Text(verbatim: detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+
+            Spacer(minLength: 8)
+
+            accessory
+        }
+        .frame(minHeight: 52)
+        .padding(.horizontal, 14)
+        .contentShape(.rect)
+        // The line truncates; the whole reason stays reachable.
+        .help(detail)
+    }
+
+    @ViewBuilder
+    private var accessory: some View {
+        switch viewModel.phase {
+        case .idle, .loading:
+            ProgressView()
+                .controlSize(.small)
+
+        case .empty:
+            EmptyView()
+
+        case .toolsUnavailable, .failed:
+            Button("Try again", action: onRetry)
+                .controlSize(.small)
+
+        case .loaded, .deleting:
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .rotationEffect(.degrees(isListExpanded ? 90 : 0))
+                .accessibilityHidden(true)
+        }
+    }
+
+    /// Already localized: the loaded summary joins several plurals.
+    private var detail: String {
+        switch viewModel.phase {
+        case .idle, .loading:
+            return String(localized: "Loading the simulators…")
+
+        case .empty:
+            return String(localized: "No simulators or runtimes")
+
+        case .toolsUnavailable:
+            return String(localized: "Unavailable without Xcode")
+
+        case let .failed(error):
+            return String(localized: "Could not list the simulators: \(String(localized: error.summary))")
+
+        case .loaded, .deleting:
+            return loadedDetail
+        }
+    }
+
+    /// "14 simulators · 3 duplicates (7.2 GB) · 2 runtimes (15.1 GB)".
+    private var loadedDetail: String {
+        let duplicates = viewModel.devices.filter { viewModel.duplicateUDIDs.contains($0.udid) }
+        let duplicateBytes = duplicates.reduce(0) { $0 + $1.sizeBytes }
+        let runtimeBytes = viewModel.runtimes.reduce(0) { $0 + $1.sizeBytes }
+
+        var parts = [String(localized: "\(viewModel.devices.count) simulators")]
+
+        if !duplicates.isEmpty {
+            parts.append("\(String(localized: "\(duplicates.count) duplicates")) (\(Self.format(duplicateBytes)))")
+        }
+
+        parts.append("\(String(localized: "\(viewModel.runtimes.count) runtimes")) (\(Self.format(runtimeBytes)))")
+
+        return parts.joined(separator: " · ")
+    }
+
+    // MARK: - Private Methods
+
+    private static func format(_ bytes: Int64) -> String {
+        bytes.formatted(.byteCount(style: .file))
+    }
+
+}
+
+private extension SimulatorsPhase {
+
+    var showsLists: Bool {
+        switch self {
+        case .loaded, .deleting: true
+        default: false
+        }
     }
 
 }

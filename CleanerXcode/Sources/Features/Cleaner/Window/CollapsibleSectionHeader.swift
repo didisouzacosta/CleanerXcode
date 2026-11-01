@@ -17,7 +17,8 @@ struct CollapsibleSectionHeader: View {
     // MARK: - Public Properties
 
     let title: LocalizedStringResource
-    let summary: LocalizedStringResource
+    /// Already localized: some summaries join several phrases.
+    let summary: String
 
     var body: some View {
         Button {
@@ -28,6 +29,8 @@ struct CollapsibleSectionHeader: View {
             HStack(spacing: 6) {
                 Image(systemName: "chevron.down")
                     .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 14, height: 14)
                     .rotationEffect(.degrees(isCollapsed ? -90 : 0))
                     .accessibilityHidden(true)
 
@@ -36,10 +39,12 @@ struct CollapsibleSectionHeader: View {
 
                 Spacer()
 
-                Text(summary)
-                    .font(.caption)
+                Text(verbatim: summary)
+                    .font(.subheadline)
+                    .contentTransition(.opacity)
                     .foregroundStyle(.secondary)
             }
+            .padding(4)
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
@@ -55,11 +60,11 @@ struct CollapsibleSectionHeader: View {
         @Previewable @State var isOtherCollapsed = true
 
         VStack(spacing: 16) {
-            CollapsibleSectionHeader(isCollapsed: $isCollapsed, title: "Xcode", summary: "\("31.3 GB") selected")
+            CollapsibleSectionHeader(isCollapsed: $isCollapsed, title: "Xcode", summary: "31.3 GB selected")
             CollapsibleSectionHeader(
                 isCollapsed: $isOtherCollapsed,
                 title: "Temporary files",
-                summary: "nothing selected"
+                summary: "0 of 1 selected"
             )
         }
         .padding()

@@ -83,19 +83,20 @@ struct GeneralSettingsView: View {
 
             Section {
                 Toggle(
-                    "Send usage statistics",
+                    "Send anonymous usage statistics",
                     isOn: binding(viewModel.sendsUsageStatistics, viewModel.setSendsUsageStatistics)
                 )
             } header: {
                 Text("Privacy")
             } footer: {
-                Text("""
-                Statistics use a random identifier, never personal data, file names or paths. App errors are \
-                reported without personal data.
-                """)
+                Text("No personal data, file names or paths. App errors are reported without personal data.")
             }
         }
         .formStyle(.grouped)
+        .subtleAnimation(value: viewModel.loginItemNeedsApproval)
+        .subtleAnimation(value: viewModel.loginItemFailure)
+        .scrollContentBackground(.hidden)
+        .background(Palette.window)
         .onAppear {
             viewModel.readLoginItem()
         }

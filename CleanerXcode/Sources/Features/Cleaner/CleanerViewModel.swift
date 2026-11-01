@@ -49,6 +49,11 @@ final class CleanerViewModel {
         plannedCategories.contains { $0.risk != .safe || restrictions.warnings[$0.id] != nil }
     }
 
+    /// The risks of what would be cleaned now, for the panel's note.
+    var plannedRisks: [RiskLevel] {
+        plannedCategories.map(\.risk)
+    }
+
     var canClean: Bool {
         phase == .ready
     }
@@ -299,8 +304,8 @@ final class CleanerViewModel {
         case .confirming:
             phase = idlePhase()
 
-        case .cleaning:
-            phase = .cancelling
+        case let .cleaning(progress):
+            phase = .cancelling(freedBytes: progress.freedBytes)
             cleanupTask?.cancel()
 
         default:

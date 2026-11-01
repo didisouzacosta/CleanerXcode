@@ -217,7 +217,7 @@ struct CleanerViewModelTests {
 
         viewModel.cancel()
 
-        #expect(viewModel.phase == .cancelling)
+        #expect(viewModel.phase == .cancelling(freedBytes: 700))
 
         await cleaning.value
 

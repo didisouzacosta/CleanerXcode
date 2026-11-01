@@ -5,6 +5,7 @@
 //  Created by Adriano Costa on 31/10/26.
 //
 
+import Foundation
 import Testing
 @testable import CleanerXcode
 
@@ -66,10 +67,41 @@ struct HeroContentTests {
 
     @Test
     func cancellingWaitsForTheCurrentItem() {
-        let content = hero(.cancelling)
+        let content = hero(.cancelling(freedBytes: 700))
 
         #expect(content.actions.map(\.kind) == [.cancel])
         #expect(!content.actions[0].isEnabled)
+        #expect(content.isFreedAmount, "What was freed before cancelling stays on screen.")
+        #expect(content.amount == hero(.finished(CleanupReport(results: [result(.removed, bytes: 700)]))).amount)
+    }
+
+    /// "Freed" only follows an amount that was actually freed, never "0 KB freed".
+    @Test
+    func nothingFreedShowsNoFreedLabel() {
+        let failure = CleanupReport(results: [result(.failed(.permissionDenied))])
+
+        #expect(!hero(.finished(failure)).isFreedAmount)
+        #expect(!hero(.permissionDenied(failure)).isFreedAmount)
+        #expect(!hero(.cancelling(freedBytes: 0)).isFreedAmount)
+        #expect(hero(.finished(failure)).isAmountDimmed, "\"0 KB\" in grey, as in the approved layout.")
+        #expect(hero(.permissionDenied(failure)).isAmountDimmed)
+        #expect(!hero(.ready, totalBytes: 0).isAmountDimmed, "Only a run that freed nothing is dimmed.")
+        #expect(!hero(.finished(CleanupReport(results: [result(.removed)]))).isAmountDimmed)
+    }
+
+    /// The retry counts the failed items, as in the approved layout; a run where nothing was
+    /// removed just offers to try again.
+    @Test
+    func theRetryCountsTheFailedItems() {
+        let partial = CleanupReport(results: [
+            result(.removed, id: .removeCaches),
+            result(.failed(.inUse)),
+            result(.failed(.permissionDenied)),
+        ])
+        let failure = CleanupReport(results: [result(.failed(.inUse))])
+
+        #expect(hero(.finished(partial)).actions.map(\.title.key) == ["Try again (%lld)", "See details"])
+        #expect(hero(.finished(failure)).actions.map(\.title.key) == ["Try again", "See details"])
     }
 
     @Test
@@ -96,7 +128,7 @@ struct HeroContentTests {
 
         #expect(hero(.finished(CleanupReport(results: [result(.removed)]))).symbol?.tint == .success)
         #expect(hero(.finished(partial)).symbol?.tint == .attention)
-        #expect(hero(.finished(failure)).symbol?.tint == .attention)
+        #expect(hero(.finished(failure)).symbol?.tint == .failure, "Nothing removed: the red cross (Figma 17:10078).")
         #expect(hero(.finished(cancelled)).symbol?.tint != .success)
         #expect(hero(.permissionDenied(failure)).symbol?.tint == .failure)
     }
@@ -115,9 +147,10 @@ struct HeroContentTests {
 
     private func result(
         _ outcome: CleanupItemResult.Outcome,
-        id: CleanupCategoryID = .removeDerivedData
+        id: CleanupCategoryID = .removeDerivedData,
+        bytes: Int64 = 100
     ) -> CleanupItemResult {
-        CleanupItemResult(categoryID: id, displayPath: "~/\(id.rawValue)", bytes: 100, outcome: outcome)
+        CleanupItemResult(categoryID: id, displayPath: "~/\(id.rawValue)", bytes: bytes, outcome: outcome)
     }
 
 }

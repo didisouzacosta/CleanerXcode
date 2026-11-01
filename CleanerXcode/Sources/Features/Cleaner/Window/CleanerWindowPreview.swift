@@ -29,7 +29,7 @@
                 versionText: "1.0.0 (115)"
             )
             .environment(\.reducesTransparencyOverride, reducesTransparency ? true : nil)
-            .frame(width: 560, height: 720)
+            .frame(width: 560)
             .task {
                 await Self.prepare(viewModel, for: scenario)
             }
@@ -260,6 +260,7 @@
 
             case .cancelling:
                 onEvent(.categoryStarted(.removeDerivedData))
+                onEvent(.itemFinished(result(.removeDerivedData, .removed)))
                 // Never returns, even when cancelled, so the preview stays in "Cancelling…". The
                 // continuation is never resumed on purpose: it only parks a preview's task.
                 await withUnsafeContinuation { (_: UnsafeContinuation<Void, Never>) in }

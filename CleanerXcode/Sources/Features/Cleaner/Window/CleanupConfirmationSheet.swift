@@ -27,7 +27,11 @@ struct CleanupConfirmationSheet: View {
 
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(listedCategories) { category in
-                    ConfirmationRow(category: category, warning: viewModel.restrictions.warnings[category.id])
+                    ConfirmationRow(
+                        category: category,
+                        warning: viewModel.restrictions.warnings[category.id],
+                        size: size(of: category.id)
+                    )
                 }
             }
             .padding(12)
@@ -74,11 +78,7 @@ struct CleanupConfirmationSheet: View {
 
     /// Some plans only ask because an app is open.
     private var introduction: LocalizedStringResource {
-        if listedCategories.contains(where: { $0.risk != .safe }) {
-            "You selected items that need attention. Check what happens to each one before continuing."
-        } else {
-            "Some apps are open. Check what happens to each item before continuing."
-        }
+        ConfirmationIntro(risks: listedCategories.map(\.risk)).text
     }
 
     private var confirmTitle: LocalizedStringResource {
@@ -110,6 +110,15 @@ struct CleanupConfirmationSheet: View {
         }
     }
 
+    // MARK: - Private Methods
+
+    /// The measured size of an item, next to where it goes.
+    private func size(of id: CleanupCategoryID) -> String? {
+        guard case let .measured(bytes) = viewModel.rows[id] else { return nil }
+
+        return bytes.formatted(.byteCount(style: .file))
+    }
+
 }
 
 private struct ConfirmationRow: View {
@@ -118,11 +127,12 @@ private struct ConfirmationRow: View {
 
     let category: CleanupCategory
     let warning: CleanupRestrictions.Warning?
+    let size: String?
 
     var body: some View {
         let presentation = CategoryPresentation(category.id)
 
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
+        HStack(spacing: 10) {
             Image(systemName: presentation.systemImage)
                 .frame(width: 20)
                 .foregroundStyle(.secondary)
@@ -130,7 +140,7 @@ private struct ConfirmationRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(presentation.title)
-                    .font(.callout.weight(.medium))
+                    .font(.body.weight(.semibold))
 
                 Text(presentation.subtitle)
                     .font(.caption)
@@ -150,11 +160,19 @@ private struct ConfirmationRow: View {
             }
 
             Text(destination)
-                .font(.caption2)
+                .font(.caption.weight(.medium))
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 6)
+                .padding(.horizontal, 7)
                 .padding(.vertical, 2)
-                .background(.quaternary, in: .capsule)
+                .background(.quaternary, in: .rect(cornerRadius: 6))
+
+            if let size {
+                Text(verbatim: size)
+                    .font(.body)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .frame(minWidth: 52, alignment: .trailing)
+            }
         }
         .accessibilityElement(children: .combine)
     }

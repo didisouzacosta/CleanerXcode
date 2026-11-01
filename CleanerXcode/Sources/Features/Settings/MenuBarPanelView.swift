@@ -28,38 +28,57 @@ struct MenuBarPanelView: View {
         let content = HeroContent(viewModel: viewModel)
 
         VStack(spacing: 10) {
-            Text(content.eyebrow)
+            if let symbol = symbol(content) {
+                Image(systemName: symbol.name)
+                    .font(.title3)
+                    .foregroundStyle(symbol.color)
+                    .accessibilityHidden(true)
+                    .subtleTransition()
+            }
+
+            Text(MenuBarPresentation.eyebrow(phase: viewModel.phase) ?? content.eyebrow)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .contentTransition(.opacity)
 
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(content.amount)
-                    .font(.system(.title, weight: .bold))
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundStyle(content.isAmountDimmed ? .tertiary : .primary)
                     .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .subtleAnimation(value: content.amount)
 
                 if content.isFreedAmount {
                     Text("freed")
                         .foregroundStyle(.secondary)
+                        .subtleTransition()
                 }
             }
             .accessibilityElement(children: .combine)
 
             if let progress = content.progress {
                 ProgressView(value: progress)
+                    .subtleTransition()
             }
 
-            Text(detail(content))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+            if MenuBarPresentation.showsDetail(phase: viewModel.phase, detail: panelDetail(content)) {
+                Text(detail(content))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .contentTransition(.opacity)
+                    .subtleTransition()
+            }
 
             if let action = content.actions.first {
                 primaryButton(action)
             }
 
-            footer
+            footer(content)
         }
+        .subtleAnimation(value: viewModel.phase.kind)
         .padding(16)
         .frame(width: 300)
         .task {
@@ -74,7 +93,9 @@ struct MenuBarPanelView: View {
         viewModel.phase == .ready && viewModel.cleanNeedsConfirmation
     }
 
-    private var footer: some View {
+    // MARK: - Private Methods
+
+    private func footer(_ content: HeroContent) -> some View {
         HStack {
             SettingsLink {
                 Label("Settings", systemImage: "gearshape")
@@ -84,8 +105,16 @@ struct MenuBarPanelView: View {
 
             Spacer()
 
-            Button("Open CleanerXcode", action: openMainWindow)
-                .buttonStyle(.link)
+            Group {
+                switch MenuBarPresentation.link(for: content.actions.map(\.kind)) {
+                case .openApp:
+                    Button("Open CleanerXcode", action: openMainWindow)
+                case .seeDetails:
+                    Button("See details", action: openMainWindow)
+                }
+            }
+            .buttonStyle(.link)
+            .font(.body.weight(.semibold))
 
             Spacer()
 
@@ -98,20 +127,32 @@ struct MenuBarPanelView: View {
             .help("Quit CleanerXcode")
         }
         .buttonStyle(.glass)
+        .buttonBorderShape(.circle)
+        .controlSize(.large)
     }
 
-    // MARK: - Private Methods
-
-    private func detail(_ content: HeroContent) -> String {
+    private func panelDetail(_ content: HeroContent) -> MenuBarPresentation.PanelDetail {
         let action = content.actions.first
-        let detail = MenuBarPresentation.panelDetail(
+
+        return MenuBarPresentation.panelDetail(
             action: action?.kind,
             isEnabled: action?.isEnabled ?? false,
             isDeletingSimulators: isDeletingSimulators,
             reviewsInWindow: reviewsInWindow
         )
+    }
 
-        switch detail {
+    /// The status of a finished run, or the warning of a plan that the window will confirm.
+    private func symbol(_ content: HeroContent) -> (name: String, color: Color)? {
+        if reviewsInWindow {
+            return ("exclamationmark.triangle.fill", .orange)
+        }
+
+        return content.symbol.map { ($0.name, $0.tint.color) }
+    }
+
+    private func detail(_ content: HeroContent) -> String {
+        switch panelDetail(content) {
         case .content:
             return content.detail
 
@@ -119,7 +160,7 @@ struct MenuBarPanelView: View {
             return String(localized: "Wait while simulators or a runtime are deleted.")
 
         case .reviewInWindow:
-            return String(localized: "Some selected items need a confirmation. It opens in the main window.")
+            return String(localized: MenuBarPresentation.ReviewNote(risks: viewModel.plannedRisks).text)
         }
     }
 
@@ -130,7 +171,8 @@ struct MenuBarPanelView: View {
             perform(action.kind)
         } label: {
             Text(title)
-                .frame(maxWidth: .infinity)
+                .font(.title3.weight(.semibold))
+                .frame(maxWidth: .infinity, minHeight: 28)
         }
         .controlSize(.large)
         .disabled(!action.isEnabled || !MenuBarPresentation.isEnabled(

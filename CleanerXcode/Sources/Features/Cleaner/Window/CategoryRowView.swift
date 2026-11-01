@@ -43,16 +43,15 @@ struct CategoryRowView: View {
                 }
 
                 Text(valueText)
-                    .font(.callout)
+                    .font(.body)
+                    .contentTransition(.numericText())
                     .monospacedDigit()
                     .foregroundStyle(hasFailed ? .red : .secondary)
                     .frame(minWidth: 64, alignment: .trailing)
             }
         }
-        .toggleStyle(.checkbox)
+        .toggleStyle(CenteredCheckboxToggleStyle())
         .disabled(!viewModel.canToggle(category.id))
-        .frame(minHeight: 44)
-        .padding(.horizontal, 12)
     }
 
     // MARK: - Private Properties
@@ -73,12 +72,12 @@ struct CategoryRowView: View {
         }
     }
 
-    private var failedItemCount: Int {
-        viewModel.phase.report?.failedResults.count { $0.categoryID == category.id } ?? 0
+    private var failedResults: [CleanupItemResult] {
+        viewModel.phase.report?.failedResults(of: category.id) ?? []
     }
 
     private var hasFailed: Bool {
-        failedItemCount > 0
+        !failedResults.isEmpty
     }
 
     private var valueText: LocalizedStringResource {
@@ -103,13 +102,22 @@ struct CategoryRowView: View {
         }
     }
 
+    /// A single failure tells its reason, as in the approved layout; several are counted.
+    private var failureNote: Text {
+        if failedResults.count == 1, case let .failed(error) = failedResults[0].outcome {
+            Text(error.summary)
+        } else {
+            Text("\(failedResults.count) items could not be removed")
+        }
+    }
+
     // MARK: - Private Methods
 
     /// The explanation, or what keeps the category from being cleaned right now.
     @ViewBuilder
     private func note(_ presentation: CategoryPresentation) -> some View {
         if hasFailed {
-            Text("\(failedItemCount) items could not be removed")
+            failureNote
                 .foregroundStyle(.red)
         } else if case let .unavailable(reason) = row {
             Text(reason.note)
@@ -118,8 +126,9 @@ struct CategoryRowView: View {
             Text(error.summary)
                 .foregroundStyle(.orange)
         } else if let warning = viewModel.restrictions.warnings[category.id] {
+            // Grey like in the layout (Figma 9:4045); only what blocks the row is orange.
             Text(warning.note)
-                .foregroundStyle(.orange)
+                .foregroundStyle(.secondary)
         } else if category.id == .clearTemporaryFiles {
             // The fixed notice of the temporary folder (R13), with the age from Settings.
             Text(
@@ -148,11 +157,11 @@ struct RiskBadge: View {
 
     var body: some View {
         Text(title)
-            .font(.caption2.weight(.medium))
+            .font(.caption.weight(.medium))
             .foregroundStyle(tint)
-            .padding(.horizontal, 6)
+            .padding(.horizontal, 7)
             .padding(.vertical, 2)
-            .badgeBackground(tint, in: .capsule, contrast: contrast)
+            .badgeBackground(tint, in: .rect(cornerRadius: 6), contrast: contrast)
     }
 
     // MARK: - Initializers

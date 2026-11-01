@@ -58,10 +58,11 @@ struct SimulatorRowView: View {
                     .frame(minWidth: 64, alignment: .trailing)
             }
         }
-        .toggleStyle(.checkbox)
+        .toggleStyle(CenteredCheckboxToggleStyle(
+            minHeight: 44,
+            insets: EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12)
+        ))
         .disabled(isLocked || viewModel.phase.isDeleting)
-        .frame(minHeight: 44)
-        .padding(.horizontal, 12)
     }
 
     // MARK: - Private Properties

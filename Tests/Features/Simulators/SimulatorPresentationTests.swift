@@ -78,4 +78,31 @@ struct SimulatorPresentationTests {
         #expect(SimulatorPresentation.spokenType(name: "My test phone", deviceType: type) == "iPhone 17 Pro")
     }
 
+    /// "3 duplicates" next to the expanded section, "14 simulators · 3 duplicates" next to the
+    /// collapsed one (Figma page 03), and nothing before the lists are loaded.
+    @Test
+    func summarizesTheSimulatorsNextToTheSectionTitle() {
+        #expect(summary(14, 3, isCollapsed: false) == .duplicates(3))
+        #expect(summary(14, 0, isCollapsed: false) == .simulators(14))
+        #expect(summary(14, 3, isCollapsed: true) == .simulatorsAndDuplicates(14, 3))
+        #expect(summary(14, 0, isCollapsed: true) == .simulators(14))
+        #expect(
+            SimulatorPresentation.sectionSummary(deviceCount: 0, duplicateCount: 0, isLoaded: false, isCollapsed: true)
+                == nil
+        )
+    }
+
+    // MARK: - Private Methods
+
+    private func summary(_ devices: Int, _ duplicates: Int, isCollapsed: Bool) -> SimulatorPresentation
+        .SectionSummary?
+    {
+        SimulatorPresentation.sectionSummary(
+            deviceCount: devices,
+            duplicateCount: duplicates,
+            isLoaded: true,
+            isCollapsed: isCollapsed
+        )
+    }
+
 }

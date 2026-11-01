@@ -101,7 +101,7 @@ struct AboutSettingsView: View {
             VStack(spacing: 0) {
                 rows()
             }
-            .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 12))
+            .background(Palette.card, in: .rect(cornerRadius: 12))
         }
     }
 
@@ -157,7 +157,7 @@ private struct SupportCard: View {
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Support the project")
+                Text("Support this project")
                     .font(.callout.weight(.semibold))
 
                 Text("Any amount helps keep CleanerXcode going, and all of it goes to shelters and hospitals.")
@@ -170,12 +170,15 @@ private struct SupportCard: View {
 
             Button(action: onSupport) {
                 Label("Support", systemImage: "heart.fill")
+                    .font(.body.weight(.semibold))
             }
             .buttonStyle(.glassProminent)
-            .tint(.pink)
+            .buttonBorderShape(.capsule)
+            .controlSize(.large)
+            .tint(Palette.support)
         }
         .padding(16)
-        .background(.pink.opacity(0.12), in: .rect(cornerRadius: 16))
+        .background(Palette.support.opacity(0.12), in: .rect(cornerRadius: 16))
     }
 
 }

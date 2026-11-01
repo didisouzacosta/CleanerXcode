@@ -14,7 +14,7 @@ extension CategoryRowState.UnavailableReason {
     /// Why the row cannot be cleaned right now.
     var note: LocalizedStringResource {
         switch self {
-        case .toolsUnavailable: "Needs the Xcode tools"
+        case .toolsUnavailable: "Xcode tools unavailable"
         case .xcodeIsRunning: "Close Xcode to clean"
         case .simulatorListUnavailable: "The simulator list could not be read"
         }

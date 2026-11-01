@@ -5,6 +5,8 @@
 //  Created by Adriano Costa on 31/10/26.
 //
 
+import Foundation
+
 /// The menu bar item (R14): the size next to the icon, and what closing the last window does.
 enum MenuBarPresentation {
 
@@ -59,7 +61,63 @@ enum MenuBarPresentation {
         return reviewsInWindow ? .reviewInWindow : .content
     }
 
+    /// The panel is narrower than the window: "Cleaning · 3 of 5" instead of the window's longer
+    /// eyebrow; `nil` keeps the window's.
+    static func eyebrow(phase: CleanerPhase) -> LocalizedStringResource? {
+        guard case let .cleaning(progress) = phase else { return nil }
+
+        return "Cleaning · \(progress.startedCategories) of \(progress.totalCategories)"
+    }
+
+    /// A total waiting to be cleaned needs no detail in the panel (Figma page 05).
+    static func showsDetail(phase: CleanerPhase, detail: PanelDetail) -> Bool {
+        detail != .content || phase != .ready
+    }
+
+    /// The link under the action: the details of a failed run, or the main window.
+    static func link(for actions: [HeroContent.Action.Kind]) -> Link {
+        actions.contains(.toggleDetails) || actions.contains(.openPrivacySettings) ? .seeDetails : .openApp
+    }
+
     // MARK: - Nested Types
+
+    /// Why the plan waits for the main window: the riskiest kind it holds, or an open app.
+    enum ReviewNote: Equatable {
+
+        // MARK: - Cases
+
+        case dangerous
+        case attention
+        case appsOpen
+
+        // MARK: - Public Properties
+
+        var text: LocalizedStringResource {
+            switch self {
+            case .dangerous: "Dangerous items are selected. The confirmation opens in the main window."
+            case .attention: "Items that need attention are selected. The confirmation opens in the main window."
+            case .appsOpen: "Some apps are open. The confirmation opens in the main window."
+            }
+        }
+
+        // MARK: - Initializers
+
+        init(risks: [RiskLevel]) {
+            if risks.contains(.dangerous) {
+                self = .dangerous
+            } else if risks.contains(.attention) {
+                self = .attention
+            } else {
+                self = .appsOpen
+            }
+        }
+
+    }
+
+    enum Link: Equatable {
+        case openApp
+        case seeDetails
+    }
 
     enum PanelDetail: Equatable {
         case content

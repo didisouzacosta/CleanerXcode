@@ -15,6 +15,8 @@ struct CleanerWindowView: View {
     // MARK: - States
 
     @State private var isShowingFailures = false
+    @State private var contentHeight: CGFloat = 0
+    @State private var footerHeight: CGFloat = 0
 
     // MARK: - Environments
 
@@ -31,15 +33,22 @@ struct CleanerWindowView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            VStack(spacing: 18) {
                 CleanerHeroView(isShowingFailures: $isShowingFailures, viewModel: viewModel)
                     // A cleanup never starts while simulators or a runtime are being deleted.
                     .disabled(simulators.phase.isDeleting)
 
-                CleanerNoticesView(viewModel: viewModel, isDeletingSimulators: simulators.phase.isDeleting)
+                if CleanerNoticesView.hasNotices(viewModel) {
+                    CleanerNoticesView(viewModel: viewModel, isDeletingSimulators: simulators.phase.isDeleting)
+                        .subtleTransition()
+                }
 
-                if isShowingFailures, let failures = viewModel.phase.report?.failedResults, !failures.isEmpty {
-                    FailedItemsCard(results: failures)
+                if isShowingFailures, let report = viewModel.phase.report, !report.failedResults.isEmpty {
+                    FailedItemsCard(
+                        results: report.failedResults,
+                        title: report.outcome == .failure ? "No item was removed" : "Items that failed"
+                    )
+                    .subtleTransition()
                 }
 
                 ForEach(sections) { group in
@@ -48,11 +57,21 @@ struct CleanerWindowView: View {
 
                 SimulatorsSectionView(viewModel: simulators, isLocked: !viewModel.phase.allowsMeasurement)
             }
-            .padding(16)
+            .padding(EdgeInsets(top: 4, leading: 16, bottom: 14, trailing: 16))
+            .subtleAnimation(value: viewModel.phase.kind)
+            .subtleAnimation(value: viewModel.rows)
+            .subtleAnimation(value: viewModel.selectedIDs)
+            .subtleAnimation(value: viewModel.restrictions)
+            .subtleAnimation(value: isShowingFailures)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
         }
+        .background(Palette.window)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             WindowFooterView(updates: updates, versionText: versionText, onSupport: onSupport)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { footerHeight = $0 }
         }
+        // The window follows the content up to the screen, smoothly, with no empty band below it.
+        .background(WindowHeightFitter(contentHeight: contentHeight > 0 ? contentHeight + footerHeight : 0))
         .toolbar {
             CleanerToolbar(viewModel: viewModel, simulators: simulators)
         }
