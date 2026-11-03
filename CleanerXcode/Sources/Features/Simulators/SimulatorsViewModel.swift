@@ -10,7 +10,8 @@ import Observation
 /// The simulators of the default set and the installed runtimes (R8, R9). "Remover duplicados"
 /// only pre-selects; every deletion waits for a confirmation, sends the exact UDIDs or runtime
 /// identifier to `simctl`, and reloads the lists to show the result. It also downloads runtimes
-/// (C30), one platform at a time, never together with a runtime deletion.
+/// (C30), one platform at a time, never together with a runtime deletion, with the progress of the
+/// current one when its output shows it (C34).
 @Observable
 final class SimulatorsViewModel {
 
@@ -28,6 +29,9 @@ final class SimulatorsViewModel {
     /// The last deletion that failed; cleared by the next one.
     private(set) var lastFailure: CleanupError?
     private(set) var runtimeDownload: RuntimeDownloadState = .idle
+    /// The current platform's progress, apart from `runtimeDownload` so its updates (about one a
+    /// second) only invalidate the download card, not the page that reads `runtimeDownload`.
+    private(set) var runtimeDownloadProgress: RuntimeDownloadProgress?
     /// The open "Download runtimes" sheet.
     private(set) var downloadChoice: RuntimeDownloadChoice?
 
@@ -43,6 +47,7 @@ final class SimulatorsViewModel {
     // MARK: - Private Properties
 
     private let analytics: any Analytics
+    private let now: () -> ContinuousClock.Instant
     private let onDeleted: () async -> Void
 
     /// Each listing takes one; a deletion or a newer listing makes the older ones stale.
@@ -51,16 +56,19 @@ final class SimulatorsViewModel {
 
     // MARK: - Initializers
 
-    /// `onDeleted` lets the window measure again after something was deleted.
+    /// `now` paces the download progress (tests inject their clock); `onDeleted` lets the window
+    /// measure again after something was deleted.
     init(
         simulators: any SimulatorManaging,
         downloader: any RuntimeDownloading,
         analytics: any Analytics,
+        now: @escaping () -> ContinuousClock.Instant = { .now },
         onDeleted: @escaping () async -> Void = {}
     ) {
         self.simulators = simulators
         self.downloader = downloader
         self.analytics = analytics
+        self.now = now
         self.onDeleted = onDeleted
     }
 
@@ -349,7 +357,6 @@ extension SimulatorsViewModel {
         // Set before the first suspension, so a second call returns at the guard.
         runtimeDownload = .downloading(RuntimeDownloadRun(platforms))
 
-        let downloader = downloader
         let task = Task {
             var run = RuntimeDownloadRun(platforms)
 
@@ -359,7 +366,7 @@ extension SimulatorsViewModel {
                 guard !Task.isCancelled else { break }
 
                 do {
-                    try await downloader.download(platform, buildVersion: nil)
+                    try await self.download(platform)
                     run.record(.installed, for: platform)
                     self.runtimeDownload = .downloading(run)
                     isListCurrent = await self.listShieldedFromCancel()
@@ -398,6 +405,37 @@ extension SimulatorsViewModel {
 
         if !isListCurrent, !phase.isDeleting {
             await reload()
+        }
+    }
+
+    /// One platform of the queue. The steps arrive off the main actor; only the newest waits, and
+    /// the tracker publishes at most about once a second (a new phase at once). The progress is
+    /// cleared when the download ends, before the queue records how it ended (C34).
+    private func download(_ platform: RuntimePlatform) async throws {
+        let (events, continuation) = AsyncStream.makeStream(
+            of: RuntimeDownloadEvent.self,
+            bufferingPolicy: .bufferingNewest(1)
+        )
+        let downloader = downloader
+
+        var tracker = RuntimeDownloadProgressTracker()
+
+        defer { runtimeDownloadProgress = nil }
+
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            group.addTask {
+                defer { continuation.finish() }
+
+                try await downloader.download(platform, buildVersion: nil) { continuation.yield($0) }
+            }
+
+            for await event in events {
+                if let progress = tracker.receive(event, at: now()) {
+                    runtimeDownloadProgress = progress
+                }
+            }
+
+            try await group.waitForAll()
         }
     }
 

@@ -180,7 +180,10 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     com o cartão e a folha de download de runtimes desde o C30
     (`RuntimeDownloadCardView`, `RuntimeDownloadSheet`,
     `RuntimeDownloadPresentation`, `RuntimeDownloadSheetContent`,
-    `RuntimeDownloadChoice`, `RuntimeDownloadRun` e `RuntimeDownloadState`);
+    `RuntimeDownloadChoice`, `RuntimeDownloadRun` e `RuntimeDownloadState`) e,
+    desde o C34, o progresso do item atual (`RuntimeDownloadProgress`,
+    `RuntimeDownloadProgressTracker`, `RuntimeDownloadRateEstimator` e
+    `RuntimeDownloadRemaining`);
   - `Settings/`: Ajustes, painel e rótulo da barra de menus;
   - `Update/`: `UpdateViewModel`.
 - Infraestrutura (`Sources/Core`):
@@ -261,7 +264,15 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     paralelo por `readabilityHandler`, porque `FileHandle.bytes` bloqueia o
     pool cooperativo). Prazo e cancelamento terminam o processo com
     `SIGTERM` e esperam só ele sair. Exit diferente de zero vira
-    `commandFailed`, com o stderr sanitizado e cortado em 500 caracteres;
+    `commandFailed`, com o stderr sanitizado e cortado em 500 caracteres.
+    Desde o C34, `run(_:onStandardOutputLine:)` entrega cada linha do stdout
+    durante a execução, em ordem, fora do main actor e nunca depois de
+    voltar, com o mesmo contrato de prazo, cancelamento e erros; a linha
+    parcial do fim só sai no EOF, nunca depois de um cancelamento ou do
+    prazo. A implementação padrão do protocolo entrega as linhas depois do
+    sucesso, então os fakes não mudam. `OutputLineSplitter` divide em
+    "\n", "\r" ou "\r\n", descarta linhas vazias, guarda a linha cortada
+    entre leituras, decodifica UTF-8 com U+FFFD e limita a linha a 16 KiB;
   - `Simulators/` (C14): `DeviceSet`, `SimulatorDevice`, `SimulatorRuntime`,
     `SimctlJSON` (DTOs tolerantes a campos ausentes), `SimulatorManaging` e
     `SimctlSimulatorService` (listar, desligar, apagar simuladores
@@ -272,8 +283,13 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     recente) e `CoreSimulatorServiceRestarter` (libproc + `SIGTERM`). Desde
     o C30: `RuntimeDownloading`, `XcodebuildRuntimeDownloader`
     (`xcrun xcodebuild -downloadPlatform <plataforma> [-buildVersion <v>]`,
-    sem shell, progresso indeterminado, prazo de 6 h, cancelamento termina o
-    processo), `RuntimePlatform` (iOS, watchOS, tvOS, visionOS; o rawValue é
+    sem shell, prazo de 6 h, cancelamento termina o processo; desde o C34 lê
+    a saída em streaming e reporta os passos reconhecidos pelo
+    `RuntimeDownloadOutputParser` como `RuntimeDownloadEvent`: preparando,
+    baixando com fração e bytes, instalando e concluído; o parser aceita
+    vírgula ou ponto decimal, separadores de milhar, kB/MB/GB/TB, "bytes" e
+    "Mo"/"Go", e ignora o que não reconhece, o que deixa o progresso
+    determinado só quando a saída o traz), `RuntimePlatform` (iOS, watchOS, tvOS, visionOS; o rawValue é
     o argumento; `matches(_:)` liga um runtime instalado à plataforma pelo
     `platformIdentifier` ou pelo prefixo, com `xrOS` para o visionOS) e
     `RuntimeBuildVersion` (de 1 a 3 grupos de dígitos ASCII;
@@ -355,7 +371,12 @@ existente por conta própria.
     "Simuladores e runtimes", lista de novo depois de lista vazia, falha ou
     ferramentas ausentes. Reativar a janela nunca roda o `simctl` de novo.
     Desde o C30 também o `runtimeDownload` (ocioso, `downloading(run)` ou
-    `finished(run)`) e a folha aberta (`downloadChoice`). As intenções ficam
+    `finished(run)`) e a folha aberta (`downloadChoice`); desde o C34, o
+    `runtimeDownloadProgress` do item atual, separado do `runtimeDownload`
+    para só o cartão ser invalidado, publicado no máximo cerca de uma vez por
+    segundo (mudança de fase na hora) e limpo entre os itens e no fim. Os
+    passos chegam por um `AsyncStream` `bufferingNewest(1)` num task group do
+    main actor, e o relógio (`now`) é injetável para os testes. As intenções ficam
     numa extensão no mesmo arquivo: a folha abre sem seleção e nunca durante
     um download, uma exclusão ou uma confirmação de exclusão; a fila baixa uma
     plataforma de cada vez na ordem de `RuntimePlatform.allCases`, numa única
@@ -538,7 +559,7 @@ validação em dispositivo físico e de serviços externos.
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
     passaram, sem avisos. No C18: 295 execuções passaram, sem avisos. No C19: 325 execuções
     passaram, sem avisos. No C20: 345 execuções passaram, sem avisos. No C21: 370
-    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos. No C30: 489 testes únicos (557 casos executados), sem avisos, e a build Release sem avisos; no adendo A1 do C30 (folha e fila de plataformas), depois das revisões: 520 testes únicos (592 casos executados), sem avisos, e a Release sem avisos;
+    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos. No C30: 489 testes únicos (557 casos executados), sem avisos, e a build Release sem avisos; no adendo A1 do C30 (folha e fila de plataformas), depois das revisões: 520 testes únicos (592 casos executados), sem avisos, e a Release sem avisos; no C34 (progresso e tempo estimado do download): 575 testes únicos (699 casos executados), sem avisos, e a Release sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código
@@ -570,6 +591,13 @@ validação em dispositivo físico e de serviços externos.
     (`pgrep -fl xcodebuild` vazio), sair do app no meio, e os casos sem
     Xcode, sem rede e com a licença não aceita. Nenhum agente roda esse
     download de vários GB sem autorização explícita;
+  - progresso real do download (C34, AC-live): a porcentagem e o tempo
+    estimado num download real (sem `-exportPath`), "Instalando…" depois de
+    100% e o Cancelar encerrando o `xcodebuild`; conferir também se o tempo
+    estimado some com a rede parada (a estimativa só é recalculada quando
+    chega uma linha nova). O parser só foi validado
+    contra a amostra curta de 2026-11-01 (reconstruída em
+    `Tests/Support/Fixtures`, sem 24 dos 53 trechos do meio);
   - limpeza real e comparação do espaço liberado com o estimado;
   - envio de eventos ao Himetrica e de erros ao Sentry (C28);
   - abrir no login com o app instalado em `/Applications`.

@@ -6,8 +6,9 @@
 //
 
 /// Downloads and installs a simulator runtime with `xcodebuild -downloadPlatform` (C30), without a
-/// shell and through `xcrun`, so it uses the same Xcode as `simctl`. Its output is not documented,
-/// so the progress stays indeterminate.
+/// shell and through `xcrun`, so it uses the same Xcode as `simctl`. Its output is not documented:
+/// each line is read as it arrives by `RuntimeDownloadOutputParser`, and the steps it recognizes are
+/// reported as the progress (C34).
 nonisolated struct XcodebuildRuntimeDownloader: RuntimeDownloading {
 
     // MARK: - Private Properties
@@ -22,7 +23,11 @@ nonisolated struct XcodebuildRuntimeDownloader: RuntimeDownloading {
 
     // MARK: - Public Methods
 
-    func download(_ platform: RuntimePlatform, buildVersion: RuntimeBuildVersion?) async throws {
+    func download(
+        _ platform: RuntimePlatform,
+        buildVersion: RuntimeBuildVersion?,
+        onProgress: @escaping @Sendable (RuntimeDownloadEvent) -> Void
+    ) async throws {
         var arguments = ["xcodebuild", "-downloadPlatform", platform.rawValue]
 
         if let buildVersion {
@@ -30,7 +35,11 @@ nonisolated struct XcodebuildRuntimeDownloader: RuntimeDownloading {
         }
 
         do {
-            _ = try await runner.run(.xcrun(arguments, timeout: ProcessRequest.runtimeDownloadTimeout))
+            _ = try await runner.run(.xcrun(arguments, timeout: ProcessRequest.runtimeDownloadTimeout)) { line in
+                if let event = RuntimeDownloadOutputParser.event(from: line) {
+                    onProgress(event)
+                }
+            }
         } catch {
             throw XcrunFailure.normalized(error)
         }

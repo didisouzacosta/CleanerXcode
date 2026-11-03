@@ -43,8 +43,10 @@ nonisolated struct ProcessRunner: ProcessRunning {
     }
 
     /// `FileHandle.bytes` blocks a cooperative thread per pipe until the process ends, which
-    /// starves the pool during long commands, so the reads go through `readabilityHandler`.
-    private static func readAll(_ handle: FileHandle) async -> Data {
+    /// starves the pool during long commands, so the reads go through `readabilityHandler`. With
+    /// `onLine`, each line is also handed over as it arrives; the last one without a separator only
+    /// at the end of the output, never after a cancellation or a timeout (C34).
+    private static func readAll(_ handle: FileHandle, onLine: (@Sendable (String) -> Void)?) async -> Data {
         let (chunks, continuation) = AsyncStream.makeStream(of: Data.self)
 
         // A cancelled read (timeout or caller) stops listening instead of waiting for EOF.
@@ -66,8 +68,18 @@ nonisolated struct ProcessRunner: ProcessRunning {
 
         var data = Data()
 
+        var splitter = OutputLineSplitter()
+
         for await chunk in chunks {
             data.append(chunk)
+
+            if let onLine {
+                splitter.append(chunk).forEach(onLine)
+            }
+        }
+
+        if let onLine, !Task.isCancelled {
+            splitter.finish().forEach(onLine)
         }
 
         return data
@@ -77,6 +89,23 @@ nonisolated struct ProcessRunner: ProcessRunning {
 
     @concurrent
     func run(_ request: ProcessRequest) async throws -> ProcessOutput {
+        try await perform(request, standardOutputLines: nil)
+    }
+
+    @concurrent
+    func run(
+        _ request: ProcessRequest,
+        onStandardOutputLine: @escaping @Sendable (String) -> Void
+    ) async throws -> ProcessOutput {
+        try await perform(request, standardOutputLines: onStandardOutputLine)
+    }
+
+    // MARK: - Private Methods
+
+    private func perform(
+        _ request: ProcessRequest,
+        standardOutputLines: (@Sendable (String) -> Void)?
+    ) async throws -> ProcessOutput {
         try Task.checkCancellation()
 
         let process = Process()
@@ -91,7 +120,12 @@ nonisolated struct ProcessRunner: ProcessRunning {
 
         let completion = try await withThrowingTaskGroup(of: Completion?.self) { group in
             group.addTask {
-                try await execute(process, standardOutput: standardOutput, standardError: standardError)
+                try await execute(
+                    process,
+                    standardOutput: standardOutput,
+                    standardError: standardError,
+                    standardOutputLines: standardOutputLines
+                )
             }
 
             group.addTask {
@@ -122,12 +156,15 @@ nonisolated struct ProcessRunner: ProcessRunning {
         return try Self.output(from: completion)
     }
 
-    // MARK: - Private Methods
-
-    private func execute(_ process: Process, standardOutput: Pipe, standardError: Pipe) async throws -> Completion {
+    private func execute(
+        _ process: Process,
+        standardOutput: Pipe,
+        standardError: Pipe,
+        standardOutputLines: (@Sendable (String) -> Void)?
+    ) async throws -> Completion {
         try await withTaskCancellationHandler {
-            async let output = Self.readAll(standardOutput.fileHandleForReading)
-            async let errors = Self.readAll(standardError.fileHandleForReading)
+            async let output = Self.readAll(standardOutput.fileHandleForReading, onLine: standardOutputLines)
+            async let errors = Self.readAll(standardError.fileHandleForReading, onLine: nil)
 
             let (status, reason) = try await waitForExit(of: process, pipes: [standardOutput, standardError])
             return await Completion(status: status, reason: reason, standardOutput: output, standardError: errors)

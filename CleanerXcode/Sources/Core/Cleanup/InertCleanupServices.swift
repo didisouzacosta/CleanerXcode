@@ -84,7 +84,11 @@ nonisolated struct InertRuntimeDownloader: RuntimeDownloading {
 
     // MARK: - Public Methods
 
-    func download(_ platform: RuntimePlatform, buildVersion: RuntimeBuildVersion?) throws {
+    func download(
+        _ platform: RuntimePlatform,
+        buildVersion: RuntimeBuildVersion?,
+        onProgress: @escaping @Sendable (RuntimeDownloadEvent) -> Void
+    ) throws {
         throw CleanupError.toolUnavailable
     }
 

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Synchronization
 import Testing
 @testable import CleanerXcode
 
@@ -88,6 +89,45 @@ struct XcodebuildRuntimeDownloaderTests {
         }
     }
 
+    /// The progress comes from the real output of `xcodebuild` (C34), step by step.
+    @Test
+    func reportsTheProgressOfTheRealOutput() async throws {
+        let sample = try RuntimeDownloadOutputFixture.tvOSSample()
+        let downloadTVOS = ["xcodebuild", "-downloadPlatform", "tvOS"]
+        let output = try #require(String(bytes: sample, encoding: .utf8))
+        let runner = ProcessRunnerSpy(responses: [downloadTVOS: .success(output)])
+        let events = EventCollector()
+
+        var splitter = OutputLineSplitter()
+
+        let expected = (splitter.append(sample) + splitter.finish())
+            .compactMap(RuntimeDownloadOutputParser.event(from:))
+
+        try await XcodebuildRuntimeDownloader(runner: runner).download(
+            .tvOS,
+            buildVersion: nil,
+            onProgress: events.append
+        )
+
+        #expect(events.all == expected)
+        #expect(events.all.count == 27)
+        #expect(events.all.first == .preparing)
+    }
+
+    @Test
+    func unknownOutputReportsNothing() async throws {
+        let runner = ProcessRunnerSpy(responses: [downloadIOS: .success("Something new\rDone.\n")])
+        let events = EventCollector()
+
+        try await XcodebuildRuntimeDownloader(runner: runner).download(
+            .iOS,
+            buildVersion: nil,
+            onProgress: events.append
+        )
+
+        #expect(events.all.isEmpty)
+    }
+
     /// Cancelling the download cancels the runner, which terminates `xcodebuild` (C13).
     @Test(.timeLimit(.minutes(1)))
     func cancellingTheCallerCancelsTheRunner() async {
@@ -105,6 +145,29 @@ struct XcodebuildRuntimeDownloaderTests {
             try await download.value
         }
         #expect(runner.wasCancelled)
+    }
+
+    // MARK: - Nested Types
+
+    /// The steps a download reported, in order.
+    nonisolated private final class EventCollector: Sendable {
+
+        // MARK: - Public Properties
+
+        var all: [RuntimeDownloadEvent] {
+            events.withLock { $0 }
+        }
+
+        // MARK: - Private Properties
+
+        private let events = Mutex<[RuntimeDownloadEvent]>([])
+
+        // MARK: - Public Methods
+
+        func append(_ event: RuntimeDownloadEvent) {
+            events.withLock { $0.append(event) }
+        }
+
     }
 
 }

@@ -9,9 +9,9 @@ import Foundation
 import Synchronization
 @testable import CleanerXcode
 
-/// Records every download and answers as configured for its platform. It signals the platform of
-/// each download as it starts, so a test can act while one is in progress without sleeping. It never
-/// runs `xcodebuild`.
+/// Records every download and answers as configured for its platform. It reports the progress set
+/// for the platform, then signals the platform of each download as it starts, so a test can act
+/// while one is in progress without sleeping. It never runs `xcodebuild`.
 nonisolated final class RuntimeDownloaderSpy: RuntimeDownloading, Sendable {
 
     // MARK: - Public Properties
@@ -49,6 +49,11 @@ nonisolated final class RuntimeDownloaderSpy: RuntimeDownloading, Sendable {
         state.withLock { $0.behaviors[platform] = behavior }
     }
 
+    /// The steps the next downloads of `platform` report before going on as their behavior says (C34).
+    func setProgress(_ events: [RuntimeDownloadEvent], for platform: RuntimePlatform) {
+        state.withLock { $0.progress[platform] = events }
+    }
+
     /// Ends a `.hold` download successfully, now or as soon as it starts.
     func release() {
         let waiter = state.withLock { state in
@@ -61,12 +66,17 @@ nonisolated final class RuntimeDownloaderSpy: RuntimeDownloading, Sendable {
         waiter?.resume()
     }
 
-    func download(_ platform: RuntimePlatform, buildVersion: RuntimeBuildVersion?) async throws {
-        let behavior = state.withLock { state in
+    func download(
+        _ platform: RuntimePlatform,
+        buildVersion: RuntimeBuildVersion?,
+        onProgress: @escaping @Sendable (RuntimeDownloadEvent) -> Void
+    ) async throws {
+        let (behavior, progress) = state.withLock { state in
             state.calls.append(Call(platform: platform, buildVersion: buildVersion))
-            return state.behaviors[platform, default: defaultBehavior]
+            return (state.behaviors[platform, default: defaultBehavior], state.progress[platform, default: []])
         }
 
+        progress.forEach(onProgress)
         started.continuation.yield(platform)
 
         switch behavior {
@@ -124,6 +134,7 @@ nonisolated final class RuntimeDownloaderSpy: RuntimeDownloading, Sendable {
 
     private struct State {
         var behaviors: [RuntimePlatform: Behavior]
+        var progress: [RuntimePlatform: [RuntimeDownloadEvent]] = [:]
         var calls: [Call] = []
         var wasCancelled = false
         var isReleased = false

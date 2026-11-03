@@ -50,7 +50,8 @@
             SimulatorsViewModel(
                 simulators: PreviewSimulatorsService(scenario: scenario),
                 downloader: downloader(for: scenario),
-                analytics: NullAnalytics()
+                analytics: NullAnalytics(),
+                now: PreviewClock().tick
             )
         }
 
@@ -81,7 +82,8 @@
                     viewModel.requestDeleteRuntime(runtime)
                 }
 
-            case .downloading, .downloadQueue:
+            case .downloading, .downloadQueue, .downloadProgress, .downloadTimeLeft, .downloadLongTimeLeft,
+                 .downloadInstalling, .downloadQueueProgress:
                 Task { await download(downloadSelection(for: scenario), in: viewModel) }
 
             case .downloadInstalled, .downloadAllInstalled, .downloadFailed, .downloadPartlyFailed:
@@ -104,7 +106,11 @@
 
         /// Only the scenario's own platforms finish or fail; the one shown in progress waits.
         private static func downloader(for scenario: Scenario) -> PreviewRuntimeDownloader {
-            switch scenario {
+            if let downloader = progressDownloader(for: scenario) {
+                return downloader
+            }
+
+            return switch scenario {
             case .downloadQueue: PreviewRuntimeDownloader([.watchOS: .hold])
             case .downloadInstalled, .downloadAllInstalled: PreviewRuntimeDownloader()
             case .downloadFailed: PreviewRuntimeDownloader(default: .fail(.timedOut))
@@ -114,9 +120,23 @@
             }
         }
 
+        /// The C34 scenarios: the platform in progress reports its steps, then waits.
+        private static func progressDownloader(for scenario: Scenario) -> PreviewRuntimeDownloader? {
+            typealias Fixtures = RuntimeDownloadPreviewFixtures
+
+            return switch scenario {
+            case .downloadProgress: PreviewRuntimeDownloader(default: .progress([Fixtures.threePercentStep]))
+            case .downloadTimeLeft: PreviewRuntimeDownloader(default: .progress(Fixtures.fortyTwoPercentSteps))
+            case .downloadLongTimeLeft: PreviewRuntimeDownloader(default: .progress(Fixtures.sevenPercentSteps))
+            case .downloadInstalling: PreviewRuntimeDownloader(default: .progress([.installing]))
+            case .downloadQueueProgress: PreviewRuntimeDownloader([.watchOS: .progress(Fixtures.fortyTwoPercentSteps)])
+            default: nil
+            }
+        }
+
         private static func downloadSelection(for scenario: Scenario) -> [RuntimePlatform] {
             switch scenario {
-            case .downloadQueue: [.iOS, .watchOS, .visionOS]
+            case .downloadQueue, .downloadQueueProgress: [.iOS, .watchOS, .visionOS]
             case .downloadAllInstalled, .downloadPartlyFailed, .downloadCancelledAfterInstalling: [.watchOS, .visionOS]
             default: [.iOS]
             }
@@ -177,6 +197,15 @@
             case downloadPartlyFailed
             case downloadCancelled
             case downloadCancelledAfterInstalling
+            /// C34: 3% without the time left yet.
+            case downloadProgress
+            /// C34: 42%, about 12 min left.
+            case downloadTimeLeft
+            /// C34: 7%, about 1 h 20 min left.
+            case downloadLongTimeLeft
+            case downloadInstalling
+            /// C34: watchOS at 42% (2 of 3), about 12 min left.
+            case downloadQueueProgress
         }
 
     }

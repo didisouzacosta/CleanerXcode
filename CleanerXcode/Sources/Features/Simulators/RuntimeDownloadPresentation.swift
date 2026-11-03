@@ -7,8 +7,9 @@
 
 import Foundation
 
-/// What the runtime download card shows in each state (C30, A1 section 4). The title and caption
-/// are already localized, because a queue joins several phrases.
+/// What the runtime download card shows in each state (C30, A1 section 4), with the progress of the
+/// current platform when its output shows it (C34). The title and caption are already localized,
+/// because a queue joins several phrases.
 struct RuntimeDownloadPresentation {
 
     // MARK: - Private Properties
@@ -21,14 +22,19 @@ struct RuntimeDownloadPresentation {
     let tint: Tint
     let title: String
     let caption: String
-    /// An indeterminate progress: the output of `xcodebuild -downloadPlatform` is not documented.
-    let showsProgress: Bool
+    /// A bar while downloading with a known percentage; a spinner otherwise during the queue.
+    let indicator: Indicator
     /// Nothing once everything was installed.
     let action: Action?
 
+    var showsProgress: Bool {
+        indicator != .none
+    }
+
     // MARK: - Initializers
 
-    init(state: RuntimeDownloadState) {
+    /// `progress` is the current platform's, read only while downloading.
+    init(state: RuntimeDownloadState, progress: RuntimeDownloadProgress? = nil) {
         switch state {
         case .idle:
             self.init(
@@ -40,7 +46,7 @@ struct RuntimeDownloadPresentation {
             )
 
         case let .downloading(run):
-            self = Self.downloading(run)
+            self = Self.downloading(run, progress: progress)
 
         case let .finished(run):
             self = Self.finished(run)
@@ -52,54 +58,109 @@ struct RuntimeDownloadPresentation {
         tint: Tint,
         title: String,
         caption: String,
-        showsProgress: Bool = false,
+        indicator: Indicator = .none,
         action: Action?
     ) {
         self.systemImage = systemImage
         self.tint = tint
         self.title = title
         self.caption = caption
-        self.showsProgress = showsProgress
+        self.indicator = indicator
         self.action = action
     }
 
     // MARK: - Private Methods
 
-    private static func downloading(_ run: RuntimeDownloadRun) -> Self {
+    private static func downloading(_ run: RuntimeDownloadRun, progress: RuntimeDownloadProgress?) -> Self {
         let platform = (run.current ?? run.platforms.last ?? .iOS).rawValue
-        let count = run.platforms.count
-        let keepOpen = String(localized: "This can take a while. Keep CleanerXcode open until it finishes.")
+        let updating = String(localized: "Updating the runtimes list…")
 
-        guard count > 1 else {
-            return Self(
-                systemImage: "arrow.down.circle",
-                tint: .accent,
-                title: String(localized: "Downloading the \(platform) runtime…"),
-                caption: keepOpen,
-                showsProgress: true,
-                action: .cancel
-            )
-        }
-
-        var parts = fragments(of: run)
-
-        if !run.queued.isEmpty {
-            let queued = run.queued.map(\.rawValue).joined(separator: ", ")
-
-            parts.append(String(localized: "Queued: \(queued)"))
-        }
-
-        let joined = parts.joined(separator: separator)
+        // Every platform has an outcome: the last installed runtime is being listed (N5).
+        let texts = run.current == nil
+            ? Texts(title: updating, indicator: .indeterminate(label: updating))
+            : texts(for: progress, platform: platform, position: run.position, count: run.platforms.count)
 
         return Self(
             systemImage: "arrow.down.circle",
             tint: .accent,
-            title: String(localized: "Downloading the \(platform) runtime… (\(run.position) of \(count))"),
-            caption: parts
-                .isEmpty ? keepOpen : String(localized: "\(joined). Keep CleanerXcode open until it finishes."),
-            showsProgress: true,
+            title: texts.title,
+            caption: downloadingCaption(run, remaining: texts.remaining),
+            indicator: texts.indicator,
             action: .cancel
         )
+    }
+
+    /// Without a recognized line, or while preparing, the texts of the C30.
+    private static func texts(
+        for progress: RuntimeDownloadProgress?,
+        platform: String,
+        position: Int,
+        count: Int
+    ) -> Texts {
+        switch progress?.phase {
+        case let .downloading(fraction):
+            return downloadingTexts(platform, fraction: fraction, remaining: progress?.remaining, position, count)
+
+        case .installing:
+            return Texts(
+                title: count > 1
+                    ? String(localized: "Installing the \(platform) runtime… (\(position) of \(count))")
+                    : String(localized: "Installing the \(platform) runtime…"),
+                indicator: .indeterminate(label: String(localized: "Installing"))
+            )
+
+        case .preparing, nil:
+            return Texts(
+                title: count > 1
+                    ? String(localized: "Downloading the \(platform) runtime… (\(position) of \(count))")
+                    : String(localized: "Downloading the \(platform) runtime…"),
+                indicator: .indeterminate(label: String(localized: "Downloading"))
+            )
+        }
+    }
+
+    /// The percentage is rounded down, so "100%" never shows before the end.
+    private static func downloadingTexts(
+        _ platform: String,
+        fraction: Double,
+        remaining: RuntimeDownloadRemaining?,
+        _ position: Int,
+        _ count: Int
+    ) -> Texts {
+        let percent = ((fraction * 100 + 1e-9).rounded(.down) / 100).formatted(.percent.precision(.fractionLength(0)))
+        let title = count > 1
+            ? String(localized: "Downloading the \(platform) runtime… \(percent) (\(position) of \(count))")
+            : String(localized: "Downloading the \(platform) runtime… \(percent)")
+        let valueDescription = remaining.map { "\(percent), \($0.text)" } ?? percent
+
+        return Texts(
+            title: title,
+            indicator: .determinate(fraction: fraction, valueDescription: valueDescription),
+            remaining: remaining
+        )
+    }
+
+    /// The time left first, when known; then, in a queue, what finished and what is queued.
+    private static func downloadingCaption(_ run: RuntimeDownloadRun, remaining: RuntimeDownloadRemaining?) -> String {
+        var parts = remaining.map { [$0.text] } ?? []
+
+        if run.platforms.count > 1 {
+            parts += fragments(of: run)
+
+            if !run.queued.isEmpty {
+                let queued = run.queued.map(\.rawValue).joined(separator: ", ")
+
+                parts.append(String(localized: "Queued: \(queued)"))
+            }
+        }
+
+        guard !parts.isEmpty else {
+            return String(localized: "This can take a while. Keep CleanerXcode open until it finishes.")
+        }
+
+        let joined = parts.joined(separator: separator)
+
+        return String(localized: "\(joined). Keep CleanerXcode open until it finishes.")
     }
 
     private static func finished(_ run: RuntimeDownloadRun) -> Self {
@@ -167,6 +228,21 @@ struct RuntimeDownloadPresentation {
     }
 
     // MARK: - Nested Types
+
+    enum Indicator: Equatable {
+        case none
+        case indeterminate(label: String)
+        /// `valueDescription` is what VoiceOver reads: the percentage and the time left.
+        case determinate(fraction: Double, valueDescription: String)
+    }
+
+    /// The title, indicator and time left of a download in progress.
+    private struct Texts {
+        let title: String
+        let indicator: Indicator
+
+        var remaining: RuntimeDownloadRemaining?
+    }
 
     enum Tint {
         case secondary

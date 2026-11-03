@@ -15,7 +15,7 @@
 
         var body: some View {
             RuntimeDownloadCardView(
-                presentation: RuntimeDownloadPresentation(state: state),
+                presentation: RuntimeDownloadPresentation(state: state, progress: progress),
                 isActionDisabled: isActionDisabled,
                 disabledHelp: isActionDisabled ? "Available when the cleanup ends" : nil,
                 onChoose: {},
@@ -30,12 +30,14 @@
         // MARK: - Private Properties
 
         private let state: RuntimeDownloadState
+        private let progress: RuntimeDownloadProgress?
         private let isActionDisabled: Bool
 
         // MARK: - Initializers
 
-        init(_ state: RuntimeDownloadState, isActionDisabled: Bool = false) {
+        init(_ state: RuntimeDownloadState, progress: RuntimeDownloadProgress? = nil, isActionDisabled: Bool = false) {
             self.state = state
+            self.progress = progress
             self.isActionDisabled = isActionDisabled
         }
 

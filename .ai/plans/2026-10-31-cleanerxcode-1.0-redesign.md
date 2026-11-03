@@ -2512,9 +2512,10 @@ rede nova.
   `SimctlSimulatorService`: exit 72 ou stderr com `xcrun: error:` →
   `.toolUnavailable`; as demais passam iguais. O `simctl` usa o mesmo helper, sem
   mudança de comportamento.
-- **Progresso e prazo:** indeterminado, porque a saída do `-downloadPlatform` não
-  é documentada e o `ProcessRunner` só devolve a saída no fim. Prazo de 6 h por
-  item (`ProcessRequest.runtimeDownloadTimeout`, cerca de 8 GB a 3 Mbps).
+- **Progresso e prazo:** indeterminado no C30, porque a saída do
+  `-downloadPlatform` não é documentada e o `ProcessRunner` só devolvia a saída no
+  fim; determinado desde o C34, quando a saída o traz (ver o adendo do C34). Prazo
+  de 6 h por item (`ProcessRequest.runtimeDownloadTimeout`, cerca de 8 GB a 3 Mbps).
 - **Folha "Baixar runtimes"** (`RuntimeDownloadSheet`, Figma `47:1911`): abre pelo
   "Escolher…" do cartão, num segundo `.sheet(item:)` da página. As 4 plataformas,
   na ordem fixa, com caixa de seleção, símbolo (`iphone`, `applewatch`, `appletv`,
@@ -2533,8 +2534,9 @@ rede nova.
   dono em 2026-11-02), antes de o próximo começar, numa tarefa própria que o
   cancelamento da fila não cancela (uma listagem cancelada viraria
   `.failed(.cancelled)`), e as listagens nunca se sobrepõem. Um Cancelar durante
-  essa listagem só encerra a fila quando ela termina (alguns segundos), e o cartão
-  segue em "Baixando…" até lá (N5, revisto no C34). Depois da tarefa, a
+  essa listagem só encerra a fila quando ela termina (alguns segundos). Na listagem
+  depois do último item, o cartão dizia "Baixando…"; desde o C34 diz "Atualizando a
+  lista de runtimes…" (N5). Depois da tarefa, a
   lista recarrega só se pode estar defasada (o último item falhou ou foi cancelado).
   Nada é listado durante uma exclusão, que lista no fim (B6). Instalar não faz a
   janela medir de novo: nenhuma categoria da limpeza mede runtimes, e a Visão geral
@@ -2606,3 +2608,126 @@ rede nova.
   dono (AC28-live, junto do C27): download real concluído e listado, uma fila de 2 e
   o Cancelar no meio encerrando o `xcodebuild` (`pgrep -fl xcodebuild` vazio), sair
   do app no meio, e os casos sem Xcode, sem rede e com a licença não aceita.
+
+## Adendo do C34 (2026-11-03)
+
+Card C34 (AC35). Pedido do dono em 2026-11-01: "É possível mostrar o progresso do
+download do runtime?", "Se possível o tempo estimado de conclusão" e "Card novo e
+autorizo um download curto". Nível 2: muda o contrato público do `ProcessRunning`
+(`Core/Process`), lê a saída em streaming com cancelamento e prazo, e muda o cartão.
+O plano do Manager (2026-11-01) foi escrito antes das correções finais do C30; as
+emendas do agente principal prevalecem sobre ele.
+
+- **Amostra real:** `xcrun xcodebuild -downloadPlatform tvOS -exportPath <tmp>`
+  (Xcode 27.2), cancelada com `SIGTERM` depois de cerca de 45 s, autorizada pelo
+  dono. Tudo sai no stdout; cada redesenho do progresso começa com `\r`, cerca de
+  uma vez por segundo, com os números no locale do usuário ("0,7% (27,3 MB of
+  3,76 GB)", o "of" em inglês) e espaços que apagam o redesenho anterior. O
+  original se perdeu quando o `/private/tmp` foi limpo; a reconstrução em
+  `Tests/Support/Fixtures/xcodebuild-download-platform-tvos.txt` (2.049 bytes, 26
+  `\r`, 3 `\n`, SHA-256 `288538952271fa1518f38bc2bfe261ae99fa7814b1c70767417d4aa3f6631dc2`)
+  guarda os 16 primeiros e os 13 últimos dos 53 trechos, byte a byte, inclusive o
+  "Download was cancelled." sem `\n` no fim, que só o `finish()` do
+  `OutputLineSplitter` entrega, e deixa de fora os 24 do meio (de 0,2% a 0,7%),
+  do mesmo formato. Não tem
+  caminho nem usuário, então não precisou de sanitização.
+- **Streaming:** `ProcessRunning.run(_:onStandardOutputLine:)` com o mesmo
+  contrato do `run(_:)`; o `ProcessRunner` passa o callback ao leitor do stdout,
+  que divide os trechos com o `OutputLineSplitter` ("\n", "\r" ou "\r\n", sem
+  linhas vazias, a linha cortada guardada entre leituras, UTF-8 com U+FFFD, teto de
+  16 KiB). Nenhuma linha chega depois de o método voltar; a linha parcial do fim
+  só sai no EOF, nunca depois de cancelamento ou prazo (testado com um
+  "partial" pendente no `tail -f`). A implementação padrão do
+  protocolo entrega as linhas depois do sucesso, então `ProcessRunnerSpy`,
+  `GatedProcessRunner` e `SimctlSimulatorService` não mudaram.
+- **Parser e downloader:** `RuntimeDownloadOutputParser` lê cada linha como
+  `RuntimeDownloadEvent` (preparando, baixando com fração e bytes, instalando,
+  concluído). Aceita vírgula ou ponto decimal, separadores de milhar (inclusive
+  espaço, NBSP e NNBSP), kB/MB/GB/TB, "bytes", "Mo"/"Go" e nomes com parênteses;
+  100% vira "instalando"; o resto é ignorado. "Done downloading", "Beginning asset
+  import" e "Done importing" vêm das strings do binário, não da amostra. O
+  `RuntimeDownloading` ganhou o `onProgress`, e uma extensão mantém a chamada sem
+  ele; o `XcodebuildRuntimeDownloader` usa o streaming, com os mesmos erros, prazo
+  e cancelamento.
+- **Tempo estimado:** `RuntimeDownloadRateEstimator` pelos bytes, numa janela de
+  120 s entre as mudanças de bytes, suavizado por EWMA (α 0,3). Só aparece com 3
+  amostras e 10 s, some depois de 120 s sem mudança e acima de 48 h, e recomeça se
+  os bytes voltam ou o total muda. `RuntimeDownloadRemaining` arredonda: "Menos de
+  1 min", minutos para cima (no mínimo 2) até 60 e, daí em diante, os 5 minutos
+  mais próximos, então o número nunca é "1 min" nem "1 h". O texto usa
+  `Duration.UnitsFormatStyle` abreviado; saída real: en "12 min", "60 min",
+  "1 hr, 20 min", "2 hr"; pt-BR "12 min", "60 min", "1 h e 20 min", "2 h".
+- **ViewModel:** `runtimeDownloadProgress`, separado do `runtimeDownload` para só
+  o cartão ser invalidado. Cada item roda num task group do main actor: o filho
+  chama o downloader e manda os passos para um `AsyncStream`
+  `bufferingNewest(1)`; o corpo passa cada passo ao
+  `RuntimeDownloadProgressTracker`, que publica no máximo uma vez por segundo
+  (mudança de fase na hora) e nunca o mesmo valor duas vezes. O progresso é limpo
+  quando o item termina, antes de a fila gravar o resultado. O relógio (`now`) é
+  injetável. A fila do C30 (listagem na hora, `listShieldedFromCancel`, guarda B6,
+  `XcrunFailure`) ficou igual: só a chamada ao downloader passou pelo novo
+  `download(_:)` por item.
+- **Cartão:** com a fração, o título traz a porcentagem arredondada para baixo
+  ("Baixando o runtime do iOS… 42%", "… 42% (2 de 3)"), uma barra linear pequena
+  fica entre o título e a legenda (rótulo "Progresso do download" e valor com a
+  porcentagem e o tempo), e a legenda começa com o tempo ("Cerca de 12 min
+  restantes. Mantenha…" ou "Cerca de 12 min restantes · iOS instalado · Na fila:
+  visionOS. Mantenha…"). Instalando: "Instalando o runtime do iOS…" com o spinner.
+  Preparando ou sem linha reconhecida: exatamente o C30. O `Spacer` virou
+  `.frame(maxWidth: .infinity)` com 18 pt à direita, o mesmo espaço de antes até
+  os controles. O título usa `.numericText()` e o cartão anima com
+  `.subtleAnimation(value: runtimeDownloadProgress)` só na sua subárvore.
+- **N5 (emenda do agente principal):** depois do último item, enquanto a lista é
+  atualizada, o cartão diz "Atualizando a lista de runtimes…" (spinner, legenda do
+  C30, "Cancelar"). Um Cancelar nessa hora continua só encerrando a fila quando a
+  listagem termina, com o item instalado.
+- **Strings novas (en → pt-BR):** "Downloading the %@ runtime… %@", "… %@ (%lld of
+  %lld)", "Installing the %@ runtime…", "… (%lld of %lld)", "Updating the runtimes
+  list…", "Less than 1 min left", "About %@ left", "Download progress" e
+  "Installing". O catálogo tem 255 chaves, todas traduzidas.
+- **Previews:** cartão com 3%, 42% com 12 min, 7% com 1 h e 20 min, instalando,
+  fila 2 de 3 com progresso, atualizando a lista (item único e fila) e 42% escuro;
+  na página (`SimulatorsSectionPreview`), `.downloadProgress`, `.downloadTimeLeft`,
+  `.downloadLongTimeLeft`, `.downloadInstalling` e `.downloadQueueProgress`, que
+  passam pelo ViewModel real com o `PreviewRuntimeDownloader.progress` e um
+  `PreviewClock` de 10 s por leitura.
+- **Divergências do plano:** a fixture não é a original (3.867 bytes, 48 linhas de
+  progresso, 50 `\r` e 3 `\n`); como ela, termina sem `\n`. Os testes contam 29
+  linhas (28 no `append` e a última no `finish()`), 24 de progresso e 27 passos, e o tempo da fixture no rastreador põe os 24 s dos trechos ausentes
+  depois da 12ª linha. O teste do C30 "o fim da fila ainda lista o que terminou"
+  virou o do N5. A divisão de linhas decodifica com o decodificador UTF-8 em vez
+  de `String(decoding:)`, que o lint (`optional_data_string_conversion`) recusa.
+- **Validação:** 575 testes únicos (699 casos executados), sem avisos; lint sem
+  violações; Release sem avisos.
+- **Conferência visual (AC10):** feita pelo agente principal contra os frames do
+  Figma (página 08, y = 4560: `55:2248`, `55:2460`, `55:2672`, `55:2884`,
+  `55:3093`, `55:3305`), com capturas da janela real em pt-BR e o mesmo método do
+  C30.
+  - **Figma alinhado à barra nativa:** os frames desenhavam a barra com 4 pt e um
+    trilho mais escuro. A barra passou a 6 pt, com cantos de 3 pt e o trilho claro
+    com 10% de opacidade, com 3 pt acima e 2 pt abaixo, para cair no mesmo pixel do
+    app. A cor continua ligada a `accent/primary`. O cartão da fila passou de 64
+    para 65 pt.
+  - **Resultado, geral / layout com o texto mascarado:** 3% 96,7 / 99,4; 42% com
+    tempo 96,1 / 98,7; 7% com tempo longo 96,3 / 99,4; instalando 97,7 / 98,4;
+    fila 2 de 3 95,1 / 98,5; 42% escuro 95,5 / 98,3.
+  - **O que sobra:** a renderização da fonte (o geral da fila é o mais baixo,
+    pela legenda em 2 linhas), o traço do ícone um pouco mais fino no app e a cor
+    do destaque (`#008DF9` no app, `#009DFF` na exportação do Figma).
+  - **Estados do C30 com o código do C34** (B1 da revisão, depois da troca do
+    `Spacer`), contra os frames do C30, geral / layout: parado 98,6 / 99,5; vazio
+    98,6 / 99,5; baixando 97,8 / 99,4; fila 97,0 / 99,4; instalado 98,6 / 99,4;
+    tudo instalado 98,5 / 99,4; falhou 97,8 / 99,6; falha parcial 97,8 / 99,6;
+    cancelado 98,5 / 99,5; fila durante limpeza 97,0 / 99,4; escuro 97,4 / 99,3.
+    Os números batem com os do C30, então a troca não mudou o layout.
+  - **N5 ("Atualizando a lista de runtimes…"):** frames novos no Figma,
+    copiados dos frames do C30 com só o texto do cartão trocado: `63:2932`
+    (cartão `63:2997`) e `63:3039` (fila, cartão `63:3104`), na página 08, em
+    y = 4560. O cartão foi capturado pela preview do cartão, na largura da coluna
+    (628 pt), porque a página não tem cenário para esse instante. Item único 97,5
+    / 99,4; fila 97,1 / 99,4.
+- Pendente com o dono (AC-live, junto do
+  AC28-live): num download real sem `-exportPath`, a porcentagem e o tempo
+  aparecem, "Instalando…" vem depois de 100% e o Cancelar encerra o `xcodebuild`;
+  conferir também se o tempo estimado some com a rede parada (a estimativa só é
+  recalculada quando chega uma linha nova do `xcodebuild`).

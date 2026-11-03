@@ -193,7 +193,8 @@ private struct SimulatorsActions: View {
 }
 
 /// The runtime download card wired to the view model (C30). Choose and Try again wait during a
-/// cleanup or a deletion; Cancel is always available.
+/// cleanup or a deletion; Cancel is always available. Only this card reads the download progress,
+/// so its updates leave the rest of the page alone (C34).
 private struct SimulatorsRuntimeDownload: View {
 
     // MARK: - Public Properties
@@ -203,13 +204,17 @@ private struct SimulatorsRuntimeDownload: View {
 
     var body: some View {
         RuntimeDownloadCardView(
-            presentation: RuntimeDownloadPresentation(state: viewModel.runtimeDownload),
+            presentation: RuntimeDownloadPresentation(
+                state: viewModel.runtimeDownload,
+                progress: viewModel.runtimeDownloadProgress
+            ),
             isActionDisabled: isLocked || viewModel.phase.isDeleting,
             disabledHelp: disabledHelp,
             onChoose: viewModel.requestRuntimeDownload,
             onRetry: retry,
             onCancel: viewModel.cancelRuntimeDownload
         )
+        .subtleAnimation(value: viewModel.runtimeDownloadProgress)
     }
 
     // MARK: - Private Properties
@@ -396,6 +401,31 @@ private struct ListCard<Rows: View>: View {
 
     #Preview("Runtime queue, dark") {
         SimulatorsSectionPreview(.downloadQueue)
+            .preferredColorScheme(.dark)
+    }
+
+    #Preview("Runtime download, 3%") {
+        SimulatorsSectionPreview(.downloadProgress)
+    }
+
+    #Preview("Runtime download, 42% with the time left") {
+        SimulatorsSectionPreview(.downloadTimeLeft)
+    }
+
+    #Preview("Runtime download, 7% with a long time left") {
+        SimulatorsSectionPreview(.downloadLongTimeLeft)
+    }
+
+    #Preview("Runtime installing") {
+        SimulatorsSectionPreview(.downloadInstalling)
+    }
+
+    #Preview("Runtime queue, 2 of 3 with progress") {
+        SimulatorsSectionPreview(.downloadQueueProgress)
+    }
+
+    #Preview("Runtime download, 42% with the time left, dark") {
+        SimulatorsSectionPreview(.downloadTimeLeft)
             .preferredColorScheme(.dark)
     }
 

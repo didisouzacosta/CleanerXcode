@@ -114,9 +114,16 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
     primário "Baixar N runtimes" baixa as escolhidas uma de cada vez, na ordem
     fixa, por `xcrun xcodebuild -downloadPlatform <plataforma>`, sem shell,
     para a versão do Xcode selecionado. O cartão mostra o item atual com a
-    posição ("2 de 3"), o que terminou e o que está na fila, com progresso
-    indeterminado e "Cancelar"; cada runtime instalado aparece na lista na
-    hora, sem esperar o fim da fila; no fim, tudo instalado, falha (o motivo de cada plataforma e "Tentar de
+    posição ("2 de 3"), o que terminou e o que está na fila, e "Cancelar".
+    Desde o C34, quando a saída do `xcodebuild` mostra o progresso, o título
+    traz a porcentagem do item atual ("Baixando o runtime do iOS… 42%"), uma
+    barra determinada fica entre o título e a legenda, e a legenda começa com
+    o tempo estimado ("Cerca de 12 min restantes", calculado pelos bytes e
+    mostrado só depois de 10 s); depois de 100% vem "Instalando o runtime do
+    iOS…", e enquanto a lista é atualizada depois do último item,
+    "Atualizando a lista de runtimes…". Sem linha reconhecida, o progresso
+    fica indeterminado, como no C30. Cada runtime instalado aparece na lista
+    na hora, sem esperar o fim da fila; no fim, tudo instalado, falha (o motivo de cada plataforma e "Tentar de
     novo", que refaz só as falhas) ou cancelado ("Escolher…" de novo). Uma
     falha não para a fila, salvo sem as ferramentas do Xcode. Nada começa
     durante uma limpeza ou exclusão; "Remover" dos runtimes fica bloqueado
@@ -213,6 +220,14 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
   - download real de runtime (C30, AC28-live): concluir e aparecer na lista,
     uma fila de 2, Cancelar no meio encerrar o `xcodebuild`, sair do app no meio, e os casos sem
     Xcode, sem rede e com a licença não aceita. Fica com o dono, junto do C27;
+  - progresso real do download (C34, AC-live): a porcentagem e o tempo
+    estimado aparecem num download real sem `-exportPath`, "Instalando…"
+    aparece depois de 100% e o Cancelar encerra o `xcodebuild`; conferir
+    também se o tempo estimado some com a rede parada (a estimativa só é
+    recalculada quando chega uma linha nova). O formato da
+    saída só foi visto numa amostra curta com `-exportPath`; as linhas de fim
+    ("Done downloading", "Beginning asset import", "Done importing") vêm das
+    strings do binário. Fica com o dono, junto do AC28-live;
   - verificação de atualização contra o `version.json` publicado;
   - abrir no login com a build assinada e notarizada (Developer ID).
 - Condições de hardware, conta ou serviço: Mac com macOS 26+ e Xcode
@@ -240,6 +255,7 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Janela única (C20) | `Sources/Features/Cleaner/Window/*.swift`, `Sources/Features/Cleaner/Presentation/*.swift`, `Sources/Core/Cleanup/InertCleanupServices.swift`, `Sources/App/{CleanerXcodeApp,AppContainer}.swift` |
 | Simuladores e runtimes (C21) | `Sources/Features/Simulators/*.swift` |
 | Download de runtimes (C30) | `Sources/Core/Simulators/{RuntimeDownloading,XcodebuildRuntimeDownloader,RuntimePlatform,RuntimeBuildVersion}.swift`, `Sources/Core/Process/XcrunFailure.swift`, `Sources/Features/Simulators/{RuntimeDownloadState,RuntimeDownloadRun,RuntimeDownloadOutcome,RuntimeDownloadChoice,RuntimeDownloadSheetContent,RuntimeDownloadPresentation,RuntimeDownloadCardView,RuntimeDownloadSheet}.swift` |
+| Progresso do download de runtimes (C34) | `Sources/Core/Process/{ProcessRunning,ProcessRunner,OutputLineSplitter}.swift`, `Sources/Core/Simulators/{RuntimeDownloadEvent,RuntimeDownloadOutputParser,XcodebuildRuntimeDownloader}.swift`, `Sources/Features/Simulators/{RuntimeDownloadProgress,RuntimeDownloadProgressTracker,RuntimeDownloadRateEstimator,RuntimeDownloadRemaining,RuntimeDownloadPresentation,RuntimeDownloadCardView}.swift` e o `SimulatorsViewModel` |
 | Janela de tamanho comum com barra lateral (C32) | `Sources/App/{CleanerXcodeApp,WindowID}.swift`, `Sources/Features/Cleaner/Window/{CleanerWindowView,CleanerSidebarView,SidebarFooterView,CleanerDetailView,ActionBarView,OverviewView,OverviewSummaryCard,SpaceBreakdownBar,SectionCardView,CategoryPageView,SectionHeaderView,GlassSurface,CleanerCommands}.swift`, `Sources/Features/Cleaner/Presentation/{SidebarDestination,ActionBarContent,SpaceBreakdown,CleanerNotice,OverviewPresentation}.swift`, `Sources/Features/Simulators/SimulatorsPageView.swift` |
 | Ajustes, barra de menus e Sobre (C22) | `Sources/Features/Settings/*.swift`, `Sources/App/CleanerXcodeApp.swift` (`AppDelegate`) |
 | Atualização (C23) | `Sources/Core/Update/{SemanticVersion,VersionChecking}.swift`, `Sources/Features/Update/{UpdateViewModel,UpdatePreview}.swift` |
@@ -276,6 +292,11 @@ Caminhos relativos a `CleanerXcode/`, exceto `resources/`, `releases/` e
   plataformas numa folha, em fila, sem versões antigas, sem tamanhos, sem
   seletor de versão e sem evento de analytics (ver o adendo do C30 no plano
   1.0).
+- Decisão do C34: o dono pediu o progresso e o tempo estimado do download
+  de runtime. A saída do `xcodebuild -downloadPlatform` não é documentada:
+  o formato fica fixado por uma amostra real nos testes, e uma saída
+  diferente volta ao progresso indeterminado do C30 (ver o adendo do C34 no
+  plano 1.0).
 - Decisão do C33: manter o bundle id `com.didisouzacosta.CleanerXcode` e
   migrar as preferências do id antigo (ver o adendo do C33 no plano 1.0).
 - Pendência (C27 e C29): o `SMAppService` é ligado ao bundle id, e o app novo

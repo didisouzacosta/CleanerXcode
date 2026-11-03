@@ -3216,6 +3216,96 @@
           }
         }
       }
+    },
+    "Downloading the %@ runtime… %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixando o runtime do %@… %@"
+          }
+        }
+      }
+    },
+    "Downloading the %@ runtime… %@ (%lld of %lld)" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixando o runtime do %@… %@ (%lld de %lld)"
+          }
+        }
+      }
+    },
+    "Installing the %@ runtime…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalando o runtime do %@…"
+          }
+        }
+      }
+    },
+    "Installing the %@ runtime… (%lld of %lld)" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalando o runtime do %@… (%lld de %lld)"
+          }
+        }
+      }
+    },
+    "Updating the runtimes list…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizando a lista de runtimes…"
+          }
+        }
+      }
+    },
+    "Less than 1 min left" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menos de 1 min restante"
+          }
+        }
+      }
+    },
+    "About %@ left" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerca de %@ restantes"
+          }
+        }
+      }
+    },
+    "Download progress" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progresso do download"
+          }
+        }
+      }
+    },
+    "Installing" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalando"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

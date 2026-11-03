@@ -69,6 +69,7 @@ Items marked "Trash" go to the Trash; the space is freed only when you empty it.
 - **Runtimes:** deleting a runtime also removes the simulators that use it, and getting it back means a download of several GB.
 - **Download runtimes:** choose iOS, watchOS, tvOS or visionOS.
   - CleanerXcode downloads the runtime that matches the selected Xcode, one at a time.
+  - The card shows how much of the current runtime has arrived and, after a few seconds, about how long is left. When Xcode does not report it, the card shows a spinner instead.
   - Each new runtime appears in the list as soon as it is installed.
   - The download continues if you leave the page, and stops if you quit the app.
 
