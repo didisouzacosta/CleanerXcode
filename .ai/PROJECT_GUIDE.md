@@ -130,8 +130,16 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
   (`CleanerSidebarView`, `List(selection:)` com `.listStyle(.sidebar)`, rodapé
   `SidebarFooterView` em `.safeAreaBar`, com `.scrollEdgeEffectStyle(.soft,
   for: .all)`) e o detalhe (`CleanerDetailView`), um `ScrollView` com a
-  página do destino, `.scrollEdgeEffectStyle(.soft, for: .all)` e a
-  `ActionBarView` em `.safeAreaBar(edge: .bottom)`. A seleção é o enum puro
+  página do destino e a `ActionBarView` em `.safeAreaBar(edge: .bottom)`. O
+  topo, sob o título da toolbar, alterna `.scrollEdgeEffectStyle(.hard)`
+  enquanto há conteúdo por baixo e `.soft` em repouso; quem decide é
+  `CleanerDetailView.isContentUnderToolbar(_:)`, por `onScrollGeometryChange`.
+  O `.hard` fixo desenha a linha e a faixa mesmo em repouso. A base fica
+  sempre `.soft` (pedido do dono em 2026-11-03: com `.soft` no topo, o
+  conteúdo aparecia através do título). As demais rolagens continuam
+  `.soft, for: .all`. Para capturar a janela em testes, não use
+  `titlebarAppearsTransparent = true`: a cena `Window` real cria a janela com
+  `false`, e com `true` o efeito de borda do topo não aparece. A seleção é o enum puro
   `SidebarDestination`, guardado por janela em `@SceneStorage`; ⌘1–⌘6 vêm de
   `CleanerCommands` (`@FocusedBinding`) e ⌃⌘S de `SidebarCommands`. A sheet de
   confirmação da limpeza fica na raiz. Os textos e as regras ficam em tipos

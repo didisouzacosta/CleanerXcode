@@ -8,13 +8,15 @@
 import SwiftUI
 
 /// The detail column (Figma page 08): the page of the selected destination, scrolling under the
-/// toolbar and under the fixed action bar with the soft edge effect at the top and the bottom
-/// (R41, R42). The bar sits in the bottom safe area, with no background of its own.
+/// toolbar and under the fixed action bar (R41, R42). Under the toolbar the edge turns hard while
+/// the content is there, so the title and the subtitle stay legible, and stays soft at rest; under
+/// the bar it is always soft. The bar sits in the bottom safe area, with no background of its own.
 struct CleanerDetailView: View {
 
     // MARK: - States
 
     @State private var scrollPosition = ScrollPosition(edge: .top)
+    @State private var isContentUnderToolbar = false
 
     // MARK: - Environments
 
@@ -47,7 +49,14 @@ struct CleanerDetailView: View {
             .subtleAnimation(value: destination)
         }
         .scrollPosition($scrollPosition)
-        .scrollEdgeEffectStyle(.soft, for: .all)
+        .onScrollGeometryChange(for: Bool.self, of: Self.isContentUnderToolbar) { _, isUnder in
+            isContentUnderToolbar = isUnder
+        }
+        // The title and the subtitle in the toolbar have no backing of their own: the hard edge
+        // keeps the content from showing through them, however the page scrolls. At rest it stays
+        // soft, so no edge line shows. The bottom stays soft under the bar (R42).
+        .scrollEdgeEffectStyle(isContentUnderToolbar ? .hard : .soft, for: .top)
+        .scrollEdgeEffectStyle(.soft, for: .bottom)
         .background(Palette.window)
         .navigationTitle(Text(destination.title))
         .navigationSubtitle(Text(verbatim: subtitle))
@@ -108,6 +117,13 @@ struct CleanerDetailView: View {
             )
             .text
         }
+    }
+
+    // MARK: - Public Methods
+
+    /// Whether the page's content has reached the area under the toolbar (the top inset).
+    nonisolated static func isContentUnderToolbar(_ geometry: ScrollGeometry) -> Bool {
+        geometry.contentOffset.y + geometry.contentInsets.top > 0
     }
 
     // MARK: - Private Methods

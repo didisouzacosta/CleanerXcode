@@ -2731,3 +2731,52 @@ emendas do agente principal prevalecem sobre ele.
   aparecem, "Instalando…" vem depois de 100% e o Cancelar encerra o `xcodebuild`;
   conferir também se o tempo estimado some com a rede parada (a estimativa só é
   recalculada quando chega uma linha nova do `xcodebuild`).
+
+## Adendo do cabeçalho da coluna de detalhe (2026-11-03)
+
+Pedido do dono: "O header esta ficando com o layout embaralhado, corrija isso".
+Com a página rolada, o título e o subtítulo da toolbar se misturavam com o
+conteúdo que passava por baixo, porque a borda suave no macOS 26 só esmaece.
+Nível 1: Developer e revisão do Manager.
+
+- **Código:** `CleanerDetailView` alterna o topo entre
+  `.scrollEdgeEffectStyle(.hard)` (enquanto há conteúdo sob a toolbar) e `.soft`
+  (em repouso), por `onScrollGeometryChange` e pela regra pura
+  `isContentUnderToolbar(_:)` (`contentOffset.y + contentInsets.top > 0`), com
+  4 testes. A base fica sempre `.soft`. O `.hard` fixo foi descartado porque
+  desenha a linha separadora e a faixa mesmo em repouso.
+- **Caminhos de rolagem (M4 da revisão):** o Developer conferiu, numa janela
+  igual à da cena `Window` real, a roda, o arrasto do knob da barra de rolagem,
+  `pageDown(_:)`, `clip.scroll(to:)` e a volta ao topo por código (como na troca
+  de página), no claro e no escuro. Todos ficam limpos com o topo rígido; em
+  repouso não há linha nem faixa; a base não muda. As teclas Page Down e seta
+  não rolam o detalhe, então não expõem conteúdo. O dono testou no app real em
+  2026-11-03 e aprovou ("ficou muito bom").
+- **Origem do print do dono:** o print veio das capturas do harness do agente
+  principal, que criava a janela com `titlebarAppearsTransparent = true`. Com
+  esse valor o efeito de borda do topo não aparece, e o texto fica nítido sob o
+  título qualquer que seja o estilo. A cena real cria a janela com `false`. O
+  harness foi corrigido para não definir esse valor, e o PROJECT_GUIDE registra
+  a regra para capturas futuras.
+- **Figma:** nos 19 frames da página 08 com conteúdo sob o título, o
+  "Edge Effect · Top" suave virou "Edge Effect · Top (hard)": 52 pt de altura,
+  cor sólida com blur e linha de 1 pt embaixo. As cores medidas no app são
+  `#F3F3F5` e `#DADADB` no claro, `#2F2F31` e `#3A3A3B` no escuro. No escuro, a
+  cor declarada compensa o clareamento da exportação do Figma. Os 15 frames em
+  repouso ficaram como estavam, porque em repouso o app não desenha faixa nem
+  linha.
+- **Conferência visual:** mede-se a faixa à direita do título, a única parte
+  que mudou. A posição dos botões da toolbar e da coluna, que já existia, fica
+  fora da medida.
+  - Rolado, claro, contra `42:1345`: faixa 99,3%.
+  - Rolado, escuro, contra `45:1736`: faixa 98,2%. O fundo escuro da janela no
+    Figma (`#3A3A3C` exportado) é mais claro que o do app (`#252526`), uma
+    diferença anterior a esta tarefa.
+  - Em repouso, claro, contra `45:1506`: faixa 99,9%; cabeçalho com o título
+    mascarado 99,9%, geral 97,5%.
+  - Os Ajustes não mudaram. A cena real não foi aberta no test host, porque
+    gravaria no domínio de preferências do app.
+- **Validação:** 579 testes, Release sem avisos, lint sem violações.
+- **Observações opcionais da revisão (não aplicadas):** N3, o estado e a regra
+  têm o mesmo nome (`isContentUnderToolbar`); N4, a troca de suave para rígido
+  é a do sistema, sem animação própria, e o dono a aceitou no teste manual.

@@ -24,7 +24,11 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
   ação principal, fica sempre visível (C32, Figma página 08).
 - O conteúdo rola por baixo da toolbar e da barra de ação, sem corte seco, e
   toda rolagem usa o efeito de borda suave (blur) no topo e na base (pedido do
-  dono no C32).
+  dono no C32). A exceção é o topo da coluna de detalhe da janela principal, sob
+  o título e o subtítulo da toolbar: enquanto há conteúdo por baixo, ele usa o
+  efeito de borda rígido (`.hard`), para o conteúdo não aparecer através do
+  título (pedido do dono em 2026-11-03). Em repouso volta ao suave, sem faixa
+  nem linha. A base, sob a barra de ação, continua sempre suave.
 - Toda mudança na tela tem uma animação sutil: nada aparece, some ou muda de
   forma brusca (seções, avisos, cartões, textos, números e botões). Com
   Reduzir movimento, nada desliza nem muda de escala: as mudanças acontecem de
