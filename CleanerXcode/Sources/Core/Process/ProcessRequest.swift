@@ -16,6 +16,8 @@ nonisolated struct ProcessRequest: Sendable, Hashable {
     static let defaultTimeout: Duration = .seconds(60)
     static let eraseAllTimeout: Duration = .seconds(600)
     static let runtimeDeleteTimeout: Duration = .seconds(1_800)
+    /// About 8 GB at 3 Mbps; the user can cancel the download at any time (C30).
+    static let runtimeDownloadTimeout: Duration = .seconds(21_600)
 
     let executableURL: URL
     let arguments: [String]

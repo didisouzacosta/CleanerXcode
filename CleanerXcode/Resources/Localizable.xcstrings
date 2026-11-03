@@ -2796,6 +2796,426 @@
           }
         }
       }
+    },
+    "Downloading the %@ runtime…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixando o runtime do %@…"
+          }
+        }
+      }
+    },
+    "This can take a while. Keep CleanerXcode open until it finishes." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pode demorar. Mantenha o CleanerXcode aberto até terminar."
+          }
+        }
+      }
+    },
+    "Downloading" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixando"
+          }
+        }
+      }
+    },
+    "%@ runtime installed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runtime do %@ instalado"
+          }
+        }
+      }
+    },
+    "It now shows in the runtimes list." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ele já aparece na lista de runtimes."
+          }
+        }
+      }
+    },
+    "Could not download the %@ runtime" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível baixar o runtime do %@"
+          }
+        }
+      }
+    },
+    "Download cancelled" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download cancelado"
+          }
+        }
+      }
+    },
+    "Available when the cleanup ends" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disponível quando a limpeza terminar"
+          }
+        }
+      }
+    },
+    "Wait for the runtime download to finish" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguarde o download do runtime terminar"
+          }
+        }
+      }
+    },
+    "Download runtimes" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixar runtimes"
+          }
+        }
+      }
+    },
+    "Choose the platforms · several GB each" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha as plataformas · vários GB cada"
+          }
+        }
+      }
+    },
+    "Choose…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolher…"
+          }
+        }
+      }
+    },
+    "Choose the platforms. CleanerXcode downloads the runtime that matches the selected Xcode, one at a time. Each one is several GB." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha as plataformas. O CleanerXcode baixa o runtime compatível com o Xcode selecionado, um de cada vez. Cada um tem vários GB."
+          }
+        }
+      }
+    },
+    "Installed: %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalados: %@"
+          }
+        }
+      }
+    },
+    "No runtime installed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum runtime instalado"
+          }
+        }
+      }
+    },
+    "The download goes on if you leave this page. Keep CleanerXcode open until it finishes; you can cancel at any time." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O download continua se você sair desta página. Mantenha o CleanerXcode aberto até terminar; dá para cancelar a qualquer momento."
+          }
+        }
+      }
+    },
+    "None selected" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum selecionado"
+          }
+        }
+      }
+    },
+    "Downloading the %@ runtime… (%lld of %lld)" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixando o runtime do %@… (%lld de %lld)"
+          }
+        }
+      }
+    },
+    "Queued: %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na fila: %@"
+          }
+        }
+      }
+    },
+    "%@. Keep CleanerXcode open until it finishes." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@. Mantenha o CleanerXcode aberto até terminar."
+          }
+        }
+      }
+    },
+    "%@ installed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ instalado"
+          }
+        }
+      }
+    },
+    "%@ was not downloaded" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ não foi baixado"
+          }
+        }
+      }
+    },
+    "%@ now show in the runtimes list." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ já aparecem na lista de runtimes."
+          }
+        }
+      }
+    },
+    "No runtime was installed." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum runtime foi instalado."
+          }
+        }
+      }
+    },
+    "%lld selected" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld selected"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld selected"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld selecionado"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld selecionados"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Download %lld runtimes" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Download %lld runtime"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Download %lld runtimes"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Baixar %lld runtime"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Baixar %lld runtimes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld runtimes installed" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld runtime installed"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld runtimes installed"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld runtime instalado"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld runtimes instalados"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld of %lld runtimes were not downloaded" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$lld runtimes %#@verb@"
+          },
+          "substitutions" : {
+            "verb" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "was not downloaded"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "were not downloaded"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld de %2$lld runtimes %#@verb@"
+          },
+          "substitutions" : {
+            "verb" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "não foi baixado"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "não foram baixados"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

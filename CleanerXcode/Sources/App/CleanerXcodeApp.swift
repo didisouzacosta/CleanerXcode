@@ -91,6 +91,13 @@ struct CleanerXcodeApp: App {
             configuration: AppConfiguration(infoDictionary: Bundle.main.infoDictionary ?? [:])
         )
         let cleanerViewModel = AppContainer.makeCleanerViewModel(environment: environment, services: services)
+        // Deleting simulators or a runtime changes the sizes, so the window measures again.
+        let simulatorsViewModel = AppContainer.makeSimulatorsViewModel(
+            environment: environment,
+            services: services
+        ) {
+            await cleanerViewModel.refresh()
+        }
 
         self.environment = environment
         _updateViewModel = .init(initialValue: AppContainer.makeUpdateViewModel(
@@ -98,19 +105,34 @@ struct CleanerXcodeApp: App {
             services: services
         ))
         _cleanerViewModel = .init(initialValue: cleanerViewModel)
-        // Deleting simulators or a runtime changes the sizes, so the window measures again.
-        _simulatorsViewModel = .init(initialValue: AppContainer.makeSimulatorsViewModel(
-            environment: environment,
-            services: services
-        ) {
-            await cleanerViewModel.refresh()
-        })
+        _simulatorsViewModel = .init(initialValue: simulatorsViewModel)
         _settingsViewModel = .init(initialValue: AppContainer.makeSettingsViewModel(
             environment: environment,
             services: services
         ) { days in
             Task { await cleanerViewModel.setMinimumTemporaryAgeInDays(days) }
         })
+
+        if !environment.isRunningTests, !environment.isRunningPreviews {
+            Self.cancelRuntimeDownloadOnQuit(simulatorsViewModel)
+        }
+    }
+
+    // MARK: - Private Methods
+
+    /// Quitting cancels a runtime download, so no `xcodebuild` is left running (C30, R9). Cancelling
+    /// runs the cancellation handlers at once, so the process is terminated before the app ends.
+    /// The observer lasts as long as the app, so its token is never removed.
+    private static func cancelRuntimeDownloadOnQuit(_ viewModel: SimulatorsViewModel) {
+        _ = NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            MainActor.assumeIsolated {
+                viewModel.cancelRuntimeDownload()
+            }
+        }
     }
 
 }

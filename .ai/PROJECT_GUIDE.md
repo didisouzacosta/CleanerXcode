@@ -176,7 +176,11 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
   `Sources/Core/Update` (`SemanticVersion`, `VersionChecking`).
 - Features (`Sources/Features`):
   - `Cleaner/`: `CleanerViewModel`, `Presentation/` e `Window/` (a janela);
-  - `Simulators/`: a página "Simuladores e runtimes" (`SimulatorsPageView`);
+  - `Simulators/`: a página "Simuladores e runtimes" (`SimulatorsPageView`),
+    com o cartão e a folha de download de runtimes desde o C30
+    (`RuntimeDownloadCardView`, `RuntimeDownloadSheet`,
+    `RuntimeDownloadPresentation`, `RuntimeDownloadSheetContent`,
+    `RuntimeDownloadChoice`, `RuntimeDownloadRun` e `RuntimeDownloadState`);
   - `Settings/`: Ajustes, painel e rótulo da barra de menus;
   - `Update/`: `UpdateViewModel`.
 - Infraestrutura (`Sources/Core`):
@@ -249,7 +253,10 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     `FileOperationsSpy`, que nunca toca a Lixeira real. O cancelamento
     acontece entre itens, e o resultado de cada item removido sempre chega;
   - `Process/` (C13): `ProcessRequest` (`.xcrun(_:timeout:)` com os prazos
-    de 60 s, 600 s e 1.800 s), `ProcessOutput`, `ProcessRunning` e
+    de 60 s, 600 s, 1.800 s e, desde o C30, 6 h para o download de runtime),
+    `XcrunFailure` (C30: o exit 72 e o prefixo `xcrun: error:` viram
+    `.toolUnavailable`, para o `simctl` e o `xcodebuild`), `ProcessOutput`,
+    `ProcessRunning` e
     `ProcessRunner` (`@concurrent`, sem shell, stdout e stderr lidos em
     paralelo por `readabilityHandler`, porque `FileHandle.bytes` bloqueia o
     pool cooperativo). Prazo e cancelamento terminam o processo com
@@ -260,11 +267,21 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     `SimctlSimulatorService` (listar, desligar, apagar simuladores
     desligando um a um os ligados antes, `delete unavailable`, `erase all`,
     `delete all` por set, `runtime delete`; o exit 72 e os erros
-    `xcrun: error:` viram `.toolUnavailable`),
+    `xcrun: error:` viram `.toolUnavailable` pelo `XcrunFailure`),
     `DuplicateSimulatorDetector` (mesmo tipo e runtime, mantém o mais
-    recente) e `CoreSimulatorServiceRestarter` (libproc + `SIGTERM`). Os
-    testes usam `ProcessRunnerSpy` e `ServiceRestarterSpy` e nunca rodam o
-    `simctl` nem sinalizam o serviço real;
+    recente) e `CoreSimulatorServiceRestarter` (libproc + `SIGTERM`). Desde
+    o C30: `RuntimeDownloading`, `XcodebuildRuntimeDownloader`
+    (`xcrun xcodebuild -downloadPlatform <plataforma> [-buildVersion <v>]`,
+    sem shell, progresso indeterminado, prazo de 6 h, cancelamento termina o
+    processo), `RuntimePlatform` (iOS, watchOS, tvOS, visionOS; o rawValue é
+    o argumento; `matches(_:)` liga um runtime instalado à plataforma pelo
+    `platformIdentifier` ou pelo prefixo, com `xrOS` para o visionOS) e
+    `RuntimeBuildVersion` (de 1 a 3 grupos de dígitos ASCII;
+    outra entrada não constrói valor). O test host e as previews usam o
+    `InertRuntimeDownloader`, que lança `.toolUnavailable`. Os testes usam
+    `ProcessRunnerSpy`, `GatedProcessRunner`, `RuntimeDownloaderSpy` e
+    `ServiceRestarterSpy` e nunca rodam o `simctl` nem o `xcodebuild` nem
+    sinalizam o serviço real;
   - `Xcode/` (C16): `UserDefaultsPreferencesResetter` (reset do domínio
     `com.apple.dt.Xcode` por `removePersistentDomain`; testes usam domínios
     próprios) e `WorkspaceRunningApplications` (Xcode e Simulator por
@@ -336,7 +353,22 @@ existente por conta própria.
     confirmação pendente; `loadOnActivation()` lista só na primeira ativação
     da janela (a partir de `idle`), e `loadIfNeeded()`, ao abrir a página
     "Simuladores e runtimes", lista de novo depois de lista vazia, falha ou
-    ferramentas ausentes. Reativar a janela nunca roda o `simctl` de novo;
+    ferramentas ausentes. Reativar a janela nunca roda o `simctl` de novo.
+    Desde o C30 também o `runtimeDownload` (ocioso, `downloading(run)` ou
+    `finished(run)`) e a folha aberta (`downloadChoice`). As intenções ficam
+    numa extensão no mesmo arquivo: a folha abre sem seleção e nunca durante
+    um download, uma exclusão ou uma confirmação de exclusão; a fila baixa uma
+    plataforma de cada vez na ordem de `RuntimePlatform.allCases`, numa única
+    tarefa que herda o main actor e fica guardada para
+    `cancelRuntimeDownload()`; uma falha não para a fila, salvo
+    `.toolUnavailable`; "Tentar de novo" refaz só as falhas e não roda com a
+    folha aberta; cada runtime instalado é listado na hora, antes do
+    próximo item, numa tarefa que o cancelamento da fila não cancela, e a
+    lista recarrega no fim só se pode estar defasada; nada é listado durante
+    uma exclusão (B6). Com a folha
+    aberta nenhuma exclusão é pedida, e durante o download a remoção de
+    runtimes fica bloqueada. Sair do app (`willTerminateNotification`, ligado
+    no `CleanerXcodeApp`) cancela o download; sair da página não cancela;
   - `SettingsViewModel`: os switches dos Ajustes (store) e o status do login
     item (`SMAppService`);
   - `UpdateViewModel`: a atualização disponível;
@@ -506,7 +538,7 @@ validação em dispositivo físico e de serviços externos.
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
     passaram, sem avisos. No C18: 295 execuções passaram, sem avisos. No C19: 325 execuções
     passaram, sem avisos. No C20: 345 execuções passaram, sem avisos. No C21: 370
-    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos;
+    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos. No C30: 489 testes únicos (557 casos executados), sem avisos, e a build Release sem avisos; no adendo A1 do C30 (folha e fila de plataformas), depois das revisões: 520 testes únicos (592 casos executados), sem avisos, e a Release sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código
@@ -532,6 +564,12 @@ validação em dispositivo físico e de serviços externos.
   violações.
 - Validações ainda não executadas:
   - build Release assinada (Developer ID) e notarizada;
+  - download real de runtime pelo `xcodebuild -downloadPlatform` (C30,
+    AC28-live): concluir e aparecer na lista, uma fila de 2, Cancelar no meio
+    encerrar o processo
+    (`pgrep -fl xcodebuild` vazio), sair do app no meio, e os casos sem
+    Xcode, sem rede e com a licença não aceita. Nenhum agente roda esse
+    download de vários GB sem autorização explícita;
   - limpeza real e comparação do espaço liberado com o estimado;
   - envio de eventos ao Himetrica e de erros ao Sentry (C28);
   - abrir no login com o app instalado em `/Applications`.

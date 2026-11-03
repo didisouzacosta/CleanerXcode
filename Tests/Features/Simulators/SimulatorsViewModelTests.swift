@@ -399,7 +399,12 @@ struct SimulatorsViewModelTests {
         _ service: SimulatorsServiceSpy,
         onDeleted: @escaping () async -> Void = {}
     ) -> SimulatorsViewModel {
-        SimulatorsViewModel(simulators: service, analytics: analytics, onDeleted: onDeleted)
+        SimulatorsViewModel(
+            simulators: service,
+            downloader: RuntimeDownloaderSpy(),
+            analytics: analytics,
+            onDeleted: onDeleted
+        )
     }
 
     private func device(_ udid: String, type: String, runtime: String, daysAgo: Double) -> SimulatorDevice {

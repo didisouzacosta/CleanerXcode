@@ -2489,3 +2489,120 @@ pasta `resources/` (R11).
   lint sem violações; Release compila sem avisos, com
   `Identifier=com.didisouzacosta.CleanerXcode` e `Signature=adhoc`. O app não foi
   aberto durante a tarefa, para não migrar os domínios reais do dono.
+
+## Adendo do C30 (2026-11-01)
+
+Card C30 (AC28). Pedido do dono: "Execute a tarefa c30". O pedido explícito supera
+a **D11** ("instalar runtimes: P3, fora do marco 1.0"): o C30 entra no branch
+`v1.0.0`. Depois de ver a simulação no Figma, o dono escolheu **"Só plataformas"**
+(adendo A1 do plano do C30): uma folha "Baixar runtimes" com iOS, watchOS, tvOS e
+visionOS, seleção múltipla e download em fila, um de cada vez, sempre na versão do
+Xcode selecionado. Sem versões antigas, sem tamanhos, sem catálogo da Apple e sem
+rede nova.
+
+- **Comando:** `XcodebuildRuntimeDownloader` (`Sources/Core/Simulators`) roda
+  `/usr/bin/xcrun xcodebuild -downloadPlatform <plataforma> [-buildVersion <v>]`
+  pelo `ProcessRunning`, sem shell. Pelo `xcrun`, usa o mesmo Xcode do `simctl`, e
+  o `SIGTERM` chega ao `xcodebuild` (o `xcrun` faz `exec`, ver o adendo do C13).
+  A plataforma é um enum fechado (`RuntimePlatform`, rawValue = argumento) e a
+  versão só existe validada (`RuntimeBuildVersion`: de 1 a 3 grupos de dígitos
+  ASCII, conferidos byte a byte em UTF-8), então nenhum texto vira outro
+  argumento. A interface não passa versão (Q7).
+- **Falhas:** `XcrunFailure` (`Sources/Core/Process`) concentra a regra que era do
+  `SimctlSimulatorService`: exit 72 ou stderr com `xcrun: error:` →
+  `.toolUnavailable`; as demais passam iguais. O `simctl` usa o mesmo helper, sem
+  mudança de comportamento.
+- **Progresso e prazo:** indeterminado, porque a saída do `-downloadPlatform` não
+  é documentada e o `ProcessRunner` só devolve a saída no fim. Prazo de 6 h por
+  item (`ProcessRequest.runtimeDownloadTimeout`, cerca de 8 GB a 3 Mbps).
+- **Folha "Baixar runtimes"** (`RuntimeDownloadSheet`, Figma `47:1911`): abre pelo
+  "Escolher…" do cartão, num segundo `.sheet(item:)` da página. As 4 plataformas,
+  na ordem fixa, com caixa de seleção, símbolo (`iphone`, `applewatch`, `appletv`,
+  `visionpro`) e os runtimes instalados de cada uma (`RuntimePlatform.matches`, por
+  `platformIdentifier` ou pelo prefixo do identificador; "visionOS 26.0", nunca
+  "xrOS 26.0"; mais novos primeiro, sem repetidos) ou "Nenhum runtime instalado".
+  Abre sem nada selecionado (Q9), e "Baixar N runtimes" fica desabilitado com 0.
+  Return confirma e Esc cancela. Textos e regras em `RuntimeDownloadSheetContent`.
+- **Fila** (`RuntimeDownloadRun`, `RuntimeDownloadOutcome`): a ordem é sempre a de
+  `RuntimePlatform.allCases`, qualquer que seja a ordem das marcações. Uma falha não
+  para os seguintes (Q8), exceto `.toolUnavailable`, que marca o restante como falho
+  sem rodar processo. Uma única tarefa, herdando o main actor (grava o estado entre
+  os itens; o processo sai do main actor no `ProcessRunner`), guardada para o
+  Cancelar: o item atual recebe `SIGTERM`, nenhum outro começa, e o atual e os da
+  fila ficam "não baixado". Cada runtime instalado é listado na hora (pedido do
+  dono em 2026-11-02), antes de o próximo começar, numa tarefa própria que o
+  cancelamento da fila não cancela (uma listagem cancelada viraria
+  `.failed(.cancelled)`), e as listagens nunca se sobrepõem. Um Cancelar durante
+  essa listagem só encerra a fila quando ela termina (alguns segundos), e o cartão
+  segue em "Baixando…" até lá (N5, revisto no C34). Depois da tarefa, a
+  lista recarrega só se pode estar defasada (o último item falhou ou foi cancelado).
+  Nada é listado durante uma exclusão, que lista no fim (B6). Instalar não faz a
+  janela medir de novo: nenhuma categoria da limpeza mede runtimes, e a Visão geral
+  e a barra lateral leem a lista do próprio `SimulatorsViewModel`. Remover um
+  runtime continua recarregando no fim do `confirm()`.
+  "Tentar de novo" refaz só as que falharam, sem abrir a folha, e não roda com a
+  folha aberta.
+- **Estado:** `SimulatorsViewModel.runtimeDownload` (`RuntimeDownloadState`:
+  ocioso, `downloading(run)`, `finished(run)`) e `downloadChoice` (a folha aberta).
+  As intenções (`requestRuntimeDownload`, `toggleRuntimePlatform`,
+  `cancelRuntimeDownloadChoice`, `confirmRuntimeDownload`,
+  `retryFailedRuntimeDownloads`, `cancelRuntimeDownload`,
+  `dismissRuntimeDownloadResult`) ficam numa extensão no mesmo arquivo, que acessa
+  os membros privados e mantém o corpo do tipo abaixo do limite.
+- **Exclusão mútua (R14):** a folha não abre com download, exclusão ou confirmação
+  de exclusão aberta; com a folha aberta, nenhuma exclusão é pedida; confirmar a
+  folha durante uma exclusão não faz nada. Uma confirmação de remoção de runtime
+  ainda aberta quando um download começa (por "Tentar de novo") é descartada pelo
+  `confirm()` sem apagar. Durante o download, "Remover" dos
+  runtimes fica desabilitado ("Aguarde o download do runtime terminar"); apagar
+  simuladores continua permitido. Durante uma limpeza, "Escolher…", "Tentar de
+  novo" e o primário da folha ficam desabilitados ("Disponível quando a limpeza
+  terminar"); a seleção e os Cancelar, nunca.
+- **Cartão** (`RuntimeDownloadCardView` com `RuntimeDownloadPresentation`, textos
+  já localizados): ocioso "Baixar runtimes" / "Escolha as plataformas · vários GB
+  cada" / "Escolher…"; baixando com a posição "(2 de 3)" e a legenda com o que
+  terminou e "Na fila: …"; tudo instalado (verde, sem botão); falha (laranja, "N de
+  M runtimes não foram baixados" e os fragmentos por plataforma, "Tentar de novo");
+  cancelado (neutro, "Escolher…"). Uma fila de 1 mantém os textos de item único.
+  Fica abaixo da lista de runtimes, ou do cartão de status no estado vazio.
+- **Sair:** sair da página não cancela (tarefa não estruturada). Sair do app cancela:
+  o `CleanerXcodeApp` observa `NSApplication.willTerminateNotification` fora de teste
+  e de preview.
+- **Composição:** o `AppContainer` entrega `InertRuntimeDownloader` (lança
+  `.toolUnavailable`) em teste e em preview, e `XcodebuildRuntimeDownloader` fora
+  deles. Nenhum teste roda o `xcodebuild`.
+- **Decisões:** Q1 substituída pelo A1 (as 4 plataformas); Q2 sem confirmação além
+  da própria folha; Q3 sem item na barra de menus nem nos Comandos; Q4 sem evento de
+  analytics (o contrato de eventos e o README não mudam); Q5 a limpeza continua
+  permitida durante o download; Q6 prazo de 6 h por item; Q7 sem seletor de versão;
+  Q8 a Q11 como no A1.
+- **Divergências do plano do C30 e do A1:** os fakes e fixtures das previews ficam
+  em arquivos próprios (`PreviewRuntimeDownloader`, `RuntimeDownloadPreviewFixtures`,
+  `RuntimeDownloadCardPreview`, `RuntimeDownloadSheetPreview`); os testes do
+  ViewModel ficaram em dois arquivos (`SimulatorsViewModelRuntimeDownloadTests`, a
+  fila, e `SimulatorsViewModelDownloadSheetTests`, a folha e as guardas) por causa do
+  `file_length`; o fragmento de falha "plataforma: motivo" é montado sem chave; a
+  guarda de "confirmar a folha durante uma exclusão" não tem teste próprio, porque a
+  API não deixa chegar a esse estado (a folha não abre durante uma exclusão e
+  nenhuma exclusão começa com a folha aberta). Na revisão, "Tentar de novo" ganhou
+  a guarda da folha aberta, mas não a de confirmação aberta: assim a guarda do
+  `confirm()` continua alcançável e testada. Na folha, o rótulo de acessibilidade
+  de cada caixa é o nome da plataforma e os instalados são a dica, para não
+  esconder o estado marcado. Ainda em 2026-11-02, a pedido do dono, as linhas da
+  folha ficaram centradas na vertical: a caixa nativa fica com o rótulo oculto numa
+  linha centrada, o resto da linha é um botão simples que a marca (oculto ao
+  VoiceOver), e os símbolos ficam num quadro fixo de 24×24.
+- **Validação:** 520 testes únicos (592 casos executados) passaram, sem avisos;
+  lint sem violações; Release compila sem avisos; o catálogo tem 246 chaves, todas
+  usadas e traduzidas, com os plurais conferidos por `LocalizedPluralTests`.
+  Conferência visual contra o Figma (AC20, regra revista em 2026-11-02): capturas
+  da janela real em pt-BR, comparadas sem reamostragem com os nós do Figma. Geral /
+  layout com o texto mascarado: parado 98,5 / 99,7; baixando 97,6 / 99,3; fila
+  96,9 / 99,3; instalado 98,6 / 99,4; tudo instalado 98,5 / 99,4; falhou 97,7 /
+  99,5; falha parcial 97,5 / 99,5; cancelado 98,5 / 99,7; fila durante limpeza
+  96,8 / 99,6; escuro 97,2 / 99,4; vazio 98,5 / 99,7; folha 96,9 / 98,7 (por
+  região, porque a mensagem quebra em 3 linhas no Figma e 2 no app). A diferença
+  restante é a renderização da fonte. Pendente com o
+  dono (AC28-live, junto do C27): download real concluído e listado, uma fila de 2 e
+  o Cancelar no meio encerrando o `xcodebuild` (`pgrep -fl xcodebuild` vazio), sair
+  do app no meio, e os casos sem Xcode, sem rede e com a licença não aceita.

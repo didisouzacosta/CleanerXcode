@@ -91,6 +91,11 @@ nonisolated final class SimulatorsServiceSpy: SimulatorManaging, Sendable {
         }
     }
 
+    /// Adds a runtime behind the view model's back, as a finished download would.
+    func install(_ runtime: SimulatorRuntime) {
+        state.withLock { $0.runtimes.append(runtime) }
+    }
+
     /// The next device listing waits for `releaseListing()`.
     func holdNextListing() {
         state.withLock { $0.holdsNextListing = true }

@@ -172,7 +172,7 @@ struct SimulatorsViewModelLoadingTests {
     // MARK: - Private Methods
 
     private func makeViewModel(_ service: SimulatorsServiceSpy) -> SimulatorsViewModel {
-        SimulatorsViewModel(simulators: service, analytics: AnalyticsStub())
+        SimulatorsViewModel(simulators: service, downloader: RuntimeDownloaderSpy(), analytics: AnalyticsStub())
     }
 
     private func device(_ udid: String, type: String, runtime: String, daysAgo: Double) -> SimulatorDevice {

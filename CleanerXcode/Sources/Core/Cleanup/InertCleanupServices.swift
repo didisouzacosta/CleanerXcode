@@ -79,6 +79,17 @@ nonisolated struct InertSimulatorManager: SimulatorManaging {
 
 }
 
+/// Fails at once, as without the Xcode tools: the test host and previews never run `xcodebuild`.
+nonisolated struct InertRuntimeDownloader: RuntimeDownloading {
+
+    // MARK: - Public Methods
+
+    func download(_ platform: RuntimePlatform, buildVersion: RuntimeBuildVersion?) throws {
+        throw CleanupError.toolUnavailable
+    }
+
+}
+
 /// Runs nothing and reports an empty run.
 struct InertCleanupExecutor: CleanupExecuting {
 

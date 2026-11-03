@@ -9,7 +9,7 @@
     import SwiftUI
 
     /// Drives a real `SimulatorsViewModel` with an in-memory service into each state of the
-    /// "Simulators and runtimes" page; nothing runs `simctl`.
+    /// "Simulators and runtimes" page; nothing runs `simctl` nor `xcodebuild`.
     struct SimulatorsSectionPreview: View {
 
         // MARK: - States
@@ -47,7 +47,11 @@
         // MARK: - Public Methods
 
         static func makeViewModel(for scenario: Scenario) -> SimulatorsViewModel {
-            SimulatorsViewModel(simulators: PreviewSimulatorsService(scenario: scenario), analytics: NullAnalytics())
+            SimulatorsViewModel(
+                simulators: PreviewSimulatorsService(scenario: scenario),
+                downloader: downloader(for: scenario),
+                analytics: NullAnalytics()
+            )
         }
 
         /// Brings the view model to the scenario's phase. The page also loads when it appears,
@@ -77,12 +81,71 @@
                     viewModel.requestDeleteRuntime(runtime)
                 }
 
+            case .downloading, .downloadQueue:
+                Task { await download(downloadSelection(for: scenario), in: viewModel) }
+
+            case .downloadInstalled, .downloadAllInstalled, .downloadFailed, .downloadPartlyFailed:
+                await download(downloadSelection(for: scenario), in: viewModel)
+
+            case .downloadCancelled, .downloadCancelledAfterInstalling:
+                let selection = downloadSelection(for: scenario)
+
+                Task { await download(selection, in: viewModel) }
+
+                await waitUntilDownloading(selection.last, in: viewModel)
+                viewModel.cancelRuntimeDownload()
+
             default:
                 break
             }
         }
 
         // MARK: - Private Methods
+
+        /// Only the scenario's own platforms finish or fail; the one shown in progress waits.
+        private static func downloader(for scenario: Scenario) -> PreviewRuntimeDownloader {
+            switch scenario {
+            case .downloadQueue: PreviewRuntimeDownloader([.watchOS: .hold])
+            case .downloadInstalled, .downloadAllInstalled: PreviewRuntimeDownloader()
+            case .downloadFailed: PreviewRuntimeDownloader(default: .fail(.timedOut))
+            case .downloadPartlyFailed: PreviewRuntimeDownloader([.visionOS: .fail(.timedOut)])
+            case .downloadCancelledAfterInstalling: PreviewRuntimeDownloader([.visionOS: .hold])
+            default: PreviewRuntimeDownloader(default: .hold)
+            }
+        }
+
+        private static func downloadSelection(for scenario: Scenario) -> [RuntimePlatform] {
+            switch scenario {
+            case .downloadQueue: [.iOS, .watchOS, .visionOS]
+            case .downloadAllInstalled, .downloadPartlyFailed, .downloadCancelledAfterInstalling: [.watchOS, .visionOS]
+            default: [.iOS]
+            }
+        }
+
+        /// Through the sheet, as the page does.
+        private static func download(_ platforms: [RuntimePlatform], in viewModel: SimulatorsViewModel) async {
+            viewModel.requestRuntimeDownload()
+
+            for platform in platforms {
+                viewModel.toggleRuntimePlatform(platform)
+            }
+
+            await viewModel.confirmRuntimeDownload()
+        }
+
+        /// Until `platform` is the one being downloaded.
+        private static func waitUntilDownloading(
+            _ platform: RuntimePlatform?,
+            in viewModel: SimulatorsViewModel
+        ) async {
+            while !Task.isCancelled {
+                if case let .downloading(run) = viewModel.runtimeDownload, run.current == platform {
+                    return
+                }
+
+                try? await Task.sleep(for: .milliseconds(20))
+            }
+        }
 
         private static func waitUntilListed(_ viewModel: SimulatorsViewModel) async {
             while viewModel.phase == .idle || viewModel.phase == .loading, !Task.isCancelled {
@@ -106,6 +169,14 @@
             case unusualStates
             case confirmingDevices
             case confirmingRuntime
+            case downloading
+            case downloadQueue
+            case downloadInstalled
+            case downloadAllInstalled
+            case downloadFailed
+            case downloadPartlyFailed
+            case downloadCancelled
+            case downloadCancelledAfterInstalling
         }
 
     }
@@ -154,6 +225,9 @@
         private static let iOS272 = "com.apple.CoreSimulator.SimRuntime.iOS-27-2"
         private static let iOS271 = "com.apple.CoreSimulator.SimRuntime.iOS-27-1"
         private static let watchOS271 = "com.apple.CoreSimulator.SimRuntime.watchOS-27-1"
+        private static let iOS273 = "com.apple.CoreSimulator.SimRuntime.iOS-27-3"
+        private static let watchOS272 = "com.apple.CoreSimulator.SimRuntime.watchOS-27-2"
+        private static let visionOS272 = "com.apple.CoreSimulator.SimRuntime.xrOS-27-2"
 
         private let scenario: SimulatorsSectionPreview.Scenario
 
@@ -161,6 +235,23 @@
 
         init(scenario: SimulatorsSectionPreview.Scenario) {
             self.scenario = scenario
+        }
+
+        // MARK: - Private Static Methods
+
+        private static func platformIdentifier(of runtimeIdentifier: String) -> String {
+            let platform = RuntimePlatform.allCases.first { platform in
+                let name = platform == .visionOS ? "xrOS" : platform.rawValue
+
+                return runtimeIdentifier.contains(".SimRuntime.\(name)-")
+            }
+
+            return platform?.simulatorPlatformIdentifier ?? ""
+        }
+
+        /// `…SimRuntime.iOS-27-2` → `27.2`.
+        private static func version(of runtimeIdentifier: String) -> String {
+            runtimeIdentifier.split(separator: "-").dropFirst().joined(separator: ".")
         }
 
         // MARK: - Public Methods
@@ -224,10 +315,12 @@
                 ]
             }
 
-            return [
+            let runtimes = [
                 runtime("R2", Self.iOS272, build: "24B114", bytes: 7_500_000_000, deletable: false),
                 runtime("R1", Self.iOS271, build: "24A94425", bytes: 7_600_000_000, deletable: true),
             ]
+
+            return runtimes + installedByTheDownloads()
         }
 
         func delete(_ devices: [SimulatorDevice], in set: DeviceSet) async throws {
@@ -253,6 +346,46 @@
         func restartService() throws {}
 
         // MARK: - Private Methods
+
+        /// The runtimes the downloads of the scenario just installed.
+        private func installedByTheDownloads() -> [SimulatorRuntime] {
+            switch scenario {
+            case .downloadInstalled:
+                [
+                    runtime(
+                        "R4",
+                        Self.iOS273,
+                        build: "24C5089c",
+                        bytes: 8_100_000_000,
+                        deletable: true,
+                        lastUsed: false
+                    ),
+                ]
+
+            case .downloadAllInstalled:
+                [
+                    runtime(
+                        "R5",
+                        Self.watchOS272,
+                        build: "24R412",
+                        bytes: 3_400_000_000,
+                        deletable: true,
+                        lastUsed: false
+                    ),
+                    runtime(
+                        "R6",
+                        Self.visionOS272,
+                        build: "24N310",
+                        bytes: 9_200_000_000,
+                        deletable: true,
+                        lastUsed: false
+                    ),
+                ]
+
+            default:
+                []
+            }
+        }
 
         private func device(
             _ udid: String,
@@ -281,16 +414,17 @@
             build: String,
             bytes: Int64,
             deletable: Bool,
-            state: String = "Ready"
+            state: String = "Ready",
+            lastUsed: Bool = true
         ) -> SimulatorRuntime {
             SimulatorRuntime(
                 identifier: identifier,
                 runtimeIdentifier: runtimeIdentifier,
-                version: "27",
+                version: Self.version(of: runtimeIdentifier),
                 build: build,
-                platformIdentifier: "com.apple.platform.iphonesimulator",
+                platformIdentifier: Self.platformIdentifier(of: runtimeIdentifier),
                 sizeBytes: bytes,
-                lastUsedAt: deletable ? Date.now.addingTimeInterval(-61 * 86_400) : nil,
+                lastUsedAt: deletable && lastUsed ? Date.now.addingTimeInterval(-61 * 86_400) : nil,
                 isDeletable: deletable,
                 state: state,
                 kind: deletable ? "Patchable Cryptex Disk Image" : "Bundled with Xcode"

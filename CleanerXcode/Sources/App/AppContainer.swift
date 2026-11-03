@@ -179,17 +179,22 @@ enum AppContainer {
         )
     }
 
-    /// The Simulators section. The test host and previews never run `simctl`.
+    /// The Simulators section. The test host and previews never run `simctl` nor `xcodebuild`.
     static func makeSimulatorsViewModel(
         environment: AppEnvironment,
         services: AppServices,
         onDeleted: @escaping () async -> Void = {}
     ) -> SimulatorsViewModel {
-        let simulators: any SimulatorManaging = environment.isRunningTests || environment.isRunningPreviews
-            ? InertSimulatorManager()
-            : SimctlSimulatorService()
+        let isInert = environment.isRunningTests || environment.isRunningPreviews
+        let simulators: any SimulatorManaging = isInert ? InertSimulatorManager() : SimctlSimulatorService()
+        let downloader: any RuntimeDownloading = isInert ? InertRuntimeDownloader() : XcodebuildRuntimeDownloader()
 
-        return SimulatorsViewModel(simulators: simulators, analytics: services.analytics, onDeleted: onDeleted)
+        return SimulatorsViewModel(
+            simulators: simulators,
+            downloader: downloader,
+            analytics: services.analytics,
+            onDeleted: onDeleted
+        )
     }
 
     // MARK: - Private Methods

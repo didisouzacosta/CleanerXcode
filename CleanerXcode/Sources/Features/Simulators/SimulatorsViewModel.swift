@@ -9,7 +9,8 @@ import Observation
 
 /// The simulators of the default set and the installed runtimes (R8, R9). "Remover duplicados"
 /// only pre-selects; every deletion waits for a confirmation, sends the exact UDIDs or runtime
-/// identifier to `simctl`, and reloads the lists to show the result.
+/// identifier to `simctl`, and reloads the lists to show the result. It also downloads runtimes
+/// (C30), one platform at a time, never together with a runtime deletion.
 @Observable
 final class SimulatorsViewModel {
 
@@ -17,6 +18,7 @@ final class SimulatorsViewModel {
 
     /// Read by the composition tests.
     let simulators: any SimulatorManaging
+    let downloader: any RuntimeDownloading
 
     private(set) var phase: SimulatorsPhase = .idle
     private(set) var devices: [SimulatorDevice] = []
@@ -25,6 +27,9 @@ final class SimulatorsViewModel {
     private(set) var confirmation: Confirmation?
     /// The last deletion that failed; cleared by the next one.
     private(set) var lastFailure: CleanupError?
+    private(set) var runtimeDownload: RuntimeDownloadState = .idle
+    /// The open "Download runtimes" sheet.
+    private(set) var downloadChoice: RuntimeDownloadChoice?
 
     /// The ones suggested for removal: the most recent of each group stays.
     var duplicateUDIDs: Set<String> {
@@ -42,12 +47,19 @@ final class SimulatorsViewModel {
 
     /// Each listing takes one; a deletion or a newer listing makes the older ones stale.
     @ObservationIgnored private var reloadGeneration = 0
+    @ObservationIgnored private var downloadTask: Task<Bool, Never>?
 
     // MARK: - Initializers
 
     /// `onDeleted` lets the window measure again after something was deleted.
-    init(simulators: any SimulatorManaging, analytics: any Analytics, onDeleted: @escaping () async -> Void = {}) {
+    init(
+        simulators: any SimulatorManaging,
+        downloader: any RuntimeDownloading,
+        analytics: any Analytics,
+        onDeleted: @escaping () async -> Void = {}
+    ) {
         self.simulators = simulators
+        self.downloader = downloader
         self.analytics = analytics
         self.onDeleted = onDeleted
     }
@@ -117,14 +129,16 @@ final class SimulatorsViewModel {
     func requestDeleteSelected() {
         let selected = devices.filter { selectedUDIDs.contains($0.udid) }
 
-        guard !phase.isDeleting, !selected.isEmpty else { return }
+        guard !phase.isDeleting, downloadChoice == nil, !selected.isEmpty else { return }
 
         confirmation = .devices(selected)
     }
 
-    /// Runtimes bundled with Xcode cannot be deleted.
+    /// Runtimes bundled with Xcode cannot be deleted, nor any runtime while one is downloaded.
     func requestDeleteRuntime(_ runtime: SimulatorRuntime) {
-        guard !phase.isDeleting, runtime.isDeletable else { return }
+        guard !phase.isDeleting, !runtimeDownload.isDownloading, downloadChoice == nil, runtime.isDeletable else {
+            return
+        }
 
         confirmation = .runtime(runtime, dependentCount: dependents(removedWith: runtime, in: devices).count)
     }
@@ -137,6 +151,12 @@ final class SimulatorsViewModel {
         guard let confirmation else { return }
 
         self.confirmation = nil
+
+        // A download started while the runtime confirmation was open: the list is about to change.
+        if case .runtime = confirmation, runtimeDownload.isDownloading {
+            return
+        }
+
         lastFailure = nil
 
         switch confirmation {
@@ -252,6 +272,143 @@ final class SimulatorsViewModel {
             }
         }
 
+    }
+
+}
+
+extension SimulatorsViewModel {
+
+    // MARK: - Runtime Download
+
+    /// With the lists and on the empty state; otherwise only for a download in progress or
+    /// finished, so it can still be cancelled or read.
+    var showsRuntimeDownload: Bool {
+        phase.showsLists || phase == .empty || runtimeDownload != .idle
+    }
+
+    /// Opens the "Download runtimes" sheet with nothing selected (Q9). Never during a download, a
+    /// deletion or with a deletion confirmation open. A finished result stays until the next queue.
+    func requestRuntimeDownload() {
+        guard !runtimeDownload.isDownloading, !phase.isDeleting, confirmation == nil else { return }
+
+        downloadChoice = RuntimeDownloadChoice()
+    }
+
+    func toggleRuntimePlatform(_ platform: RuntimePlatform) {
+        downloadChoice?.toggle(platform)
+    }
+
+    func cancelRuntimeDownloadChoice() {
+        downloadChoice = nil
+    }
+
+    /// Closes the sheet and downloads the selected platforms. With nothing selected, or during a
+    /// download or a deletion, it does nothing and the sheet stays.
+    func confirmRuntimeDownload() async {
+        guard
+            let choice = downloadChoice,
+            !choice.selected.isEmpty,
+            !runtimeDownload.isDownloading,
+            !phase.isDeleting
+        else { return }
+
+        downloadChoice = nil
+        await runDownloads(choice.orderedSelection)
+    }
+
+    /// "Try again": downloads only the platforms that failed, without the sheet. Never with the
+    /// sheet open, as no deletion is asked then either. A deletion confirmation still open is left
+    /// to `confirm()`, which drops a runtime removal while a download runs and lets simulators go.
+    func retryFailedRuntimeDownloads() async {
+        guard case let .finished(run) = runtimeDownload, !run.failed.isEmpty, downloadChoice == nil else { return }
+
+        await runDownloads(run.failed.map(\.platform))
+    }
+
+    /// Terminates the current download and empties the queue; the state changes when it has ended.
+    func cancelRuntimeDownload() {
+        downloadTask?.cancel()
+    }
+
+    /// Leaving the page clears a finished result; a download in progress goes on.
+    func dismissRuntimeDownloadResult() {
+        guard runtimeDownload.isFinished else { return }
+
+        runtimeDownload = .idle
+    }
+
+    /// One task for the whole queue. It inherits the main actor, because it records the state
+    /// between downloads; the process runs off it in `ProcessRunner`. A failure does not stop the
+    /// queue, except missing tools, which every platform would hit (Q8). Each installed runtime is
+    /// listed at once (`listShieldedFromCancel`), before the next download starts, so listings never
+    /// overlap. After the task, the lists reload only if they may be stale. Never during a deletion,
+    /// which lists at its end (B6).
+    private func runDownloads(_ platforms: [RuntimePlatform]) async {
+        guard !platforms.isEmpty, !runtimeDownload.isDownloading, !phase.isDeleting else { return }
+
+        // Set before the first suspension, so a second call returns at the guard.
+        runtimeDownload = .downloading(RuntimeDownloadRun(platforms))
+
+        let downloader = downloader
+        let task = Task {
+            var run = RuntimeDownloadRun(platforms)
+
+            var isListCurrent = false
+
+            for platform in run.platforms {
+                guard !Task.isCancelled else { break }
+
+                do {
+                    try await downloader.download(platform, buildVersion: nil)
+                    run.record(.installed, for: platform)
+                    self.runtimeDownload = .downloading(run)
+                    isListCurrent = await self.listShieldedFromCancel()
+                } catch {
+                    let failure = CleanupError(error)
+
+                    // A download stopped or failed midway may still have changed the runtimes.
+                    isListCurrent = false
+
+                    guard failure != .cancelled else { break }
+
+                    run.record(.failed(failure), for: platform)
+
+                    if failure == .toolUnavailable {
+                        run.recordRemaining(.failed(.toolUnavailable))
+                        break
+                    }
+                }
+
+                self.runtimeDownload = .downloading(run)
+            }
+
+            run.recordRemaining(.notDownloaded)
+            self.runtimeDownload = .finished(run)
+
+            return isListCurrent
+        }
+
+        downloadTask = task
+
+        let isListCurrent = await task.value
+
+        if downloadTask == task {
+            downloadTask = nil
+        }
+
+        if !isListCurrent, !phase.isDeleting {
+            await reload()
+        }
+    }
+
+    /// Lists in a task of its own, which a cancelled queue does not cancel: a cancelled listing
+    /// would end as `.failed(.cancelled)` (A1 §5). `false` when skipped during a deletion.
+    private func listShieldedFromCancel() async -> Bool {
+        guard !phase.isDeleting else { return false }
+
+        await Task { await self.reload() }.value
+
+        return true
     }
 
 }

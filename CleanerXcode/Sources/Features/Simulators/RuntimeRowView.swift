@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// A runtime: name, build, how many simulators depend on it, last use, size and Remove. Runtimes
-/// bundled with Xcode cannot be removed (R9).
+/// bundled with Xcode cannot be removed (R9), nor any runtime while one is downloaded (C30).
 struct RuntimeRowView: View {
 
     // MARK: - Public Properties
@@ -47,8 +47,8 @@ struct RuntimeRowView: View {
             .buttonStyle(.bordered)
             .tint(.red)
             .controlSize(.small)
-            .disabled(isLocked || viewModel.phase.isDeleting || !runtime.isDeletable)
-            .help(runtime.isDeletable ? Text("Remove this runtime") : Text("Bundled with Xcode"))
+            .disabled(isLocked || viewModel.phase.isDeleting || isDownloading || !runtime.isDeletable)
+            .help(removeHelp)
             .accessibilityLabel(Text("Remove \(SimulatorPresentation.runtimeName(runtime.runtimeIdentifier))"))
         }
         .frame(minHeight: 44)
@@ -57,6 +57,20 @@ struct RuntimeRowView: View {
     }
 
     // MARK: - Private Properties
+
+    private var isDownloading: Bool {
+        viewModel.runtimeDownload.isDownloading
+    }
+
+    private var removeHelp: Text {
+        if !runtime.isDeletable {
+            Text("Bundled with Xcode")
+        } else if isDownloading {
+            Text("Wait for the runtime download to finish")
+        } else {
+            Text("Remove this runtime")
+        }
+    }
 
     private var isBeingDeleted: Bool {
         if case let .deleting(ids) = viewModel.phase {

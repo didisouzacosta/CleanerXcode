@@ -18,13 +18,6 @@ nonisolated struct SimctlSimulatorService: SimulatorManaging {
 
     // MARK: - Private Properties
 
-    /// `xcrun` exits with 72 when it cannot find the tool, for example with only the Command Line
-    /// Tools selected.
-    private static let toolNotFoundExitCode: Int32 = 72
-    /// `xcrun`'s own errors, such as a deleted Xcode that is still selected or a missing
-    /// `DEVELOPER_DIR` (exit 1). `simctl` never uses this prefix.
-    private static let xcrunErrorPrefix = "xcrun: error:"
-
     private let runner: any ProcessRunning
     private let scanner: any DiskUsageScanning
     private let restarter: any SimulatorServiceRestarting
@@ -145,10 +138,8 @@ nonisolated struct SimctlSimulatorService: SimulatorManaging {
     ) async throws -> ProcessOutput {
         do {
             return try await runner.run(.xcrun(["simctl"] + set.arguments + arguments, timeout: timeout))
-        } catch let CleanupError.commandFailed(exitCode, summary)
-            where exitCode == Self.toolNotFoundExitCode || summary.hasPrefix(Self.xcrunErrorPrefix)
-        {
-            throw CleanupError.toolUnavailable
+        } catch {
+            throw XcrunFailure.normalized(error)
         }
     }
 

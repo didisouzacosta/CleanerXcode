@@ -107,6 +107,21 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
     único evento agregado; caminhos do usuário viram `~`, caminhos
     temporários são removidos e sessões não são rastreadas.
   - Localização: inglês (fonte) e pt-BR em `Localizable.xcstrings`.
+  - Baixar runtimes (C30), na página "Simuladores e runtimes": um cartão
+    abaixo da lista de runtimes (ou do cartão de status no estado vazio) abre,
+    por "Escolher…", a folha "Baixar runtimes" com iOS, watchOS, tvOS e
+    visionOS, cada uma com os runtimes já instalados, e nada selecionado. O
+    primário "Baixar N runtimes" baixa as escolhidas uma de cada vez, na ordem
+    fixa, por `xcrun xcodebuild -downloadPlatform <plataforma>`, sem shell,
+    para a versão do Xcode selecionado. O cartão mostra o item atual com a
+    posição ("2 de 3"), o que terminou e o que está na fila, com progresso
+    indeterminado e "Cancelar"; cada runtime instalado aparece na lista na
+    hora, sem esperar o fim da fila; no fim, tudo instalado, falha (o motivo de cada plataforma e "Tentar de
+    novo", que refaz só as falhas) ou cancelado ("Escolher…" de novo). Uma
+    falha não para a fila, salvo sem as ferramentas do Xcode. Nada começa
+    durante uma limpeza ou exclusão; "Remover" dos runtimes fica bloqueado
+    enquanto baixa; o download continua ao sair da página, é cancelado ao sair
+    do app e tem prazo de 6 h por item. Sem evento de analytics novo.
 - Recursos premium ou condicionais: não há recursos pagos. A doação é opcional,
   por link externo.
 - Limites conhecidos:
@@ -169,10 +184,19 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
   "Janela · tamanho comum (C32)", substitui a janela em coluna da página 03). A comparação é feita
   estado a estado, com o render da tela ao lado do frame correspondente,
   conferindo estrutura, hierarquia, textos, cores, espaçamentos, formas e
-  componentes. Não precisa ser idêntica pixel a pixel, mas a igualdade tem de
-  ficar acima de 98%; abaixo disso a tela volta para correção e a tarefa não é
-  concluída. O relatório da tarefa registra os frames comparados, as diferenças
-  restantes com a justificativa de cada uma e as imagens enviadas ao dono.
+  componentes. Não precisa ser idêntica pixel a pixel. Os critérios foram
+  revistos pelo dono em 2026-11-02:
+  - Igualdade geral do componente ou da tela, com o texto incluído: acima de 95%.
+  - Layout: acima de 98%, medido com as áreas de texto mascaradas. Inclui
+    espaçamentos, posições, tamanhos, cores, formas, ícones e componentes.
+  - Texto: tem tolerância. Fonte, tamanho, renderização e quebra de linha podem
+    diferir do Figma, mas o texto precisa estar legível e dizer o mesmo
+    conteúdo do frame.
+
+  Abaixo de qualquer um dos dois limites, a tela volta para correção e a tarefa
+  não é concluída. O relatório da tarefa registra os frames comparados, as duas
+  medidas de cada um, as diferenças restantes com a justificativa de cada uma e
+  as imagens enviadas ao dono.
 
 - Validações concluídas:
   - Código: leitura do código conectado em 2026-10-31 (branch `v1.0.0`,
@@ -186,6 +210,9 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
   - comportamento com diretórios grandes (timeout de 10 s) e com falhas
     parciais;
   - envio de eventos ao Himetrica e de erros ao Sentry (C28);
+  - download real de runtime (C30, AC28-live): concluir e aparecer na lista,
+    uma fila de 2, Cancelar no meio encerrar o `xcodebuild`, sair do app no meio, e os casos sem
+    Xcode, sem rede e com a licença não aceita. Fica com o dono, junto do C27;
   - verificação de atualização contra o `version.json` publicado;
   - abrir no login com a build assinada e notarizada (Developer ID).
 - Condições de hardware, conta ou serviço: Mac com macOS 26+ e Xcode
@@ -212,6 +239,7 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | ViewModel da limpeza (C19) | `Sources/Features/Cleaner/{CleanerPhase,CleanupProgress,CategoryRowState,SimulatorSnapshot,CleanerViewModel,CleanupOutcomeReporter}.swift`, `Sources/Core/Cleanup/Executor/CleanupExecuting.swift` |
 | Janela única (C20) | `Sources/Features/Cleaner/Window/*.swift`, `Sources/Features/Cleaner/Presentation/*.swift`, `Sources/Core/Cleanup/InertCleanupServices.swift`, `Sources/App/{CleanerXcodeApp,AppContainer}.swift` |
 | Simuladores e runtimes (C21) | `Sources/Features/Simulators/*.swift` |
+| Download de runtimes (C30) | `Sources/Core/Simulators/{RuntimeDownloading,XcodebuildRuntimeDownloader,RuntimePlatform,RuntimeBuildVersion}.swift`, `Sources/Core/Process/XcrunFailure.swift`, `Sources/Features/Simulators/{RuntimeDownloadState,RuntimeDownloadRun,RuntimeDownloadOutcome,RuntimeDownloadChoice,RuntimeDownloadSheetContent,RuntimeDownloadPresentation,RuntimeDownloadCardView,RuntimeDownloadSheet}.swift` |
 | Janela de tamanho comum com barra lateral (C32) | `Sources/App/{CleanerXcodeApp,WindowID}.swift`, `Sources/Features/Cleaner/Window/{CleanerWindowView,CleanerSidebarView,SidebarFooterView,CleanerDetailView,ActionBarView,OverviewView,OverviewSummaryCard,SpaceBreakdownBar,SectionCardView,CategoryPageView,SectionHeaderView,GlassSurface,CleanerCommands}.swift`, `Sources/Features/Cleaner/Presentation/{SidebarDestination,ActionBarContent,SpaceBreakdown,CleanerNotice,OverviewPresentation}.swift`, `Sources/Features/Simulators/SimulatorsPageView.swift` |
 | Ajustes, barra de menus e Sobre (C22) | `Sources/Features/Settings/*.swift`, `Sources/App/CleanerXcodeApp.swift` (`AppDelegate`) |
 | Atualização (C23) | `Sources/Core/Update/{SemanticVersion,VersionChecking}.swift`, `Sources/Features/Update/{UpdateViewModel,UpdatePreview}.swift` |
@@ -243,6 +271,11 @@ Caminhos relativos a `CleanerXcode/`, exceto `resources/`, `releases/` e
   reenvio à loja.
 - Resolvido no C24: o fork `LaunchAtLogin` (por SSH) e o `swift-timeout`
   saíram; o "abrir no login" usa `SMAppService`.
+- Decisão do C30: o dono pediu a instalação de runtimes no 1.0, o que supera
+  a D11 ("fora do marco 1.0"), e depois escolheu "Só plataformas": as 4
+  plataformas numa folha, em fila, sem versões antigas, sem tamanhos, sem
+  seletor de versão e sem evento de analytics (ver o adendo do C30 no plano
+  1.0).
 - Decisão do C33: manter o bundle id `com.didisouzacosta.CleanerXcode` e
   migrar as preferências do id antigo (ver o adendo do C33 no plano 1.0).
 - Pendência (C27 e C29): o `SMAppService` é ligado ao bundle id, e o app novo

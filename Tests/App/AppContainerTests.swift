@@ -268,6 +268,30 @@ struct AppContainerTests {
         let viewModel = AppContainer.makeSimulatorsViewModel(environment: environment, services: services)
 
         #expect(viewModel.simulators is SimctlSimulatorService)
+        // Only the type is checked: a test must never start a real download.
+        #expect(viewModel.downloader is XcodebuildRuntimeDownloader)
+    }
+
+    /// The test host gets a downloader that fails at once, as without the Xcode tools (C30).
+    @Test
+    func testsGetARuntimeDownloadThatNeverRunsXcodebuild() async {
+        let environment = AppEnvironment(isRunningTests: true, isDebug: true)
+        let services = AppContainer.makeServices(environment: environment, configuration: configuration)
+
+        let viewModel = AppContainer.makeSimulatorsViewModel(environment: environment, services: services)
+        await viewModel.load()
+        viewModel.requestRuntimeDownload()
+        viewModel.toggleRuntimePlatform(.iOS)
+        await viewModel.confirmRuntimeDownload()
+
+        guard case let .finished(run) = viewModel.runtimeDownload else {
+            Issue.record("Expected a finished download, got \(viewModel.runtimeDownload)")
+            return
+        }
+
+        #expect(viewModel.downloader is InertRuntimeDownloader)
+        #expect(run.failed == [RuntimeDownloadRun.Failure(platform: .iOS, failure: .toolUnavailable)])
+        #expect(viewModel.phase == .toolsUnavailable)
     }
 
     @Test

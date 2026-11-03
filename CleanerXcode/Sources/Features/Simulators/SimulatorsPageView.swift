@@ -9,7 +9,8 @@ import SwiftUI
 
 /// The "Simulators and runtimes" page (R8, R9, Figma page 08): once listed, the simulators with
 /// their actions and the runtimes; otherwise a card that tells why there is nothing to show.
-/// Every deletion waits for the confirmation sheet.
+/// Every deletion waits for the confirmation sheet. The runtime download card (C30) follows the
+/// runtimes, or the status card on the empty state, and opens the "Download runtimes" sheet.
 struct SimulatorsPageView: View {
 
     // MARK: - Public Properties
@@ -37,15 +38,26 @@ struct SimulatorsPageView: View {
             } else {
                 SimulatorsStatusCard(viewModel: viewModel, onRetry: retry)
                     .subtleTransition()
+
+                if viewModel.showsRuntimeDownload {
+                    SimulatorsRuntimeDownload(viewModel: viewModel, isLocked: isLocked)
+                        .subtleTransition()
+                }
             }
         }
         .subtleAnimation(value: viewModel.phase)
         .subtleAnimation(value: viewModel.selectedUDIDs)
         .subtleAnimation(value: viewModel.lastFailure)
+        .subtleAnimation(value: viewModel.runtimeDownload)
         .sheet(item: confirmation) { confirmation in
             SimulatorsConfirmationSheet(confirmation: confirmation, viewModel: viewModel)
         }
+        // The view model never lets both sheets be requested at once (A1, R14).
+        .sheet(item: downloadChoice) { _ in
+            RuntimeDownloadSheet(viewModel: viewModel, isLocked: isLocked)
+        }
         .onAppear(perform: loadIfNeeded)
+        .onDisappear(perform: viewModel.dismissRuntimeDownloadResult)
     }
 
     // MARK: - Private Properties
@@ -56,6 +68,16 @@ struct SimulatorsPageView: View {
         } set: { confirmation in
             if confirmation == nil {
                 viewModel.cancelConfirmation()
+            }
+        }
+    }
+
+    private var downloadChoice: Binding<RuntimeDownloadChoice?> {
+        Binding {
+            viewModel.downloadChoice
+        } set: { choice in
+            if choice == nil {
+                viewModel.cancelRuntimeDownloadChoice()
             }
         }
     }
@@ -114,6 +136,10 @@ private struct SimulatorsListsView: View {
                     }
                 }
             }
+
+            if viewModel.showsRuntimeDownload {
+                SimulatorsRuntimeDownload(viewModel: viewModel, isLocked: isLocked)
+            }
         }
     }
 
@@ -162,6 +188,47 @@ private struct SimulatorsActions: View {
         let count = viewModel.selectedUDIDs.count
 
         return count > 0 ? "Remove \(count) simulators" : "Remove simulators"
+    }
+
+}
+
+/// The runtime download card wired to the view model (C30). Choose and Try again wait during a
+/// cleanup or a deletion; Cancel is always available.
+private struct SimulatorsRuntimeDownload: View {
+
+    // MARK: - Public Properties
+
+    let viewModel: SimulatorsViewModel
+    let isLocked: Bool
+
+    var body: some View {
+        RuntimeDownloadCardView(
+            presentation: RuntimeDownloadPresentation(state: viewModel.runtimeDownload),
+            isActionDisabled: isLocked || viewModel.phase.isDeleting,
+            disabledHelp: disabledHelp,
+            onChoose: viewModel.requestRuntimeDownload,
+            onRetry: retry,
+            onCancel: viewModel.cancelRuntimeDownload
+        )
+    }
+
+    // MARK: - Private Properties
+
+    private var disabledHelp: LocalizedStringResource? {
+        if isLocked {
+            "Available when the cleanup ends"
+        } else if viewModel.phase.isDeleting {
+            "Wait while simulators or a runtime are deleted."
+        } else {
+            nil
+        }
+    }
+
+    // MARK: - Private Methods
+
+    /// Unstructured, so leaving the page never cancels the downloads; only Cancel does.
+    private func retry() {
+        Task { await viewModel.retryFailedRuntimeDownloads() }
     }
 
 }
@@ -291,8 +358,44 @@ private struct ListCard<Rows: View>: View {
         SimulatorsSectionPreview(.loaded, isLocked: true)
     }
 
-    #Preview("Dark") {
-        SimulatorsSectionPreview(.loaded)
+    #Preview("Runtime downloading") {
+        SimulatorsSectionPreview(.downloading)
+    }
+
+    #Preview("Runtime queue, 2 of 3") {
+        SimulatorsSectionPreview(.downloadQueue)
+    }
+
+    #Preview("Runtime installed") {
+        SimulatorsSectionPreview(.downloadInstalled)
+    }
+
+    #Preview("Runtimes installed") {
+        SimulatorsSectionPreview(.downloadAllInstalled)
+    }
+
+    #Preview("Runtime download failed") {
+        SimulatorsSectionPreview(.downloadFailed)
+    }
+
+    #Preview("Runtime downloads partly failed") {
+        SimulatorsSectionPreview(.downloadPartlyFailed)
+    }
+
+    #Preview("Runtime download cancelled") {
+        SimulatorsSectionPreview(.downloadCancelled)
+    }
+
+    #Preview("Runtime download cancelled after an install") {
+        SimulatorsSectionPreview(.downloadCancelledAfterInstalling)
+    }
+
+    #Preview("Runtime queue during a cleanup") {
+        SimulatorsSectionPreview(.downloadQueue, isLocked: true)
+    }
+
+    #Preview("Runtime queue, dark") {
+        SimulatorsSectionPreview(.downloadQueue)
             .preferredColorScheme(.dark)
     }
 

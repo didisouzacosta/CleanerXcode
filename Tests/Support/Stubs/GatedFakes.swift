@@ -119,3 +119,36 @@ nonisolated final class GatedSimulatorManager: SimulatorManaging, Sendable {
     func restartService() throws {}
 
 }
+
+/// Every command waits until its task is cancelled, signalling when it arrives, so a test can
+/// cancel a long command such as a runtime download without sleeping.
+nonisolated final class GatedProcessRunner: ProcessRunning, Sendable {
+
+    // MARK: - Public Properties
+
+    let arrivals = AsyncStream.makeStream(of: Void.self)
+
+    var wasCancelled: Bool {
+        cancelled.withLock { $0 }
+    }
+
+    // MARK: - Private Properties
+
+    private let cancelled = Mutex(false)
+
+    // MARK: - Public Methods
+
+    func run(_ request: ProcessRequest) async throws -> ProcessOutput {
+        arrivals.continuation.yield()
+
+        do {
+            try await Task.sleep(for: .seconds(3_600))
+        } catch {
+            cancelled.withLock { $0 = true }
+            throw error
+        }
+
+        return ProcessOutput(standardOutput: Data(), standardError: Data())
+    }
+
+}
