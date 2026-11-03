@@ -626,12 +626,23 @@ validação em dispositivo físico e de serviços externos.
   - este guia quando mudar baseline, arquitetura ou comandos;
   - `README.md` para requisitos ou recursos públicos;
   - `RELEASE_NOTES.md` e `resources/version.json` em cada release.
-- Release com Sentry (D9): depois do archive, o dono envia os dSYMs com o
-  `sentry-cli` instalado localmente (Homebrew), fora do build do app:
+- Release com Sentry (D9):
+  - **Projeto:** `cleanerxcode-macos`, na organização `godolabs` (região US),
+    criado em 2026-11-03.
+  - **DSN:** fica em `SENTRY_DSN`, no `CleanerXcode/Secrets.xcconfig` (ignorado
+    pelo git). O app separa os ambientes `debug` e `production`.
+  - **dSYMs:** depois de cada archive, envie os dSYMs para os stack traces da
+    versão distribuída ficarem legíveis. O envio roda fora do build do app.
+    `.sentryclirc` (versionado, sem token) define a organização e o projeto.
 
-  ```bash
-  sentry-cli debug-files upload --org <org> --project <projeto> <pasta-dos-dSYMs>
-  ```
+    ```bash
+    scripts/upload-dsyms.sh <caminho do .xcarchive ou da pasta de dSYMs>
+    ```
+
+  - **Pré-requisitos:** `sentry-cli` (`brew install getsentry/tools/sentry-cli`)
+    e um token com escopo `org:ci` ou `project:releases`, vindo de
+    `sentry-cli login` (gravado em `~/.sentryclirc`) ou de `SENTRY_AUTH_TOKEN`.
+    O token nunca entra no repositório.
 - Artefatos temporários a limpar: DerivedData e `.xcresult` criados em
   caminhos temporários da tarefa, além de logs e capturas próprias. Preserve
   o DerivedData compartilhado e os caches do SwiftPM. `build/` e o DMG em

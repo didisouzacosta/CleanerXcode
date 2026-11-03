@@ -1,0 +1,5 @@
+; Defaults for sentry-cli (scripts/upload-dsyms.sh). No token here: sign in once with
+; `sentry-cli login`, or export SENTRY_AUTH_TOKEN, and never commit the token.
+[defaults]
+org = godolabs
+project = cleanerxcode-macos
