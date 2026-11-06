@@ -2780,3 +2780,163 @@ Nível 1: Developer e revisão do Manager.
 - **Observações opcionais da revisão (não aplicadas):** N3, o estado e a regra
   têm o mesmo nome (`isContentUnderToolbar`); N4, a troca de suave para rígido
   é a do sistema, sem animação própria, e o dono a aceitou no teste manual.
+
+## Adendo do C40 (2026-11-05)
+
+Card C40 (https://trello.com/c/uNRsKrbf): "Melhorias de layout: Visão geral,
+contraste, Ajustes na barra lateral e cálculo em segundo plano". O dono aprovou
+o layout no Figma (página 08, frames "C40") e depois escreveu "Aprovado. Pode
+executar isso no código" (2026-11-05). Nível 2: sai a cena `Settings`, entram
+destinos e o comando ⌘,, e há uma tarefa periódica com concorrência,
+cancelamento e sleep/wake. O plano do Manager fica em
+`~/.claude/plans/c40-manager-plan.md`.
+
+- **Grade da Visão geral:** "Simuladores e runtimes" é o primeiro cartão, na
+  linha inteira. Os outros quatro ocupam 1, 2 ou 4 colunas iguais, nunca 3:
+  `OverviewPresentation.sectionColumnCount` (cartão mínimo de 280 pt, espaço de
+  12 pt, sobre a largura do conteúdo: 4 colunas a partir de 1.156 pt, 2 a partir
+  de 572 pt). `SectionGridLayout` (um `Layout`, sem `GeometryReader`) substitui o
+  `LazyVGrid` adaptativo e o cartão separado. Janela de 760 → 1 coluna, 920 → 2,
+  1500 → 4.
+- **Contraste:** `Palette.window` claro passou de `#ECECEE` para `#F7F7F9`; o
+  escuro continua `#1E1E20`. A barra lateral continua com o material nativo.
+- **Ajustes na barra lateral:** saem a cena `Settings`, o `SettingsView`
+  (TabView), a engrenagem da toolbar e o `SettingsLink` do painel. A seção
+  "Ajustes" fica depois de "Gerenciar", com os destinos `general` (Geral,
+  `gearshape`, ⌘7) e `about` (Sobre, `info.circle`, ⌘8); os rawValues antigos não
+  mudam. As páginas usam `SettingsSectionView` e `SettingsRowView` (cabeçalho fora
+  do cartão, cartão branco, legenda abaixo; Geral sem `Form`, Sobre com
+  divisórias nos Links), sem barra de ação, sem Atualizar e sem avisos
+  (`SidebarDestination.showsCleanupControls`). `CleanerPageView` e
+  `CleanerToolbar` saíram do `CleanerDetailView` para arquivos próprios.
+- **⌘, e o painel:** `CommandGroup(replacing: .appSettings)` com "Ajustes…" (⌘,)
+  e a engrenagem do painel chamam `AppRouter.show(.general)` e abrem a janela
+  principal. A janela pega o destino pendente em
+  `.onChange(of: router.pendingDestination, initial: true)`, então funciona com a
+  janela fechada ou aberta.
+- **Rodapé e versão:** o rodapé da barra lateral fica centralizado e preso na
+  base; a cápsula "Apoiar o projeto" tem o coração preenchido na cor do texto.
+  `VersionUpdateRow` (rodapé e Sobre) mostra "Versão x (y)" e, só com
+  atualização, um botão redondo azul de 18 pt com seta branca (rótulo de
+  acessibilidade "Atualizar para <versão>", `openURL` e `update_opened`). O botão
+  grande "Atualizar para …" saiu.
+- **Medição em segundo plano:** `BackgroundMeasurementScheduler`, criado pelo
+  `AppContainer` só no app (nunca no test host nem em previews) e iniciado no
+  `App.init`. Regras (`BackgroundMeasurementPolicy`, nesta ordem):
+  - item da barra de menus ou "Mostrar o tamanho liberável" desligados → espera
+    30 min, sem medir;
+  - exclusão de simuladores ou runtime em andamento → tenta de novo em 2 min;
+  - Modo de Pouca Energia ou estado térmico sério/crítico → pula o tick
+    periódico (a medição do lançamento roda uma vez);
+  - medição concluída há menos de 30 min, de qualquer origem → espera o que
+    falta, no mínimo 60 s;
+  - senão mede.
+  O lançamento espera 30 s; o intervalo é de 30 min, com tolerância de 60 s no
+  `Task.sleep`. O `willSleepNotification` cancela o laço e o
+  `didWakeNotification` lança outro com espera de 2 min; o `willTerminate`
+  encerra o laço. O laço roda numa `Task(priority: .utility)` no main actor, que
+  só suspende enquanto espera.
+- **Sem piscar:** `CleanerViewModel.measureInBackground()` é ignorada durante
+  outra medição, confirmação, limpeza ou cancelamento, e mantém o último valor de
+  cada linha até chegar o novo (`CategoryRowState.refreshed`). `refresh()`, a
+  ativação da janela e as medições depois da limpeza e da exclusão não mudaram.
+- **Desvios registrados do plano:**
+  - `BackgroundMeasurementPolicy.decision` recebe `age: Duration?` em vez de
+    `lastMeasuredAt` e `now` (o SwiftLint limita a 5 parâmetros);
+    `BackgroundMeasurementPolicy.age(since:now:)` calcula a idade;
+  - o `sleep` do scheduler é opcional, e `nil` usa
+    `Task.sleep(for:tolerance:)`, porque um argumento padrão não pode ler a
+    tolerância da política;
+  - `CleanerViewModelBackgroundTests` (o nome do plano passa do limite de 40
+    caracteres do SwiftLint);
+  - o caso "não define `lastMeasuredAt` quando a medição é cancelada" não ganhou
+    teste próprio: o caminho de cancelamento é o `catch` preexistente, comum a
+    `refresh()`, e uma medição mais nova sempre termina e define o valor, então
+    o teste não distinguiria as duas.
+- **Validação do Developer:** 618 testes únicos (755 casos executados), Release
+  sem avisos do compilador, lint sem violações. A conferência visual e as
+  verificações manuais (⌘, com a janela fechada e aberta, engrenagem do painel,
+  ⌘7/⌘8, restauração de `general`, rótulo da barra em cerca de 30 s) ficam com o
+  agente principal; o impacto de energia ao longo de 1 h (AC20) fica com o dono.
+
+### C40 · tempo real (FSEvents, 2026-11-05)
+
+- **Pedido e escolha do dono:** o laço de 30 min era longo demais durante um
+  projeto; o app deve passar a ideia de pegar os espaços em tempo real. O dono
+  escolheu observar as pastas medidas com FSEvents dentro do C40: medir de novo
+  só a categoria afetada ~5 s depois que a mudança para, no máximo 1×/min por
+  categoria em atividade contínua, custo zero sem mudanças, laço de 30 min
+  mantido como rede de segurança e as pausas atuais mantidas. Plano do Manager:
+  `~/.claude/plans/c40-realtime-plan.md` (R1–R10, AC1–AC20 deste adendo).
+- **Categorias observadas (R2):** as 11 medidas só pelo disco, sob `~/Library`:
+  DerivedData, caches, Archives, Device Support, dados dos simuladores
+  (`Devices`), conjuntos auxiliares, caches dos simuladores, cache do SwiftPM,
+  Products, dados de usuário do Xcode e perfis de provisionamento
+  (`LiveMeasurementPolicy.observedCategoryIDs`). Ficam só no cálculo completo:
+  os temporários (as pastas mais ruidosas do sistema, e só contam itens com a
+  idade mínima), as pastas órfãs do `/private/var/tmp` (ruidosa e dependente
+  dos UDIDs do `simctl`), os simuladores antigos (tamanho do `simctl list`) e o
+  reset das preferências (sem tamanho).
+- **Quando medir (R3):** `due = max(min(última + 5 s, primeira + 60 s), início
+  da medição atual + 60 s)`, pela hora de chegada dos lotes; as categorias
+  vencidas no mesmo disparo vão numa única `measureCategories(_:)`.
+- **Sem duplicar (R4):** uma medição que começou depois do último lote cobre a
+  categoria; uma medição completa (refresh, ativação, laço, pós-limpeza,
+  pós-exclusão) sempre substitui uma de categoria; a de categoria nunca
+  interrompe outra, tenta de novo em 5 s com medição ou confirmação em
+  andamento e não muda `lastMeasuredAt`.
+- **Mudanças do próprio app (R5):** `IgnoreSelf` esconde a limpeza, a Lixeira e
+  as leituras da própria medição; lotes durante limpeza, cancelamento ou
+  exclusão de simuladores são descartados com as pendências; um `RootChanged`
+  só reabre o stream.
+- **Pausas (R6):** o stream só roda depois de `start()`, com o Mac acordado, o
+  item da barra e o tamanho ligados e sem Pouca Energia nem Mac quente;
+  reavaliado em `start`, `stop`, sleep/wake, notificações de térmico e de
+  energia, mudança das opções (Observation) e em todo tick do laço.
+- **FSEvents (R1):** um único `FSEventStream` com `WatchRoot | IgnoreSelf`, sem
+  `FileEvents` nem `NoDefer`, latência de 1 s, `sinceNow`, numa fila serial
+  utility, com ponte para `AsyncStream`; o ref fica num `Mutex` e é encerrado na
+  mesma fila do callback.
+- **Desvio do R8, decidido pelo dono em 2026-11-05 ("Eu quero o tempo real de
+  todas as categorias"):** `measureCategories(_:)` não filtra mais pela
+  seleção; todas as categorias medidas em disco (as 11 observadas) são medidas
+  em tempo real, selecionadas ou não. O AC13 passou a ser "uma categoria
+  observada não selecionada também é medida em tempo real". Custo a observar
+  no AC20-live: `Devices`, desligada por padrão, passa a ser medida a cada
+  minuto enquanto um simulador escreve.
+- **Extrações do ViewModel (limite do lint):** `CleanupProgress.apply(_:)`,
+  `CategoryRowState.isUnavailable` e `CleanupOperation.resetsPreferences`, como
+  no plano; e mais uma, fora da lista do plano porque as três não bastaram:
+  os somatórios só de leitura (`foundBytes`, `measuredCategoryCount`,
+  `areSimulatorToolsUnavailable` e `selectedBytes(of:)`) foram para a extensão
+  `CleanerViewModel+Summaries.swift`, sem mudança de comportamento.
+- **Outros desvios:** `LiveMeasurementScheduler.handle(_:)` é interno (não
+  privado) para os testes registrarem lotes de forma síncrona; o `RootChanged`
+  reabre o stream na hora, dentro do `handle`, em vez de agendar a reabertura;
+  `live` é `let` no `BackgroundMeasurementScheduler`; o `ManualSleeper` dos
+  testes aceita vários sonos pendentes, porque o timer é reagendado a cada
+  lote; no retry de `.busy` o disparo agenda o novo timer e volta sem o
+  reagendamento do fim, que cancelaria o retry e dispararia de novo na hora;
+  o mapeamento de um alvo compara o caminho do catálogo e, quando a pasta
+  existe, também o `realpath` dela.
+- **Correções da revisão 1 do Manager:**
+  - B1: um `pause()` durante uma medição de categoria seguido de `resume()`
+    prendia as pendências (o `isFiring` não era zerado e o disparo cancelado
+    voltava sem reagendar). O `isFiring` virou um número de disparo
+    (`firing`), zerado no `pause()`: depois do `resume` os lotes agendam
+    normalmente, e o disparo antigo não reagenda nem limpa o estado novo
+    (teste `pausingDuringAMeasurementNeverStrandsTheNextChanges`);
+  - B2: a medição de categoria publicava as `restrictions` globais e só
+    replanejava as categorias medidas. Agora ela replaneja também as
+    categorias cujo bloqueio por Xcode aberto mudou desde que a linha foi
+    planejada (o reset não lê disco; os dados de usuário são lidos de novo
+    quando desbloqueiam), então linhas e restrições ficam coerentes (testes
+    `xcodeOpeningBlocksTheRowsTheRestrictionsBlock` e
+    `xcodeClosingFreesTheRowsItBlocked`);
+  - N3: o retry de `.busy` só é agendado com pendências.
+  - validação da correção: 692 testes únicos (841 casos executados), Release
+    sem avisos do compilador, lint sem violações.
+- **Validação do Developer:** 689 testes únicos (838 casos executados), Release
+  sem avisos do compilador, lint sem violações. O AC20-live (rótulo reagindo a
+  um build real com a janela fechada, CPU ~0 sem mudanças, energia em ~1 h com
+  simulador rodando) fica com o agente principal e o dono.

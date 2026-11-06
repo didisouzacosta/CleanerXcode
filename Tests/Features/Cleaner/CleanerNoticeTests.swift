@@ -40,6 +40,13 @@ struct CleanerNoticeTests {
         #expect(notices(.simulatorsAndRuntimes) == [.simulatorsOpen, .toolsUnavailable])
     }
 
+    /// The Settings pages (C40) never show a notice, whatever happens.
+    @Test
+    func theSettingsPagesNeverShowANotice() {
+        #expect(notices(.general).isEmpty)
+        #expect(notices(.about).isEmpty)
+    }
+
     /// The Trash notice follows the sections that send selected items there.
     @Test
     func theTrashNoticeFollowsTheTrashBoundCategories() {

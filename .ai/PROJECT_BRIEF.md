@@ -19,9 +19,13 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
 
 - A janela principal abre com tamanho comum (920×620, mínimo 760×520), é
   redimensionável e o macOS lembra o tamanho e a posição; a navegação usa
-  barra lateral nativa (Visão geral, as quatro seções e Simuladores e
-  runtimes); o conteúdo do detalhe rola e a barra de ação, com o total e a
-  ação principal, fica sempre visível (C32, Figma página 08).
+  barra lateral nativa (Visão geral, as quatro seções, Simuladores e
+  runtimes e, desde o C40, a seção Ajustes com Geral e Sobre); o conteúdo do
+  detalhe rola e a barra de ação, com o total e a ação principal, fica sempre
+  visível nas páginas de limpeza (C32, Figma página 08). Na Visão geral,
+  "Simuladores e runtimes" ocupa a linha inteira e as quatro seções ficam em
+  1, 2 ou 4 colunas iguais, nunca 3 (C40). O fundo do conteúdo é `#F7F7F9`
+  no claro (C40).
 - O conteúdo rola por baixo da toolbar e da barra de ação, sem corte seco, e
   toda rolagem usa o efeito de borda suave (blur) no topo e na base (pedido do
   dono no C32). A exceção é o topo da coluna de detalhe da janela principal, sob
@@ -48,8 +52,14 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
   - Preferências (ícone de engrenagem, desabilitado durante a limpeza):
     liga/desliga cada opção de limpeza com o tamanho atual ao lado, exibir o
     espaço liberável na barra de menus, abrir no login, dedicatória e doação.
+    Na 1.0, desde o C40, os Ajustes são páginas da barra lateral (Ajustes ›
+    Geral e Sobre, ⌘7 e ⌘8), abertas também por "Ajustes…" (⌘,) e pela
+    engrenagem do painel da barra de menus; não há janela de Ajustes nem
+    engrenagem na toolbar.
   - Atualização: se o `version.json` remoto tiver versão maior que a
-    instalada, aparece o botão "Update", que abre o link do DMG.
+    instalada, aparece o botão "Update", que abre o link do DMG. Na 1.0,
+    desde o C40, é um botão redondo com seta ao lado de "Versão x (y)", no
+    rodapé da barra lateral e no Sobre.
   - Links sociais (GitHub, X, LinkedIn) e doação (Stripe) abrem no navegador.
   - Sair (`Quit`) encerra o app.
 
@@ -57,13 +67,19 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
 
 - Rótulo da barra de menus (quando "Display Free Up Space In Menu Bar" está
   ligado): "Cleaning" durante a limpeza; "Calculating" apenas no primeiro
-  cálculo com total zero; depois o tamanho liberável formatado.
+  cálculo com total zero; depois o tamanho liberável formatado. Na 1.0, desde
+  o C40, a medição em segundo plano mantém o último tamanho até chegar o novo,
+  e o tamanho acompanha as pastas em tempo real (C40 · tempo real): só a
+  linha da categoria que mudou é medida de novo, sem voltar a "Calculating".
 - `CleanerStore.Status`: `idle` (botão azul, "Clear" ou "Clear <tamanho>"),
   `isCleaning` (verde, progresso `steps/commands`, sem toque), `isCompleted`
   (verde, sucesso, sem toque) e `error` (vermelho, "Try again").
 - Carregamento: `usedSpace` (`StateValue<UsedSpace>`) fica em `isLoading`
   durante o cálculo; o resultado é recalculado após cada comando concluído, ao
   fim da limpeza e a cada ~6 s por um `Timer` reprogramado após cada cálculo.
+  Na 1.0 não há esse timer: a janela mede ao abrir e ao ser ativada e, desde o
+  C40, o app mede em segundo plano para o ícone da barra de menus (ver Limites
+  conhecidos).
 - Vazio: sem opções ativas ou com diretórios ausentes, o total é zero e o botão
   mostra só "Clear".
 - Falha:
@@ -141,8 +157,20 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
     liberável estimado.
   - Comandos lentos (Derived Data ou CoreSimulator grandes) podem passar dos
     10 s de timeout.
-  - O cálculo com `du` roda continuamente a cada ~6 s enquanto o app está
-    aberto.
+  - Na 0.x, o cálculo com `du` rodava continuamente a cada ~6 s. Na 1.0,
+    desde o C40, o app mede tudo em segundo plano 30 s depois de abrir e a
+    cada 30 min, só com o item da barra de menus e o tamanho ligados; uma
+    medição recente adia a próxima, a exclusão de simuladores adia 2 min,
+    Pouca Energia ou o Mac quente pulam os ticks periódicos e o sleep pausa o
+    laço (o wake recomeça com 2 min). Desde o C40 · tempo real, com as
+    mesmas condições, o FSEvents observa as pastas medidas: cada categoria
+    medida em disco (as 11 observadas, todas as categorias medidas em disco,
+    selecionadas ou não) é medida de novo cerca de 5 s depois que a mudança
+    para, no máximo 1×/min por categoria em atividade contínua, sem custo sem
+    mudanças; nada roda durante limpeza ou exclusão de simuladores, em Pouca
+    Energia, com o Mac quente ou em repouso. Os temporários, as pastas órfãs
+    do `/private/var/tmp`, os simuladores antigos e o reset das preferências
+    só mudam no cálculo completo (janela, painel ou laço de 30 min).
   - A comparação de versões junta os componentes (`0.10.0` → `0100`), o que
     pode falhar com componentes de dois dígitos.
 - Recursos planejados, mas ainda não conectados (README, "Areas for
@@ -232,6 +260,16 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
     saída só foi visto numa amostra curta com `-exportPath`; as linhas de fim
     ("Done downloading", "Beginning asset import", "Done importing") vêm das
     strings do binário. Fica com o dono, junto do AC28-live;
+  - medição em segundo plano (C40, AC20-live): impacto de energia aceitável
+    ao longo de cerca de 1 h com a janela fechada, sem prender o
+    `CoreSimulatorService` por causa dos ticks (o `simctl list` roda a cada
+    medição). Fica com o dono;
+  - medição em tempo real (C40 · tempo real, AC20-live): o rótulo reage a um
+    build real com a janela fechada (~5 s depois do fim, ou a cada ~60 s num
+    build longo), CPU perto de zero sem mudanças e energia aceitável ao longo
+    de cerca de 1 h com build e simulador rodando (a pasta Devices é medida a
+    cada minuto enquanto o simulador escreve). Fica com o agente principal e
+    o dono; testes não comprovam isso;
   - verificação de atualização contra o `version.json` publicado;
   - abrir no login com a build assinada e notarizada (Developer ID).
 - Condições de hardware, conta ou serviço: Mac com macOS 26+ e Xcode
@@ -262,6 +300,8 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Progresso do download de runtimes (C34) | `Sources/Core/Process/{ProcessRunning,ProcessRunner,OutputLineSplitter}.swift`, `Sources/Core/Simulators/{RuntimeDownloadEvent,RuntimeDownloadOutputParser,XcodebuildRuntimeDownloader}.swift`, `Sources/Features/Simulators/{RuntimeDownloadProgress,RuntimeDownloadProgressTracker,RuntimeDownloadRateEstimator,RuntimeDownloadRemaining,RuntimeDownloadPresentation,RuntimeDownloadCardView}.swift` e o `SimulatorsViewModel` |
 | Janela de tamanho comum com barra lateral (C32) | `Sources/App/{CleanerXcodeApp,WindowID}.swift`, `Sources/Features/Cleaner/Window/{CleanerWindowView,CleanerSidebarView,SidebarFooterView,CleanerDetailView,ActionBarView,OverviewView,OverviewSummaryCard,SpaceBreakdownBar,SectionCardView,CategoryPageView,SectionHeaderView,GlassSurface,CleanerCommands}.swift`, `Sources/Features/Cleaner/Presentation/{SidebarDestination,ActionBarContent,SpaceBreakdown,CleanerNotice,OverviewPresentation}.swift`, `Sources/Features/Simulators/SimulatorsPageView.swift` |
 | Ajustes, barra de menus e Sobre (C22) | `Sources/Features/Settings/*.swift`, `Sources/App/CleanerXcodeApp.swift` (`AppDelegate`) |
+| Layout do C40: grade, Ajustes na barra lateral, versão e medição em segundo plano | `Sources/Features/Cleaner/Window/{SectionGridLayout,CleanerPageView,CleanerToolbar,CleanerCommands,SidebarFooterView}.swift`, `Sources/Features/Settings/{GeneralSettingsView,AboutSettingsView,SettingsSectionView,SettingsRowView}.swift`, `Sources/Features/Update/VersionUpdateRow.swift`, `Sources/App/AppRouter.swift`, `Sources/Features/Cleaner/{BackgroundMeasurementPolicy,BackgroundMeasurementScheduler,BackgroundMeasuring}.swift`, `Sources/Core/Platform/PowerConditions.swift` |
+| Medição em tempo real (C40 · tempo real) | `Sources/Core/FileSystem/{FileSystemChange,FileSystemChangeWatching,FSEventsChangeWatcher}.swift`, `Sources/Features/Cleaner/{LiveMeasurementPolicy,PendingCategoryChanges,WatchedCategoryRoots,LiveMeasuring,LiveMeasurementScheduler}.swift`, `CleanerViewModel.measureCategories(_:)` |
 | Atualização (C23) | `Sources/Core/Update/{SemanticVersion,VersionChecking}.swift`, `Sources/Features/Update/{UpdateViewModel,UpdatePreview}.swift` |
 | Erros e crashes | `Sources/Core/Integrations/{ErrorReporting,NullErrorReporter,SentryErrorReporter,ErrorReportingConfiguration,SentryEventSanitizer}.swift` |
 | Distribuição | `releases/CleanerXcode.dmg`, `RELEASE_NOTES.md`, `resources/version.json` |

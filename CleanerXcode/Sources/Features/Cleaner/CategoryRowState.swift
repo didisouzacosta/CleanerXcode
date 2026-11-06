@@ -28,6 +28,16 @@ enum CategoryRowState: Equatable {
         }
     }
 
+    // MARK: - Public Properties
+
+    var isUnavailable: Bool {
+        if case .unavailable = self {
+            true
+        } else {
+            false
+        }
+    }
+
     // MARK: - Public Methods
 
     /// The rows known before reading the disk, and the categories left to measure.
@@ -64,6 +74,24 @@ enum CategoryRowState: Equatable {
         }
 
         return (rows, toMeasure)
+    }
+
+    /// The row while a new measurement starts. A background measurement (C40) keeps the last
+    /// value until the new one arrives; what is known before reading the disk applies at once.
+    static func refreshed(
+        current: CategoryRowState?,
+        planned: CategoryRowState,
+        keepingValues: Bool
+    ) -> CategoryRowState {
+        guard keepingValues, planned == .measuring, let current else { return planned }
+
+        switch current {
+        case .measured, .empty, .failed:
+            return current
+
+        case .measuring, .unavailable:
+            return planned
+        }
     }
 
     // MARK: - Nested Types

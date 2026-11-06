@@ -8,7 +8,8 @@
 import AppKit
 import SwiftUI
 
-/// Version, update, donation, social links and the dedication (R17); logs `donate` and `social`.
+/// The About page in the detail column (C40, R17): the app, its version with the shared update
+/// button, the donation, the social links and the dedication; logs `donate` and `social`.
 struct AboutSettingsView: View {
 
     // MARK: - Environments
@@ -22,103 +23,101 @@ struct AboutSettingsView: View {
     let versionText: String
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                header
+        VStack(alignment: .leading, spacing: 16) {
+            AboutHeaderView(updates: updates, versionText: versionText)
 
-                SupportCard {
-                    openURL(Constants.donateURL)
-                    viewModel.logDonation()
+            SupportCard(onSupport: support)
+
+            SettingsSectionView("Links") {
+                AboutLinkRow(title: "GitHub", subtitle: "Source code, issues and suggestions") {
+                    open(Constants.githubURL, social: .github)
                 }
 
-                section("Links") {
-                    link(
-                        "GitHub",
-                        subtitle: "Source code, issues and suggestions",
-                        url: Constants.githubURL,
-                        social: .github
-                    )
-                    link("X", subtitle: nil, url: Constants.xURL, social: .xPlatform)
-                    link("LinkedIn", subtitle: nil, url: Constants.linkedinURL, social: .linkedin)
+                Divider()
+                    .padding(.leading, 14)
+
+                AboutLinkRow(title: "X", subtitle: nil) {
+                    open(Constants.xURL, social: .xPlatform)
                 }
 
-                section("Dedication") {
-                    Text(
-                        """
-                        This simple app was made for anyone who loves developing for Apple technologies.
+                Divider()
+                    .padding(.leading, 14)
 
-                        I'd like to dedicate this app to my son Orlando and my wife Gisele.
-                        """
-                    )
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
+                AboutLinkRow(title: "LinkedIn", subtitle: nil) {
+                    open(Constants.linkedinURL, social: .linkedin)
                 }
             }
-            .padding(20)
+
+            SettingsSectionView("Dedication") {
+                Text(
+                    """
+                    This simple app was made for anyone who loves developing for Apple technologies.
+
+                    I'd like to dedicate this app to my son Orlando and my wife Gisele.
+                    """
+                )
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(EdgeInsets(top: 10, leading: 14, bottom: 10, trailing: 14))
+            }
         }
-        // R42: the soft edge effect at the top and the bottom of every scroll.
-        .scrollEdgeEffectStyle(.soft, for: .all)
-        .frame(height: 560)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Private Properties
+    // MARK: - Private Methods
 
-    private var header: some View {
+    private func support() {
+        openURL(Constants.donateURL)
+        viewModel.logDonation()
+    }
+
+    private func open(_ url: URL, social: AnalyticsEvent.Social) {
+        openURL(url)
+        viewModel.logSocial(social)
+    }
+
+}
+
+/// The app icon, its name and the version row shared with the sidebar footer.
+private struct AboutHeaderView: View {
+
+    // MARK: - Public Properties
+
+    let updates: UpdateViewModel
+    let versionText: String
+
+    var body: some View {
         VStack(spacing: 6) {
             Image(nsImage: NSApplication.shared.applicationIconImage)
                 .resizable()
-                .frame(width: 96, height: 96)
+                .frame(width: 88, height: 88)
                 .accessibilityHidden(true)
 
             Text(verbatim: "CleanerXcode")
                 .font(.title2.weight(.bold))
 
-            Text("Version \(versionText)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            if let update = updates.availableUpdate {
-                Button {
-                    openURL(update.downloadURL)
-                    updates.logUpdateOpened()
-                } label: {
-                    Text("Update to \(update.version)")
-                }
-                .buttonStyle(.glassProminent)
-                .controlSize(.small)
-            }
+            VersionUpdateRow(updates: updates, versionText: versionText, style: .about)
         }
         .frame(maxWidth: .infinity)
+        .padding(EdgeInsets(top: 8, leading: 0, bottom: 4, trailing: 0))
     }
 
-    // MARK: - Private Methods
+}
 
-    private func section(_ title: LocalizedStringResource, @ViewBuilder rows: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.headline)
+/// A link with its optional subtitle and a chevron, as a native-looking plain row.
+private struct AboutLinkRow: View {
 
-            VStack(spacing: 0) {
-                rows()
-            }
-            .background(Palette.card, in: .rect(cornerRadius: 12))
-        }
-    }
+    // MARK: - Public Properties
 
-    private func link(
-        _ title: String,
-        subtitle: LocalizedStringResource?,
-        url: URL,
-        social: AnalyticsEvent.Social
-    ) -> some View {
-        Button {
-            openURL(url)
-            viewModel.logSocial(social)
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
+    let title: String
+    let subtitle: LocalizedStringResource?
+    let onOpen: () -> Void
+
+    var body: some View {
+        Button(action: onOpen) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: title)
 
                     if let subtitle {
@@ -128,15 +127,15 @@ struct AboutSettingsView: View {
                     }
                 }
 
-                Spacer()
+                Spacer(minLength: 8)
 
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
             }
-            .frame(minHeight: 36)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 14)
+            .frame(minHeight: subtitle == nil ? 36 : 50)
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
@@ -184,3 +183,18 @@ private struct SupportCard: View {
     }
 
 }
+
+#if DEBUG
+    #Preview("About") {
+        CleanerWindowPreview(.ready, destination: .about)
+    }
+
+    #Preview("Dark · About") {
+        CleanerWindowPreview(.ready, destination: .about)
+            .preferredColorScheme(.dark)
+    }
+
+    #Preview("About · up to date") {
+        CleanerWindowPreview(.ready, destination: .about, hasUpdate: false)
+    }
+#endif

@@ -5,12 +5,37 @@
 //  Created by Adriano Costa on 31/10/26.
 //
 
+import CoreGraphics
 import Foundation
 
-/// Texts of the overview page (Figma page 08) that depend on the phase.
+/// Texts of the overview page (Figma page 08) that depend on the phase, and the columns of its
+/// section grid (C40).
 enum OverviewPresentation {
 
+    // MARK: - Public Properties
+
+    nonisolated static let sectionCardMinimumWidth: CGFloat = 280
+    nonisolated static let sectionGridSpacing: CGFloat = 12
+
     // MARK: - Public Methods
+
+    /// The four section cards under the full-width "Simulators and runtimes" one take 1, 2 or 4
+    /// equal columns, never 3, so no row is left incomplete (C40).
+    nonisolated static func sectionColumnCount(
+        availableWidth: CGFloat,
+        minimumCardWidth: CGFloat = sectionCardMinimumWidth,
+        spacing: CGFloat = sectionGridSpacing
+    ) -> Int {
+        for columns in [4, 2] {
+            let neededWidth = CGFloat(columns) * minimumCardWidth + CGFloat(columns - 1) * spacing
+
+            if availableWidth >= neededWidth {
+                return columns
+            }
+        }
+
+        return 1
+    }
 
     /// "4 categories with selected items" next to "Sections", only while nothing runs or reports.
     static func sectionsCaption(phase: CleanerPhase, selectedCount: Int) -> LocalizedStringResource? {

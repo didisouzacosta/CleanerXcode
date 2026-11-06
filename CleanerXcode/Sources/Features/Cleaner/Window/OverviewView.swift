@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// The overview page (Figma page 08): the summary card, the failed items when their details are
-/// open, and a card per section that opens its page.
+/// open, and a card per section that opens its page, in the C40 grid.
 struct OverviewView: View {
 
     // MARK: - Public Properties
@@ -32,7 +32,18 @@ struct OverviewView: View {
 
             SectionHeaderView(title: "Sections", caption: caption)
 
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 12)], spacing: 12) {
+            // C40: "Simulators and runtimes" first and full width, then the four sections in 1, 2
+            // or 4 equal columns; the reading order follows the visual one.
+            SectionGridLayout {
+                SectionCardView(
+                    title: SidebarDestination.simulatorsAndRuntimes.title,
+                    subtitle: simulatorsSummary,
+                    systemImage: SidebarDestination.simulatorsAndRuntimes.systemImage,
+                    tint: .gray
+                ) {
+                    onSelect(.simulatorsAndRuntimes)
+                }
+
                 ForEach(groups) { group in
                     SectionCardView(
                         title: group.section.title,
@@ -43,15 +54,6 @@ struct OverviewView: View {
                         onSelect(SidebarDestination(section: group.section))
                     }
                 }
-            }
-
-            SectionCardView(
-                title: SidebarDestination.simulatorsAndRuntimes.title,
-                subtitle: simulatorsSummary,
-                systemImage: SidebarDestination.simulatorsAndRuntimes.systemImage,
-                tint: .gray
-            ) {
-                onSelect(.simulatorsAndRuntimes)
             }
         }
     }
@@ -105,5 +107,13 @@ struct OverviewView: View {
 
     #Preview("Partial failure · details open") {
         CleanerWindowPreview(.finished(.partialFailure), isShowingFailures: true)
+    }
+
+    #Preview("Overview · 760 · one column") {
+        CleanerWindowPreview(.ready, size: CGSize(width: 760, height: 520))
+    }
+
+    #Preview("Overview · 1500 · four columns") {
+        CleanerWindowPreview(.ready, size: CGSize(width: 1_500, height: 620))
     }
 #endif

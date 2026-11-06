@@ -661,6 +661,16 @@
         }
       }
     },
+    "Settings…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes…"
+          }
+        }
+      }
+    },
     "CleanerXcode" : {
       "localizations" : {
         "pt-BR" : {

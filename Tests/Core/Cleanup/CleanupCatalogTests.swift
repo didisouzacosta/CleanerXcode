@@ -203,4 +203,11 @@ struct CleanupCatalogTests {
         #expect(Set(policy.roots) == Set(catalog.categories.flatMap(\.targets).map(\.root)))
     }
 
+    @Test
+    func onlyTheXcodePreferencesResetResetsPreferences() {
+        let resetting = catalog.categories.filter(\.operation.resetsPreferences).map(\.id)
+
+        #expect(resetting == [.resetXcodePreferences])
+    }
+
 }

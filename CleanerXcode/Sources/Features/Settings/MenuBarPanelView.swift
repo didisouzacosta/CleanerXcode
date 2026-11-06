@@ -8,9 +8,9 @@
 import AppKit
 import SwiftUI
 
-/// The menu bar panel (flow 2.3, item 6; Figma page 05): the total, the main action, Settings,
-/// "Open CleanerXcode" and Quit. A plan that needs a confirmation opens the main window, which
-/// shows it; the panel never asks on its own.
+/// The menu bar panel (flow 2.3, item 6; Figma page 05): the total, the main action, Settings
+/// (the main window on General since C40), "Open CleanerXcode" and Quit. A plan that needs a
+/// confirmation opens the main window, which shows it; the panel never asks on its own.
 struct MenuBarPanelView: View {
 
     // MARK: - Environments
@@ -21,6 +21,7 @@ struct MenuBarPanelView: View {
     // MARK: - Public Properties
 
     let viewModel: CleanerViewModel
+    let router: AppRouter
     /// Simulators or a runtime are being deleted: nothing starts a cleanup meanwhile (C21).
     let isDeletingSimulators: Bool
 
@@ -97,7 +98,7 @@ struct MenuBarPanelView: View {
 
     private func footer(_ content: HeroContent) -> some View {
         HStack {
-            SettingsLink {
+            Button(action: openSettings) {
                 Label("Settings", systemImage: "gearshape")
                     .labelStyle(.iconOnly)
             }
@@ -219,6 +220,11 @@ struct MenuBarPanelView: View {
         case .openPrivacySettings:
             openURL(HeroContent.fullDiskAccessURL)
         }
+    }
+
+    private func openSettings() {
+        router.show(.general)
+        openMainWindow()
     }
 
     private func openMainWindow() {

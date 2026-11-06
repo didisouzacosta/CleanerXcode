@@ -20,14 +20,14 @@ nonisolated final class GatedScannerStub: DiskUsageScanning, Sendable {
     // MARK: - Private Properties
 
     private let gatedRoot: URL
-    private let size: Int64
+    private let size: Mutex<Int64>
     private let state = Mutex<(isOpen: Bool, waiters: [CheckedContinuation<Void, Never>])>((false, []))
 
     // MARK: - Initializers
 
     init(gatedRoot: URL, size: Int64) {
         self.gatedRoot = gatedRoot
-        self.size = size
+        self.size = Mutex(size)
     }
 
     // MARK: - Public Methods
@@ -51,7 +51,12 @@ nonisolated final class GatedScannerStub: DiskUsageScanning, Sendable {
             }
         }
 
-        return size
+        return size.withLock { $0 }
+    }
+
+    /// The size the next scans return.
+    func setSize(_ newSize: Int64) {
+        size.withLock { $0 = newSize }
     }
 
     /// Holds the next scans again.

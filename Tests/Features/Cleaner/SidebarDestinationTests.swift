@@ -34,10 +34,47 @@ struct SidebarDestinationTests {
             .temporary,
             .userData,
             .simulatorsAndRuntimes,
+            .general,
+            .about,
         ])
         #expect(SidebarDestination.destinations(in: .top) == [.overview])
         #expect(SidebarDestination.destinations(in: .cleanup) == [.xcode, .simulators, .temporary, .userData])
         #expect(SidebarDestination.destinations(in: .manage) == [.simulatorsAndRuntimes])
+        #expect(SidebarDestination.destinations(in: .settings) == [.general, .about])
+    }
+
+    /// The saved pages keep their names (C40): only `general` and `about` are new.
+    @Test
+    func keepsTheStoredValuesOfEveryPage() {
+        #expect(SidebarDestination.allCases.map(\.rawValue) == [
+            "overview",
+            "xcode",
+            "simulators",
+            "temporary",
+            "userData",
+            "simulatorsAndRuntimes",
+            "general",
+            "about",
+        ])
+    }
+
+    /// The Settings pages (C40) have no action bar, no Refresh and no section.
+    @Test
+    func onlyTheSettingsPagesHideTheCleanupControls() {
+        let settings: [SidebarDestination] = [.general, .about]
+
+        for destination in SidebarDestination.allCases {
+            #expect(destination.showsCleanupControls == !settings.contains(destination), "\(destination)")
+        }
+
+        #expect(SidebarDestination.general.section == nil)
+        #expect(SidebarDestination.about.section == nil)
+        #expect(SidebarDestination.general.title.key == "General")
+        #expect(SidebarDestination.about.title.key == "About")
+        #expect(SidebarDestination.general.sidebarTitle.key == "General")
+        #expect(SidebarDestination.about.sidebarTitle.key == "About")
+        #expect(SidebarDestination.general.systemImage == "gearshape")
+        #expect(SidebarDestination.about.systemImage == "info.circle")
     }
 
     @Test
@@ -51,10 +88,10 @@ struct SidebarDestinationTests {
         }
     }
 
-    /// ⌘1 to ⌘6, in the sidebar order.
+    /// ⌘1 to ⌘8, in the sidebar order.
     @Test
     func eachPageHasItsOwnShortcutDigit() {
-        #expect(SidebarDestination.allCases.map(\.shortcutDigit) == [1, 2, 3, 4, 5, 6])
+        #expect(SidebarDestination.allCases.map(\.shortcutDigit) == Array(1...8))
     }
 
     /// The page title is the section title; the sidebar uses the short one.

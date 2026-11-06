@@ -4,12 +4,13 @@ CleanerXcode shows how much space Xcode is using and removes what you choose. Th
 
 ## The window
 
-- **Overview:** the total you can free, a breakdown by section, and the Clean button.
+- **Overview:** the total you can free, a breakdown by section, a card for Simulators and runtimes and one for each section, and the Clean button.
 - **Sections:** Xcode, Simulators, Temporary files and User data. Each one lists its items, with the current size and a switch for each.
 - **Simulators and runtimes:** your simulators and runtimes, with size and last use. From here you can delete them or download new runtimes.
-- **Action bar:** always visible at the bottom, with the selected total and the main action.
+- **Settings:** General and About, at the bottom of the sidebar.
+- **Action bar:** always visible at the bottom of the cleanup pages, with the selected total and the main action.
 
-Use ⌘1–⌘6 to jump between pages and ⌃⌘S to show or hide the sidebar.
+Use ⌘1–⌘8 to jump between pages and ⌃⌘S to show or hide the sidebar.
 
 ## How a cleanup works
 
@@ -83,7 +84,11 @@ When "Show in the menu bar" is on (Settings › General), the menu bar shows the
 
 Closing the window keeps CleanerXcode running in the menu bar.
 
+The size stays up to date even with the window closed. CleanerXcode follows the measured folders in real time: about 5 seconds after a folder stops changing (a build ends, an archive is created), it measures that category again, and while a folder keeps changing it measures it at most once a minute. This covers every category measured on disk, selected or not; the temporary files, the orphan simulator folders and the old simulators are only updated by the complete measurement, which still runs about 30 seconds after the app opens and then every 30 minutes. The last size stays on screen while it measures, and nothing runs while the folders do not change. Everything waits during a cleanup or while simulators are being deleted, and pauses in Low Power Mode, when the Mac is hot and while the Mac sleeps. Turning off "Show the size that can be freed" stops both. The gear in the menu bar panel opens Settings › General.
+
 ## Settings
+
+Settings are pages in the sidebar, under Settings. Open them with ⌘, (CleanerXcode › Settings…), ⌘7 or ⌘8, or the gear in the menu bar panel.
 
 - **General:**
   - open at login;
@@ -94,4 +99,4 @@ Closing the window keeps CleanerXcode running in the menu bar.
 
 ## Updates
 
-CleanerXcode checks GitHub for a new version and shows an Update button when there is one.
+CleanerXcode checks GitHub for a new version. When there is one, a small round button with an arrow appears next to the version, at the bottom of the sidebar and on the About page; it opens the download.

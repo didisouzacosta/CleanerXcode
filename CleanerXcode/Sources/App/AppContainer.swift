@@ -197,6 +197,22 @@ enum AppContainer {
         )
     }
 
+    /// The menu bar icon's background measurement (C40) and its live measurement over FSEvents
+    /// (C40 · tempo real). Nothing measures nor watches in the test host or in previews; the app
+    /// starts the scheduler it gets, and nothing is watched before that.
+    static func makeBackgroundMeasurementScheduler(
+        environment: AppEnvironment,
+        measuring: any BackgroundMeasuring & LiveMeasuring,
+        isEnabled: @escaping () -> Bool,
+        isBusy: @escaping () -> Bool
+    ) -> BackgroundMeasurementScheduler? {
+        guard !environment.isRunningTests, !environment.isRunningPreviews else { return nil }
+
+        let live = LiveMeasurementScheduler(measuring: measuring, watcher: FSEventsChangeWatcher(), isBusy: isBusy)
+
+        return BackgroundMeasurementScheduler(measuring: measuring, isEnabled: isEnabled, isBusy: isBusy, live: live)
+    }
+
     // MARK: - Private Methods
 
     /// Before the view model, Settings, analytics or the app delegate read the domain: first the

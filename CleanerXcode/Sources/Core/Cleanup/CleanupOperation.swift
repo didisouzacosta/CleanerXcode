@@ -34,4 +34,14 @@ nonisolated enum CleanupOperation: Sendable, Hashable {
         default: false
         }
     }
+
+    /// Resetting the preferences frees no space but is still something to clean.
+    var resetsPreferences: Bool {
+        if case .resetPreferences = self {
+            true
+        } else {
+            false
+        }
+    }
+
 }

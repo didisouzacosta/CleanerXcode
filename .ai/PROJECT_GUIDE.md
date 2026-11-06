@@ -116,8 +116,9 @@ aqui somente preferências ou exceções do projeto.
 
 ## Arquitetura
 
-Desde o C20 o app tem uma janela única (`Window`), a cena `Settings` e o
-`MenuBarExtra(isInserted:)` opcional. O estado vive em ViewModels
+Desde o C20 o app tem uma janela única (`Window`) e o
+`MenuBarExtra(isInserted:)` opcional. Desde o C40 não há cena `Settings`: Geral
+e Sobre são páginas da barra lateral da janela. O estado vive em ViewModels
 `@Observable` (`CleanerViewModel`, `SimulatorsViewModel`, `SettingsViewModel`
 e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
 às Views. Os detalhes de cada card estão nos adendos do plano.
@@ -140,8 +141,19 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
   `.soft, for: .all`. Para capturar a janela em testes, não use
   `titlebarAppearsTransparent = true`: a cena `Window` real cria a janela com
   `false`, e com `true` o efeito de borda do topo não aparece. A seleção é o enum puro
-  `SidebarDestination`, guardado por janela em `@SceneStorage`; ⌘1–⌘6 vêm de
-  `CleanerCommands` (`@FocusedBinding`) e ⌃⌘S de `SidebarCommands`. A sheet de
+  `SidebarDestination`, guardado por janela em `@SceneStorage`; ⌘1–⌘8 vêm de
+  `CleanerCommands` (`@FocusedBinding`) e ⌃⌘S de `SidebarCommands`. Desde o
+  C40 a seção "Ajustes" tem os destinos `general` e `about` (⌘7 e ⌘8), sem
+  barra de ação, sem Atualizar e sem avisos
+  (`SidebarDestination.showsCleanupControls`); "Ajustes…" (⌘,) vem de
+  `CommandGroup(replacing: .appSettings)` em `CleanerCommands` e, como a
+  engrenagem do painel, chama `AppRouter.show(.general)` e abre a janela, que
+  pega o destino pendente com `.onChange(of:initial: true)`. A grade da Visão
+  geral é o `SectionGridLayout` (C40: "Simuladores e runtimes" na linha
+  inteira, depois 1, 2 ou 4 colunas iguais por
+  `OverviewPresentation.sectionColumnCount`). As páginas de Ajustes usam
+  `SettingsSectionView` e `SettingsRowView`, e o rodapé e o Sobre usam o mesmo
+  `VersionUpdateRow`. A sheet de
   confirmação da limpeza fica na raiz. Os textos e as regras ficam em tipos
   puros testados: `ActionBarContent` (adaptador sobre `HeroContent`),
   `SpaceBreakdown`, `CleanerNotice`, `OverviewPresentation`, `SectionSummary`
@@ -192,8 +204,9 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     desde o C34, o progresso do item atual (`RuntimeDownloadProgress`,
     `RuntimeDownloadProgressTracker`, `RuntimeDownloadRateEstimator` e
     `RuntimeDownloadRemaining`);
-  - `Settings/`: Ajustes, painel e rótulo da barra de menus;
-  - `Update/`: `UpdateViewModel`.
+  - `Settings/`: as páginas Geral e Sobre (C40), o painel e o rótulo da barra
+    de menus;
+  - `Update/`: `UpdateViewModel` e `VersionUpdateRow` (C40).
 - Infraestrutura (`Sources/Core`):
   - `Process/`: `ProcessRequest`, `ProcessRunner` e afins (sem shell; não há
     scripts `.sh` desde o C24);
@@ -401,6 +414,21 @@ existente por conta própria.
   - `SettingsViewModel`: os switches dos Ajustes (store) e o status do login
     item (`SMAppService`);
   - `UpdateViewModel`: a atualização disponível;
+  - `AppRouter` (C40): o destino que "Ajustes…" e a engrenagem do painel pedem
+    à janela, entregue uma vez (`takePendingDestination()`);
+  - `BackgroundMeasurementScheduler` (C40): o laço da medição em segundo plano,
+    criado pelo `AppContainer` só no app e guardado no `CleanerXcodeApp`; desde
+    o C40 · tempo real ele também é dono do ciclo de vida do
+    `LiveMeasurementScheduler` (retoma ou pausa em `start`, `stop`, sleep/wake,
+    `conditionsDidChange()` — térmico e Pouca Energia, observados no
+    `CleanerXcodeApp` com `queue: .main` —, na mudança das opções por
+    `withObservationTracking` e em todo tick);
+  - `LiveMeasurementScheduler` (C40 · tempo real): consome o stream de
+    `FileSystemChangeWatching` (`FSEventsChangeWatcher` em `Core/FileSystem`),
+    mapeia os diretórios para categorias (`WatchedCategoryRoots`), guarda as
+    pendências (`PendingCategoryChanges`) e decide quando medir
+    (`LiveMeasurementPolicy`); fala com o ViewModel pelo protocolo
+    `LiveMeasuring`;
   - estado local de View: a página da barra lateral (`@SceneStorage`
     `sidebar-destination`) e "Detalhes" do relatório. Não há seções
     recolhidas desde o C32; as chaves antigas `section-collapsed-*` e
@@ -415,13 +443,52 @@ existente por conta própria.
 - Cancelamento e invalidação de resultados obsoletos:
   - medições têm geração: uma medição nova cancela a anterior e só a mais nova
     muda o estado; nada é medido durante confirmação ou limpeza;
+  - a medição em segundo plano (C40, `measureInBackground()`) é ignorada com
+    outra medição em andamento e mantém o último valor de cada linha até o novo
+    chegar (`CategoryRowState.refreshed`); o laço do
+    `BackgroundMeasurementScheduler` é uma `Task(priority: .utility)` no main
+    actor, cancelada no sleep do sistema e ao sair, e cancelar o laço não
+    cancela uma medição em andamento (só leitura; a geração resolve);
+  - a medição por categoria (C40 · tempo real, `measureCategories(_:)`) mede só
+    as categorias pedidas, selecionadas ou não, mantendo os valores, sem
+    `simctl` (reusa o `lastSnapshot` da última medição completa) e sem mudar
+    `lastMeasuredAt`; grava em `measurementStarts` o início da medição, de
+    qualquer origem, que produziu cada valor. Não roda antes da primeira
+    medição completa nem durante limpeza (`.notReady`), nem com outra medição
+    ou confirmação (`.busy`). Uma medição completa (refresh, ativação, laço,
+    pós-limpeza) sempre a substitui pela geração (`isMeasuringAll`). O
+    `FSEventsChangeWatcher` entrega os lotes numa fila serial utility e faz a
+    ponte para `AsyncStream`; o `FSEventStreamRef`, que não é `Sendable`, fica
+    num `Mutex` e é encerrado na mesma fila do callback pelo `onTermination`.
+    O `watchTask` e o `timerTask` do `LiveMeasurementScheduler` são
+    `Task(priority: .utility)` no main actor que só registram e esperam:
+    pausar, ou um lote novo, nunca cancela a medição em andamento;
   - a limpeza é cancelada entre itens e sempre devolve relatório;
   - o processo filho recebe `SIGTERM` no cancelamento e no timeout;
   - as listagens da seção de simuladores têm geração, e uma exclusão invalida
     as anteriores.
-- Limites de trabalho: sem polling. A janela mede ao abrir e ao ser ativada,
-  com debounce de 2 s e cache de 60 s; o `simctl` tem timeouts de 60, 600 e
-  1.800 s conforme a operação.
+- Limites de trabalho: a janela mede ao abrir e ao ser ativada, com debounce de
+  2 s e cache de 60 s; o `simctl` tem timeouts de 60, 600 e 1.800 s conforme a
+  operação. Desde o C40 o app também mede em segundo plano para o ícone da
+  barra de menus (`BackgroundMeasurementPolicy`): 30 s depois do lançamento e a
+  cada 30 min (tolerância de 60 s), só com o item da barra e "Mostrar o tamanho
+  liberável" ligados; uma medição concluída há menos de 30 min, de qualquer
+  origem, adia a próxima (no mínimo 60 s); a exclusão de simuladores adia 2 min;
+  Pouca Energia ou estado térmico sério/crítico pulam os ticks periódicos; o
+  sleep cancela o laço e o wake recomeça com 2 min; sair do app encerra o laço.
+  Desde o C40 · tempo real, nas mesmas condições (e sem Pouca Energia nem Mac
+  quente, também no lançamento), um único `FSEventStream` (`WatchRoot` e
+  `IgnoreSelf`, sem `FileEvents`, latência de 1 s) observa as raízes existentes
+  das 11 categorias medidas em disco; cada categoria tocada é medida de novo
+  5 s depois que a mudança para, no máximo 1×/min em atividade contínua, ou
+  60 s depois do início da medição que produziu o valor atual; uma medição
+  iniciada depois da última mudança a cobre; várias categorias vencidas vão
+  numa chamada. Lotes durante limpeza, cancelamento ou exclusão de simuladores
+  são descartados com as pendências; com outra medição ou confirmação tenta
+  de novo em 5 s. As raízes são recalculadas ao retomar, a cada medição
+  completa do laço e em `RootChanged`. Temporários, órfãos do `/private/var/tmp`,
+  simuladores antigos e o reset ficam só no cálculo completo. Nada roda no
+  test host nem em previews.
 - Permissões, rede, arquivos e outros efeitos:
   - a limpeza apaga só o conteúdo das raízes do catálogo fechado
     (`SafePathPolicy`), manda os itens perigosos para a Lixeira, usa `simctl`
@@ -567,7 +634,7 @@ validação em dispositivo físico e de serviços externos.
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
     passaram, sem avisos. No C18: 295 execuções passaram, sem avisos. No C19: 325 execuções
     passaram, sem avisos. No C20: 345 execuções passaram, sem avisos. No C21: 370
-    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos. No C30: 489 testes únicos (557 casos executados), sem avisos, e a build Release sem avisos; no adendo A1 do C30 (folha e fila de plataformas), depois das revisões: 520 testes únicos (592 casos executados), sem avisos, e a Release sem avisos; no C34 (progresso e tempo estimado do download): 575 testes únicos (699 casos executados), sem avisos, e a Release sem avisos;
+    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos. No C30: 489 testes únicos (557 casos executados), sem avisos, e a build Release sem avisos; no adendo A1 do C30 (folha e fila de plataformas), depois das revisões: 520 testes únicos (592 casos executados), sem avisos, e a Release sem avisos; no C34 (progresso e tempo estimado do download): 575 testes únicos (699 casos executados), sem avisos, e a Release sem avisos; no C40 (layout, Ajustes na barra lateral e medição em segundo plano): 618 testes únicos (755 casos executados), sem avisos, e a Release sem avisos; no C40 · tempo real (FSEvents): 689 testes únicos (838 casos executados), sem avisos, e a Release sem avisos; depois da revisão 1 (B1/B2): 692 testes únicos (841 casos executados), sem avisos, e a Release sem avisos do compilador;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código

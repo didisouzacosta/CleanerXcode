@@ -14,11 +14,12 @@
         // MARK: - States
 
         @State private var viewModel: CleanerViewModel
+        @State private var router = AppRouter()
 
         // MARK: - Public Properties
 
         var body: some View {
-            MenuBarPanelView(viewModel: viewModel, isDeletingSimulators: isDeletingSimulators)
+            MenuBarPanelView(viewModel: viewModel, router: router, isDeletingSimulators: isDeletingSimulators)
                 .task {
                     await prepare()
                 }

@@ -8,11 +8,12 @@
 import Foundation
 import Observation
 
-/// The single window's state and intents (plan section 2.4). It measures on demand, never by
-/// polling and never during a cleanup (R1); it asks before plans with attention or danger, or that
-/// would close Xcode-related work or the simulators (R5, F31); it runs plans through the executor
-/// and keeps the report on screen until the user dismisses it. Analytics and error reports only go
-/// through their protocols, in `CleanupOutcomeReporter`.
+/// The single window's state and intents (plan section 2.4). It measures on demand, for the menu
+/// bar icon every half hour (C40) and, when their folders change, only the changed categories
+/// (C40 · tempo real), never during a cleanup (R1); it asks before plans with
+/// attention or danger, or that would close Xcode-related work or the simulators (R5, F31); it
+/// runs plans through the executor and keeps the report on screen until the user dismisses it.
+/// Analytics and error reports only go through their protocols, in `CleanupOutcomeReporter`.
 @Observable
 final class CleanerViewModel {
 
@@ -34,6 +35,16 @@ final class CleanerViewModel {
 
     /// For tests: how many measurements started.
     @ObservationIgnored private(set) var measurementCount = 0
+
+    /// When the last complete measurement ended; it postpones the background one (C40).
+    @ObservationIgnored private(set) var lastMeasuredAt: Date?
+
+    /// When the measurement behind each row's current size started, from any origin.
+    @ObservationIgnored private(set) var measurementStarts: [CleanupCategoryID: Date] = [:]
+
+    /// The simulators as the last complete measurement saw them; a category measurement reuses it
+    /// instead of running `simctl` (C40 · tempo real).
+    @ObservationIgnored private(set) var lastSnapshot: SimulatorSnapshot?
 
     /// Estimated (R2): clones and hard links can make the freed space differ.
     var totalBytes: Int64 {
@@ -63,24 +74,6 @@ final class CleanerViewModel {
         Set(plannedCategories.filter { $0.operation == .removeContents(.trash) }.map(\.id))
     }
 
-    /// Every measured category, selected or not: "of 87.7 GB found".
-    var foundBytes: Int64 {
-        rows.values.reduce(0) { total, row in
-            guard case let .measured(bytes) = row else { return total }
-
-            return total + bytes
-        }
-    }
-
-    /// For "9 of 15 categories measured".
-    var measuredCategoryCount: Int {
-        rows.values.count { $0 != .measuring }
-    }
-
-    var areSimulatorToolsUnavailable: Bool {
-        rows.values.contains(.unavailable(.toolsUnavailable))
-    }
-
     // MARK: - Private Properties
 
     private var plannedCategories: [CleanupCategory] {
@@ -88,7 +81,7 @@ final class CleanerViewModel {
     }
 
     private var shouldMeasureOnActivation: Bool {
-        guard !isMeasuring, phase.allowsMeasurement else { return false }
+        guard !isMeasuringAll, phase.allowsMeasurement else { return false }
 
         guard let lastMeasuredAt else { return true }
 
@@ -116,10 +109,10 @@ final class CleanerViewModel {
     @ObservationIgnored private var activationTask: Task<Void, Never>?
     @ObservationIgnored private var cleanupTask: Task<CleanupReport, Never>?
     @ObservationIgnored private var measurementGeneration = 0
-    @ObservationIgnored private var lastMeasuredAt: Date?
     @ObservationIgnored private var hasBootedSimulators = false
     /// For tests: a measurement is running or about to start.
     @ObservationIgnored private(set) var isMeasuring = false
+    @ObservationIgnored private var isMeasuringAll = false
 
     // MARK: - Initializers
 
@@ -164,22 +157,30 @@ final class CleanerViewModel {
 
     // MARK: - Public Methods
 
-    /// Measures every category again, cancelling a measurement still running. The generation is
-    /// taken here, before the new task starts, so a cancelled one can never end the newer state.
+    /// Measures every category again, cancelling a measurement still running.
     func refresh() async {
         // The measurement after a cleanup covers it; nothing is measured while it runs.
         guard phase.allowsMeasurement else { return }
 
-        measurementGeneration += 1
-        measurementTask?.cancel()
-        // Running from here on, before the task starts, so an activation never measures again.
-        isMeasuring = true
+        await startMeasurement(keepingValues: false)
+    }
 
-        let generation = measurementGeneration
-        let task = Task { await measure(generation: generation) }
+    /// The menu bar icon's periodic measurement (C40): skipped while another complete measurement
+    /// or a cleanup runs, and it keeps each row's last value until the new one arrives, so the size
+    /// in the menu bar never drops and climbs back. It replaces a category measurement.
+    func measureInBackground() async {
+        guard !isMeasuringAll, phase.allowsMeasurement else { return }
 
-        measurementTask = task
-        await task.value
+        await startMeasurement(keepingValues: true)
+    }
+
+    /// The live measurement (C40 · tempo real): only `ids`, selected or not, keeping every value
+    /// until the new one arrives and without running `simctl`. It never runs over another
+    /// measurement, a confirmation or a cleanup, nor before the first complete measurement.
+    func measureCategories(_ ids: Set<CleanupCategoryID>) async {
+        guard !ids.isEmpty, categoryMeasurementAvailability == .available else { return }
+
+        await startMeasurement(keepingValues: true, only: ids)
     }
 
     /// Opening or activating the window: ignored while measuring or cleaning, a burst measures
@@ -201,17 +202,6 @@ final class CleanerViewModel {
 
         activationTask = task
         await task.value
-    }
-
-    /// The selected part of a section, for its header.
-    func selectedBytes(of categories: [CleanupCategory]) -> Int64 {
-        categories.reduce(0) { total, category in
-            guard selectedIDs.contains(category.id), case let .measured(bytes) = rows[category.id] else {
-                return total
-            }
-
-            return total + bytes
-        }
     }
 
     /// The selection is frozen while a plan is confirmed or cleaned, and an unavailable row
@@ -339,32 +329,50 @@ final class CleanerViewModel {
     // MARK: - Private Methods
 
     private func isUnavailable(_ id: CleanupCategoryID) -> Bool {
-        if case .unavailable = rows[id] {
-            true
-        } else {
-            false
-        }
+        rows[id]?.isUnavailable ?? false
     }
 
-    private func measure(generation: Int) async {
+    /// The generation is taken here, before the new task starts, so a cancelled measurement can
+    /// never end the newer one's state. `ids` is `nil` for a complete measurement.
+    private func startMeasurement(keepingValues: Bool, only ids: Set<CleanupCategoryID>? = nil) async {
+        measurementGeneration += 1
+        measurementTask?.cancel()
+        // Running from here on, before the task starts, so an activation never measures again.
+        isMeasuring = true
+        isMeasuringAll = ids == nil
+
+        let generation = measurementGeneration
+        let task = Task { await measure(generation: generation, keepingValues: keepingValues, only: ids) }
+
+        measurementTask = task
+        await task.value
+    }
+
+    private func measure(generation: Int, keepingValues: Bool, only ids: Set<CleanupCategoryID>?) async {
+        // Before reading anything: an earlier start only makes "already covered" less likely.
+        let startedAt = now()
+
         measurementCount += 1
 
         defer {
             // A newer measurement owns the state from here on.
             if generation == measurementGeneration {
                 isMeasuring = false
+                isMeasuringAll = false
                 updateIdlePhase()
             }
         }
 
-        guard let snapshot = await snapshotReader.read() else { return }
+        guard let snapshot = await snapshot(for: ids) else { return }
 
         hasBootedSimulators = snapshot.hasBootedDevices
+        // Cheap, and Xcode may have opened since the last complete measurement.
         restrictions = currentRestrictions()
 
-        let plan = CategoryRowState.plan(for: categories, restrictions: restrictions, snapshot: snapshot)
+        let plan = CategoryRowState.plan(for: categoriesToPlan(ids), restrictions: restrictions, snapshot: snapshot)
 
-        rows.merge(plan.rows) { _, new in new }
+        rows.merge(plan.rows) { CategoryRowState.refreshed(current: $0, planned: $1, keepingValues: keepingValues) }
+
         updateIdlePhase()
 
         let filters = TemporaryFilters.forMeasurement(
@@ -376,13 +384,36 @@ final class CleanerViewModel {
         do {
             try await measurer.measure(plan.toMeasure, filters: filters) { size in
                 rows[size.categoryID] = CategoryRowState(size: size)
+                measurementStarts[size.categoryID] = startedAt
                 updateIdlePhase()
             }
         } catch {
             return
         }
 
+        guard ids == nil else { return }
+
         lastMeasuredAt = now()
+        lastSnapshot = snapshot
+    }
+
+    /// Every category, or `ids` plus the ones whose Xcode block changed since their row was planned,
+    /// so the rows always match the restrictions just published (C40 · tempo real).
+    private func categoriesToPlan(_ ids: Set<CleanupCategoryID>?) -> [CleanupCategory] {
+        guard let ids else { return categories }
+
+        return categories.filter { category in
+            let isShownBlocked = rows[category.id] == .unavailable(.xcodeIsRunning)
+
+            return ids.contains(category.id) || isShownBlocked != restrictions.isBlocked(category.id)
+        }
+    }
+
+    /// A complete measurement lists the simulators; a category one reuses the last listing.
+    private func snapshot(for ids: Set<CleanupCategoryID>?) async -> SimulatorSnapshot? {
+        guard ids != nil else { return await snapshotReader.read() }
+
+        return lastSnapshot
     }
 
     /// Simulators count as active when Simulator.app runs or the last listing saw a booted device.
@@ -428,24 +459,7 @@ final class CleanerViewModel {
     private func apply(_ event: CleanupEvent) {
         guard case var .cleaning(progress) = phase else { return }
 
-        switch event {
-        case let .categoryStarted(id):
-            progress.startedCategories += 1
-            progress.currentCategory = id
-
-        case let .itemFinished(result):
-            progress.finishedItems += 1
-
-            if result.outcome == .removed {
-                progress.freedBytes += result.bytes
-            } else if result.outcome == .trashed {
-                progress.trashedBytes += result.bytes
-            }
-
-        case .closingSimulators, .restartingSimulatorService:
-            break
-        }
-
+        progress.apply(event)
         phase = .cleaning(progress)
     }
 
@@ -469,13 +483,7 @@ final class CleanerViewModel {
         guard !planned.isEmpty else { return .nothingSelected }
 
         // Resetting the preferences frees no space but is still something to do.
-        let hasReset = planned.contains { category in
-            if case .resetPreferences = category.operation {
-                true
-            } else {
-                false
-            }
-        }
+        let hasReset = planned.contains(where: \.operation.resetsPreferences)
 
         return totalBytes == 0 && !hasReset ? .nothingToClean : .ready
     }

@@ -17,7 +17,9 @@
 
         @State private var viewModel: CleanerViewModel
         @State private var simulators = SimulatorsSectionPreview.makeViewModel(for: .loaded)
-        @State private var updates = UpdatePreview.makeViewModel(hasUpdate: true)
+        @State private var updates: UpdateViewModel
+        @State private var settings = SettingsPreview.makeViewModel()
+        @State private var router = AppRouter()
 
         // MARK: - Public Properties
 
@@ -25,7 +27,9 @@
             CleanerWindowView(
                 viewModel: viewModel,
                 simulators: simulators,
+                settings: settings,
                 updates: updates,
+                router: router,
                 versionText: "1.0.0 (115)",
                 initialDestination: destination,
                 isShowingFailuresInitially: isShowingFailures
@@ -54,6 +58,7 @@
             destination: SidebarDestination = .overview,
             isShowingFailures: Bool = false,
             reducesTransparency: Bool = false,
+            hasUpdate: Bool = true,
             size: CGSize = CGSize(width: 920, height: 620)
         ) {
             self.scenario = scenario
@@ -62,6 +67,7 @@
             self.reducesTransparency = reducesTransparency
             self.size = size
             _viewModel = State(initialValue: Self.makeViewModel(for: scenario))
+            _updates = State(initialValue: UpdatePreview.makeViewModel(hasUpdate: hasUpdate))
         }
 
         // MARK: - Public Methods

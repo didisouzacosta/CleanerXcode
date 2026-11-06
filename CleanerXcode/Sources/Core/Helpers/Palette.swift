@@ -8,13 +8,14 @@
 import AppKit
 import SwiftUI
 
-/// The surfaces of the approved layout (Figma pages 03 to 05), in light and dark: a grey window,
-/// white list cards and the translucent hero.
+/// The surfaces of the approved layout (Figma pages 03 to 05), in light and dark: a light grey
+/// content background (lighter since C40, so the native sidebar stands apart from it), white list
+/// cards and the translucent hero.
 enum Palette {
 
     // MARK: - Public Properties
 
-    static let window = adaptive(light: NSColor(hex: 0xECECEE), dark: NSColor(hex: 0x1E1E20))
+    static let window = adaptive(light: NSColor(hex: 0xF7F7F9), dark: NSColor(hex: 0x1E1E20))
     static let card = adaptive(light: .white, dark: NSColor(hex: 0x2C2C2E))
     static let heroFill = adaptive(
         light: .white.withAlphaComponent(0.62),

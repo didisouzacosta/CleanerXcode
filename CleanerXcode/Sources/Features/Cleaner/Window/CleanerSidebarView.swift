@@ -8,9 +8,9 @@
 import SwiftUI
 
 /// The native sidebar (Figma page 08): "Overview", the four cleanup sections with what each would
-/// free, and "Simulators and runtimes" with the duplicates as a badge. The footer stays pinned in
-/// the bottom safe area, with the list scrolling under it.
-/// The sidebar has no background of its own: macOS draws it in glass.
+/// free, "Simulators and runtimes" with the duplicates as a badge, and the Settings pages (C40).
+/// The footer stays pinned in the bottom safe area, with the list scrolling under it. The sidebar
+/// has no background of its own: macOS draws it in glass.
 struct CleanerSidebarView: View {
 
     // MARK: - Bindings
@@ -37,6 +37,12 @@ struct CleanerSidebarView: View {
 
             Section("Manage") {
                 SidebarRow(destination: .simulatorsAndRuntimes, badge: badgeCount)
+            }
+
+            Section("Settings") {
+                ForEach(SidebarDestination.destinations(in: .settings)) { destination in
+                    SidebarRow(destination: destination)
+                }
             }
         }
         .listStyle(.sidebar)

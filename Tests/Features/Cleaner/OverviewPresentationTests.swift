@@ -57,4 +57,21 @@ struct OverviewPresentationTests {
         #expect(OverviewPresentation.closesFailures(whenReportChangesFrom: report))
     }
 
+    /// C40: the four section cards take 1, 2 or 4 equal columns, never 3, from a 280 pt minimum
+    /// card width and 12 pt gaps over the detail's width.
+    @Test(arguments: [
+        (0.0, 1),
+        (476.0, 1),
+        (571.9, 1),
+        (572.0, 2),
+        (636.0, 2),
+        (864.0, 2),
+        (1_155.9, 2),
+        (1_156.0, 4),
+        (1_216.0, 4),
+    ])
+    func theSectionCardsTakeOneTwoOrFourColumns(width: Double, columns: Int) {
+        #expect(OverviewPresentation.sectionColumnCount(availableWidth: CGFloat(width)) == columns)
+    }
+
 }

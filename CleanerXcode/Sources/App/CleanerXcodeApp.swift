@@ -16,6 +16,9 @@ struct CleanerXcodeApp: App {
     @State private var cleanerViewModel: CleanerViewModel
     @State private var simulatorsViewModel: SimulatorsViewModel
     @State private var settingsViewModel: SettingsViewModel
+    @State private var router = AppRouter()
+    /// The menu bar icon's background measurement (C40); `nil` in the test host and previews.
+    @State private var backgroundMeasurement: BackgroundMeasurementScheduler?
 
     // MARK: - Environments
 
@@ -46,11 +49,14 @@ struct CleanerXcodeApp: App {
     var body: some Scene {
         // The single window (R14). It opens at launch with a common size (Figma page 08); it is
         // resizable and macOS keeps its frame. The content scrolls, so nothing fits the height.
+        // Settings are pages of its sidebar since C40, so the app has no Settings scene.
         Window("CleanerXcode", id: WindowID.main) {
             CleanerWindowView(
                 viewModel: cleanerViewModel,
                 simulators: simulatorsViewModel,
+                settings: settingsViewModel,
                 updates: updateViewModel,
+                router: router,
                 versionText: versionText
             ) {
                 settingsViewModel.logDonation()
@@ -67,15 +73,15 @@ struct CleanerXcodeApp: App {
         .defaultLaunchBehavior(environment.isRunningTests ? .suppressed : .presented)
         .commands {
             SidebarCommands()
-            CleanerCommands()
-        }
-
-        Settings {
-            SettingsView(viewModel: settingsViewModel, updates: updateViewModel, versionText: versionText)
+            CleanerCommands(router: router)
         }
 
         MenuBarExtra(isInserted: showsMenuBarExtra) {
-            MenuBarPanelView(viewModel: cleanerViewModel, isDeletingSimulators: simulatorsViewModel.phase.isDeleting)
+            MenuBarPanelView(
+                viewModel: cleanerViewModel,
+                router: router,
+                isDeletingSimulators: simulatorsViewModel.phase.isDeleting
+            )
         } label: {
             MenuBarLabelView(viewModel: cleanerViewModel, showsSize: settingsViewModel.showsSizeInMenuBar)
         }
@@ -99,6 +105,21 @@ struct CleanerXcodeApp: App {
             await cleanerViewModel.refresh()
         }
 
+        let settingsViewModel = AppContainer.makeSettingsViewModel(
+            environment: environment,
+            services: services
+        ) { days in
+            Task { await cleanerViewModel.setMinimumTemporaryAgeInDays(days) }
+        }
+        // Only with the menu bar item and its size on: otherwise there is no number to keep, and
+        // the window or the panel measure when they open. Read on every tick.
+        let backgroundMeasurement = AppContainer.makeBackgroundMeasurementScheduler(
+            environment: environment,
+            measuring: cleanerViewModel,
+            isEnabled: { settingsViewModel.showsMenuBarExtra && settingsViewModel.showsSizeInMenuBar },
+            isBusy: { simulatorsViewModel.phase.isDeleting }
+        )
+
         self.environment = environment
         _updateViewModel = .init(initialValue: AppContainer.makeUpdateViewModel(
             environment: environment,
@@ -106,31 +127,59 @@ struct CleanerXcodeApp: App {
         ))
         _cleanerViewModel = .init(initialValue: cleanerViewModel)
         _simulatorsViewModel = .init(initialValue: simulatorsViewModel)
-        _settingsViewModel = .init(initialValue: AppContainer.makeSettingsViewModel(
-            environment: environment,
-            services: services
-        ) { days in
-            Task { await cleanerViewModel.setMinimumTemporaryAgeInDays(days) }
-        })
+        _settingsViewModel = .init(initialValue: settingsViewModel)
+        _backgroundMeasurement = .init(initialValue: backgroundMeasurement)
 
         if !environment.isRunningTests, !environment.isRunningPreviews {
-            Self.cancelRuntimeDownloadOnQuit(simulatorsViewModel)
+            Self.observeAppLifecycle(simulators: simulatorsViewModel, backgroundMeasurement: backgroundMeasurement)
+            backgroundMeasurement?.start()
         }
     }
 
     // MARK: - Private Methods
 
-    /// Quitting cancels a runtime download, so no `xcodebuild` is left running (C30, R9). Cancelling
-    /// runs the cancellation handlers at once, so the process is terminated before the app ends.
-    /// The observer lasts as long as the app, so its token is never removed.
-    private static func cancelRuntimeDownloadOnQuit(_ viewModel: SimulatorsViewModel) {
+    /// Quitting cancels a runtime download, so no `xcodebuild` is left running (C30, R9), and ends
+    /// the background measurement loop and the live measurement's stream (C40); a measurement in
+    /// progress is read-only and ends with the process. Cancelling runs the cancellation handlers
+    /// at once, so the process is terminated before the app ends. The system's sleep stops the
+    /// loop and the wake starts it again, so a late tick never fires the moment the Mac wakes. The
+    /// observers last as long as the app, so their tokens are never removed.
+    private static func observeAppLifecycle(
+        simulators: SimulatorsViewModel,
+        backgroundMeasurement: BackgroundMeasurementScheduler?
+    ) {
         _ = NotificationCenter.default.addObserver(
             forName: NSApplication.willTerminateNotification,
             object: nil,
             queue: .main
         ) { _ in
             MainActor.assumeIsolated {
-                viewModel.cancelRuntimeDownload()
+                simulators.cancelRuntimeDownload()
+                backgroundMeasurement?.stop()
+            }
+        }
+
+        let workspaceCenter = NSWorkspace.shared.notificationCenter
+
+        _ = workspaceCenter.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated {
+                backgroundMeasurement?.systemWillSleep()
+            }
+        }
+
+        _ = workspaceCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated {
+                backgroundMeasurement?.systemDidWake()
+            }
+        }
+
+        // Low Power Mode and the thermal state pause the live measurement (C40 · tempo real).
+        // ProcessInfo posts them on a global queue; `.main` delivers them on the main thread.
+        for name in [ProcessInfo.thermalStateDidChangeNotification, .NSProcessInfoPowerStateDidChange] {
+            _ = NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { _ in
+                MainActor.assumeIsolated {
+                    backgroundMeasurement?.conditionsDidChange()
+                }
             }
         }
     }

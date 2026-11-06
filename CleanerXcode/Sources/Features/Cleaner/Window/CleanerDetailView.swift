@@ -11,6 +11,7 @@ import SwiftUI
 /// toolbar and under the fixed action bar (R41, R42). Under the toolbar the edge turns hard while
 /// the content is there, so the title and the subtitle stay legible, and stays soft at rest; under
 /// the bar it is always soft. The bar sits in the bottom safe area, with no background of its own.
+/// The Settings pages (C40) have neither the bar nor Refresh.
 struct CleanerDetailView: View {
 
     // MARK: - States
@@ -31,6 +32,9 @@ struct CleanerDetailView: View {
 
     let viewModel: CleanerViewModel
     let simulators: SimulatorsViewModel
+    let settings: SettingsViewModel
+    let updates: UpdateViewModel
+    let versionText: String
 
     var body: some View {
         ScrollView {
@@ -40,6 +44,9 @@ struct CleanerDetailView: View {
                     isShowingFailures: isShowingFailures,
                     viewModel: viewModel,
                     simulators: simulators,
+                    settings: settings,
+                    updates: updates,
+                    versionText: versionText,
                     onSelect: select
                 )
                 .id(destination)
@@ -61,15 +68,19 @@ struct CleanerDetailView: View {
         .navigationTitle(Text(destination.title))
         .navigationSubtitle(Text(verbatim: subtitle))
         .toolbar {
-            CleanerToolbar(viewModel: viewModel, simulators: simulators)
+            CleanerToolbar(destination: destination, viewModel: viewModel, simulators: simulators)
         }
         .safeAreaBar(edge: .bottom) {
-            ActionBarView(content: barContent, onAction: perform)
-                .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
-                // A cleanup never starts while simulators or a runtime are being deleted.
-                .disabled(simulators.phase.isDeleting)
-                .subtleAnimation(value: viewModel.phase.kind)
+            if destination.showsCleanupControls {
+                ActionBarView(content: barContent, onAction: perform)
+                    .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
+                    // A cleanup never starts while simulators or a runtime are being deleted.
+                    .disabled(simulators.phase.isDeleting)
+                    .subtleAnimation(value: viewModel.phase.kind)
+                    .subtleTransition()
+            }
         }
+        .subtleAnimation(value: destination.showsCleanupControls)
         .onChange(of: destination) {
             scrollToTop()
         }
@@ -85,10 +96,10 @@ struct CleanerDetailView: View {
         )
     }
 
-    /// The section's count, the simulators' status, and nothing on the overview.
+    /// The section's count, the simulators' status, and nothing on the overview or Settings.
     private var subtitle: String {
         switch destination {
-        case .overview:
+        case .overview, .general, .about:
             return ""
 
         case .simulatorsAndRuntimes:
@@ -171,105 +182,6 @@ struct CleanerDetailView: View {
         } else {
             destination = .overview
             isShowingFailures = true
-        }
-    }
-
-}
-
-/// The notices of the page, then its content.
-private struct CleanerPageView: View {
-
-    // MARK: - Public Properties
-
-    let destination: SidebarDestination
-    let isShowingFailures: Bool
-    let viewModel: CleanerViewModel
-    let simulators: SimulatorsViewModel
-    let onSelect: (SidebarDestination) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if !notices.isEmpty {
-                CleanerNoticesView(
-                    notices: notices,
-                    viewModel: viewModel,
-                    isDeletingSimulators: simulators.phase.isDeleting
-                )
-                .subtleTransition()
-            }
-
-            switch destination {
-            case .overview:
-                OverviewView(
-                    viewModel: viewModel,
-                    simulators: simulators,
-                    isShowingFailures: isShowingFailures,
-                    onSelect: onSelect
-                )
-
-            case .simulatorsAndRuntimes:
-                SimulatorsPageView(viewModel: simulators, isLocked: !viewModel.phase.allowsMeasurement)
-
-            case .xcode, .simulators, .temporary, .userData:
-                if let group {
-                    CategoryPageView(group: group, viewModel: viewModel)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .subtleAnimation(value: viewModel.phase.kind)
-        .subtleAnimation(value: viewModel.rows)
-        .subtleAnimation(value: viewModel.selectedIDs)
-        .subtleAnimation(value: viewModel.restrictions)
-        .subtleAnimation(value: isShowingFailures)
-    }
-
-    // MARK: - Private Properties
-
-    private var notices: [CleanerNotice] {
-        CleanerNotice.notices(
-            for: destination,
-            phase: viewModel.phase,
-            restrictions: viewModel.restrictions,
-            areSimulatorToolsUnavailable: viewModel.areSimulatorToolsUnavailable,
-            trashBound: viewModel.trashBoundCategoryIDs
-        )
-    }
-
-    private var group: CleanerSection.Group? {
-        CleanerSection.grouping(viewModel.categories).first { $0.section == destination.section }
-    }
-
-}
-
-/// Refresh (⌘R) and Settings, icons with labels for VoiceOver; the system draws them in glass.
-private struct CleanerToolbar: ToolbarContent {
-
-    // MARK: - Public Properties
-
-    let viewModel: CleanerViewModel
-    let simulators: SimulatorsViewModel
-
-    var body: some ToolbarContent {
-        ToolbarItemGroup(placement: .primaryAction) {
-            Button("Refresh", systemImage: "arrow.clockwise", action: refresh)
-                .help("Measure every category again")
-                .keyboardShortcut("r")
-                .disabled(!viewModel.phase.allowsMeasurement)
-
-            SettingsLink {
-                Label("Settings", systemImage: "gearshape")
-            }
-            .help("Settings")
-        }
-    }
-
-    // MARK: - Private Methods
-
-    private func refresh() {
-        Task {
-            await viewModel.refresh()
-            await simulators.reloadIfOpened()
         }
     }
 

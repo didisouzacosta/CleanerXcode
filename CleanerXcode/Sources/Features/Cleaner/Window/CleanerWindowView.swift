@@ -8,8 +8,9 @@
 import SwiftUI
 
 /// The single window (R14, Figma page 08): a native sidebar with the overview, the four cleanup
-/// sections and "Simulators and runtimes", and a detail column that scrolls under the fixed action
-/// bar. The selected page is kept per window. The cleanup confirmation sheet lives here, so it
+/// sections, "Simulators and runtimes" and the Settings pages (C40), and a detail column that
+/// scrolls under the fixed action bar. The selected page is kept per window; "Settings…" (⌘,) and
+/// the panel's gear choose it through the `AppRouter`. The cleanup confirmation sheet lives here, so it
 /// shows on any page and when the menu bar panel asks for it.
 struct CleanerWindowView: View {
 
@@ -26,7 +27,9 @@ struct CleanerWindowView: View {
 
     let viewModel: CleanerViewModel
     let simulators: SimulatorsViewModel
+    let settings: SettingsViewModel
     let updates: UpdateViewModel
+    let router: AppRouter
     let versionText: String
     /// Logs the donation; the footer opens the page.
     let onSupport: () -> Void
@@ -46,7 +49,10 @@ struct CleanerWindowView: View {
                 destination: $destination,
                 isShowingFailures: $isShowingFailures,
                 viewModel: viewModel,
-                simulators: simulators
+                simulators: simulators,
+                settings: settings,
+                updates: updates,
+                versionText: versionText
             )
         }
         .sheet(isPresented: isConfirming) {
@@ -60,6 +66,10 @@ struct CleanerWindowView: View {
             guard appearsActive else { return }
 
             activate()
+        }
+        // `initial` covers a window that "Settings…" has just opened.
+        .onChange(of: router.pendingDestination, initial: true) {
+            showPendingDestination()
         }
     }
 
@@ -86,7 +96,9 @@ struct CleanerWindowView: View {
     init(
         viewModel: CleanerViewModel,
         simulators: SimulatorsViewModel,
+        settings: SettingsViewModel,
         updates: UpdateViewModel,
+        router: AppRouter,
         versionText: String,
         initialDestination: SidebarDestination = .overview,
         isShowingFailuresInitially: Bool = false,
@@ -94,7 +106,9 @@ struct CleanerWindowView: View {
     ) {
         self.viewModel = viewModel
         self.simulators = simulators
+        self.settings = settings
         self.updates = updates
+        self.router = router
         self.versionText = versionText
         self.onSupport = onSupport
         _destination = SceneStorage(wrappedValue: initialDestination, "sidebar-destination")
@@ -108,6 +122,12 @@ struct CleanerWindowView: View {
         guard OverviewPresentation.closesFailures(whenReportChangesFrom: oldReport) else { return }
 
         isShowingFailures = false
+    }
+
+    private func showPendingDestination() {
+        guard let pending = router.takePendingDestination() else { return }
+
+        destination = pending
     }
 
     /// Measures past the debounce and the cache (R1), and lists the simulators only on the first
@@ -203,6 +223,20 @@ struct CleanerWindowView: View {
 
     #Preview("Minimum size") {
         CleanerWindowPreview(.ready, size: CGSize(width: 760, height: 520))
+    }
+
+    #Preview("Up to date") {
+        CleanerWindowPreview(.ready, hasUpdate: false)
+    }
+
+    #Preview("Dark · Overview · 760") {
+        CleanerWindowPreview(.ready, size: CGSize(width: 760, height: 520))
+            .preferredColorScheme(.dark)
+    }
+
+    #Preview("Dark · Overview · 1500") {
+        CleanerWindowPreview(.ready, size: CGSize(width: 1_500, height: 620))
+            .preferredColorScheme(.dark)
     }
 
     #Preview("Reduce transparency") {

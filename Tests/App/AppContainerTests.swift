@@ -434,4 +434,42 @@ private final class ErrorReporterFactorySpy {
         return reporter
     }
 
+    /// C40: nothing measures in the background in the test host or in previews.
+    @Test
+    @MainActor
+    func testsAndPreviewsNeverMeasureInTheBackground() {
+        for environment in [
+            AppEnvironment(isRunningTests: true, isDebug: true),
+            AppEnvironment(isRunningTests: false, isRunningPreviews: true, isDebug: true),
+        ] {
+            let scheduler = AppContainer.makeBackgroundMeasurementScheduler(
+                environment: environment,
+                measuring: BackgroundMeasuringSpy(),
+                isEnabled: { true },
+                isBusy: { false }
+            )
+
+            #expect(scheduler == nil, "\(environment)")
+        }
+    }
+
+    /// The app gets a scheduler that has not started yet, with its live measurement: the app
+    /// starts it.
+    @Test
+    @MainActor
+    func theAppGetsABackgroundSchedulerThatWaitsToBeStarted() {
+        let scheduler = AppContainer.makeBackgroundMeasurementScheduler(
+            environment: AppEnvironment(isRunningTests: false, isDebug: true),
+            measuring: BackgroundMeasuringSpy(),
+            isEnabled: { true },
+            isBusy: { false }
+        )
+
+        #expect(scheduler != nil)
+        #expect(scheduler?.loop == nil)
+        #expect(scheduler?.live != nil, "C40 · tempo real.")
+        #expect(scheduler?.live?.isResumed == false)
+        #expect(scheduler?.live?.watchTask == nil, "No FSEvents stream before the start.")
+    }
+
 }
