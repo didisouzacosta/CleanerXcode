@@ -405,7 +405,12 @@ struct SimulatorsViewModelRuntimeDownloadTests {
         _ service: SimulatorsServiceSpy,
         downloader: RuntimeDownloaderSpy = RuntimeDownloaderSpy()
     ) -> SimulatorsViewModel {
-        SimulatorsViewModel(simulators: service, downloader: downloader, analytics: AnalyticsStub())
+        SimulatorsViewModel(
+            simulators: service,
+            downloader: downloader,
+            versionSource: InertRuntimeVersionSource(),
+            analytics: AnalyticsStub()
+        )
     }
 
     /// Opens the sheet and selects `platforms` in the given order.

@@ -11,7 +11,7 @@ import Observation
 /// only pre-selects; every deletion waits for a confirmation, sends the exact UDIDs or runtime
 /// identifier to `simctl`, and reloads the lists to show the result. It also downloads runtimes
 /// (C30), one platform at a time, never together with a runtime deletion, with the progress of the
-/// current one when its output shows it (C34).
+/// current one when its output shows it (C34), and an earlier version when one is chosen (C35).
 @Observable
 final class SimulatorsViewModel {
 
@@ -20,6 +20,8 @@ final class SimulatorsViewModel {
     /// Read by the composition tests.
     let simulators: any SimulatorManaging
     let downloader: any RuntimeDownloading
+    /// The versions the "Download runtimes" sheet offers (C35).
+    let runtimeVersions: RuntimeVersionsModel
 
     private(set) var phase: SimulatorsPhase = .idle
     private(set) var devices: [SimulatorDevice] = []
@@ -61,12 +63,14 @@ final class SimulatorsViewModel {
     init(
         simulators: any SimulatorManaging,
         downloader: any RuntimeDownloading,
+        versionSource: any RuntimeVersionProviding,
         analytics: any Analytics,
         now: @escaping () -> ContinuousClock.Instant = { .now },
         onDeleted: @escaping () async -> Void = {}
     ) {
         self.simulators = simulators
         self.downloader = downloader
+        runtimeVersions = RuntimeVersionsModel(source: versionSource)
         self.analytics = analytics
         self.now = now
         self.onDeleted = onDeleted
@@ -296,14 +300,21 @@ extension SimulatorsViewModel {
 
     /// Opens the "Download runtimes" sheet with nothing selected (Q9). Never during a download, a
     /// deletion or with a deletion confirmation open. A finished result stays until the next queue.
+    /// The versions read as loading from the sheet's first frame; the sheet loads them (C35, B4).
     func requestRuntimeDownload() {
         guard !runtimeDownload.isDownloading, !phase.isDeleting, confirmation == nil else { return }
 
+        runtimeVersions.beginLoading()
         downloadChoice = RuntimeDownloadChoice()
     }
 
     func toggleRuntimePlatform(_ platform: RuntimePlatform) {
         downloadChoice?.toggle(platform)
+    }
+
+    /// An earlier version, or Xcode's (`nil`); it also checks the platform (C35, Q9).
+    func selectRuntimeVersion(_ version: RuntimeBuildVersion?, for platform: RuntimePlatform) {
+        downloadChoice?.select(version, for: platform)
     }
 
     func cancelRuntimeDownloadChoice() {
@@ -321,7 +332,7 @@ extension SimulatorsViewModel {
         else { return }
 
         downloadChoice = nil
-        await runDownloads(choice.orderedSelection)
+        await runDownloads(choice.orderedSelection, versions: shownVersions(of: choice))
     }
 
     /// "Try again": downloads only the platforms that failed, without the sheet. Never with the
@@ -330,7 +341,7 @@ extension SimulatorsViewModel {
     func retryFailedRuntimeDownloads() async {
         guard case let .finished(run) = runtimeDownload, !run.failed.isEmpty, downloadChoice == nil else { return }
 
-        await runDownloads(run.failed.map(\.platform))
+        await runDownloads(run.failed.map(\.platform), versions: run.versions)
     }
 
     /// Terminates the current download and empties the queue; the state changes when it has ended.
@@ -351,14 +362,19 @@ extension SimulatorsViewModel {
     /// listed at once (`listShieldedFromCancel`), before the next download starts, so listings never
     /// overlap. After the task, the lists reload only if they may be stale. Never during a deletion,
     /// which lists at its end (B6).
-    private func runDownloads(_ platforms: [RuntimePlatform]) async {
+    private func runDownloads(
+        _ platforms: [RuntimePlatform],
+        versions: [RuntimePlatform: RuntimeBuildVersion]
+    ) async {
         guard !platforms.isEmpty, !runtimeDownload.isDownloading, !phase.isDeleting else { return }
 
+        let queue = RuntimeDownloadRun(platforms, versions: versions)
+
         // Set before the first suspension, so a second call returns at the guard.
-        runtimeDownload = .downloading(RuntimeDownloadRun(platforms))
+        runtimeDownload = .downloading(queue)
 
         let task = Task {
-            var run = RuntimeDownloadRun(platforms)
+            var run = queue
 
             var isListCurrent = false
 
@@ -366,7 +382,7 @@ extension SimulatorsViewModel {
                 guard !Task.isCancelled else { break }
 
                 do {
-                    try await self.download(platform)
+                    try await self.download(platform, buildVersion: run.versions[platform])
                     run.record(.installed, for: platform)
                     self.runtimeDownload = .downloading(run)
                     isListCurrent = await self.listShieldedFromCancel()
@@ -411,7 +427,7 @@ extension SimulatorsViewModel {
     /// One platform of the queue. The steps arrive off the main actor; only the newest waits, and
     /// the tracker publishes at most about once a second (a new phase at once). The progress is
     /// cleared when the download ends, before the queue records how it ended (C34).
-    private func download(_ platform: RuntimePlatform) async throws {
+    private func download(_ platform: RuntimePlatform, buildVersion: RuntimeBuildVersion?) async throws {
         let (events, continuation) = AsyncStream.makeStream(
             of: RuntimeDownloadEvent.self,
             bufferingPolicy: .bufferingNewest(1)
@@ -426,7 +442,7 @@ extension SimulatorsViewModel {
             group.addTask {
                 defer { continuation.finish() }
 
-                try await downloader.download(platform, buildVersion: nil) { continuation.yield($0) }
+                try await downloader.download(platform, buildVersion: buildVersion) { continuation.yield($0) }
             }
 
             for await event in events {
@@ -436,6 +452,15 @@ extension SimulatorsViewModel {
             }
 
             try await group.waitForAll()
+        }
+    }
+
+    /// The chosen versions the sheet shows, so what is downloaded is what was seen: a version no
+    /// longer offered (installed since, or gone from the catalog) falls back to Xcode's.
+    private func shownVersions(of choice: RuntimeDownloadChoice) -> [RuntimePlatform: RuntimeBuildVersion] {
+        choice.versions.filter { platform, version in
+            RuntimeVersionOptions.options(for: platform, snapshot: runtimeVersions.snapshot, installed: runtimes)
+                .contains { $0.version == version }
         }
     }
 

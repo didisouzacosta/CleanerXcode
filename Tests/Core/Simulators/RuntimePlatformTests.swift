@@ -70,6 +70,38 @@ struct RuntimePlatformTests {
         #expect(!RuntimePlatform.iOS.matches(watch))
     }
 
+    /// The catalog of downloadable runtimes names the device platforms (C35, R2).
+    @Test
+    func eachPlatformHasItsCatalogPlatformIdentifier() {
+        #expect(RuntimePlatform.iOS.catalogPlatformIdentifier == "com.apple.platform.iphoneos")
+        #expect(RuntimePlatform.watchOS.catalogPlatformIdentifier == "com.apple.platform.watchos")
+        #expect(RuntimePlatform.tvOS.catalogPlatformIdentifier == "com.apple.platform.appletvos")
+        #expect(RuntimePlatform.visionOS.catalogPlatformIdentifier == "com.apple.platform.xros")
+    }
+
+    @Test(arguments: RuntimePlatform.allCases)
+    func readsTheCatalogAndSDKPlatformNamesBack(platform: RuntimePlatform) {
+        let sdkNames: [RuntimePlatform: String] = [
+            .iOS: "iphonesimulator",
+            .watchOS: "watchsimulator",
+            .tvOS: "appletvsimulator",
+            .visionOS: "xrsimulator",
+        ]
+
+        #expect(RuntimePlatform(catalogPlatformIdentifier: platform.catalogPlatformIdentifier) == platform)
+        #expect(RuntimePlatform(sdkPlatformName: sdkNames[platform] ?? "") == platform)
+    }
+
+    @Test(arguments: ["com.apple.platform.macosx", "com.apple.platform.iphonesimulator", "iphoneos", ""])
+    func unknownCatalogPlatformsReadAsNothing(identifier: String) {
+        #expect(RuntimePlatform(catalogPlatformIdentifier: identifier) == nil)
+    }
+
+    @Test(arguments: ["macosx", "iphoneos", "driverkit", "com.apple.platform.iphonesimulator", ""])
+    func unknownSDKPlatformsReadAsNothing(name: String) {
+        #expect(RuntimePlatform(sdkPlatformName: name) == nil)
+    }
+
     // MARK: - Private Methods
 
     private func runtime(platformIdentifier: String, runtimeIdentifier: String) -> SimulatorRuntime {

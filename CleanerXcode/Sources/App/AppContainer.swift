@@ -23,6 +23,8 @@ enum AppContainer {
     // MARK: - Public Properties
 
     static let testHostSuiteName = "didisouzacosta.CleanerXcode.test-host"
+    /// The app's bundle id, when the build does not say.
+    static let defaultBundleIdentifier = "com.didisouzacosta.CleanerXcode"
     /// The user's choices copied from the 0.7 bundle id (C33, D3). "Launch at login" has its own
     /// rule inside `PreferencesDomainMigrator`; window state and the schema version stay behind.
     static let legacyDomainKeys: [String] = CleanupCategoryID.allCases.map(\.rawValue) + [
@@ -179,7 +181,8 @@ enum AppContainer {
         )
     }
 
-    /// The Simulators section. The test host and previews never run `simctl` nor `xcodebuild`.
+    /// The Simulators section. The test host and previews never run `simctl` nor `xcodebuild`, nor
+    /// read Apple's catalog of runtimes (C35).
     static func makeSimulatorsViewModel(
         environment: AppEnvironment,
         services: AppServices,
@@ -188,13 +191,34 @@ enum AppContainer {
         let isInert = environment.isRunningTests || environment.isRunningPreviews
         let simulators: any SimulatorManaging = isInert ? InertSimulatorManager() : SimctlSimulatorService()
         let downloader: any RuntimeDownloading = isInert ? InertRuntimeDownloader() : XcodebuildRuntimeDownloader()
+        let versionSource: any RuntimeVersionProviding = if isInert {
+            InertRuntimeVersionSource()
+        } else {
+            RuntimeVersionSource(
+                sdks: XcodebuildSimulatorSDKReader(),
+                fetcher: AppleRuntimeCatalogClient(),
+                cache: FileRuntimeCatalogCache(
+                    directory: runtimeCatalogCacheDirectory(bundleIdentifier: services.configuration.bundleIdentifier)
+                ),
+                now: { .now }
+            )
+        }
 
         return SimulatorsViewModel(
             simulators: simulators,
             downloader: downloader,
+            versionSource: versionSource,
             analytics: services.analytics,
             onDeleted: onDeleted
         )
+    }
+
+    /// `~/Library/Caches/<bundle id>`, where the catalog of runtimes is kept (C35, R7).
+    static func runtimeCatalogCacheDirectory(bundleIdentifier: String?) -> URL {
+        let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
+            ?? URL.homeDirectory.appending(path: "Library/Caches", directoryHint: .isDirectory)
+
+        return caches.appending(path: bundleIdentifier ?? defaultBundleIdentifier, directoryHint: .isDirectory)
     }
 
     /// The menu bar icon's background measurement (C40) and its live measurement over FSEvents

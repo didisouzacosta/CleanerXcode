@@ -2940,3 +2940,174 @@ cancelamento e sleep/wake. O plano do Manager fica em
   sem avisos do compilador, lint sem violações. O AC20-live (rótulo reagindo a
   um build real com a janela fechada, CPU ~0 sem mudanças, energia em ~1 h com
   simulador rodando) fica com o agente principal e o dono.
+
+## Adendo do C35 (2026-11-09)
+
+Card C35 (AC36, https://trello.com/c/kMg74BI5). Pedido do dono: o app baixa sozinho
+runtimes de versões anteriores, sem `.dmg`. Nível 2: integração externa nova (HTTP ao
+CDN da Apple, cache em disco, formato não documentado), processo novo
+(`xcodebuild -showsdks`) e contratos novos em `Core/Simulators`. Numeração própria
+do cartão (C35 · R1–R12, AC1–AC22). Substitui o C41, abandonado; os frames "C41 · …"
+do Figma não são especificação. Substitui em parte a decisão do C30: "sem versões
+antigas, sem tamanhos, sem seletor de versão" deixou de valer; a fila, a ordem fixa e
+a ausência de analytics continuam.
+
+- **Decisões do dono (2026-11-09):** origem só o catálogo público da Apple, com
+  fallback "só a versão do Xcode", sem entrada manual (Q1); o filtro R2 mais a recusa
+  legível (Q2); já instaladas fora do menu (Q3); uma versão por plataforma em cada
+  fila (Q4); catálogo lido só ao abrir a folha, cache de 24 h pelo `refreshInterval`
+  limitado a 1 h…7 d, cache vencido até 30 dias como fallback offline, sessão
+  `ephemeral` (Q5); `-architectureVariant` fora (Q6); nota em `docs/PRIVACY.md`, sem
+  mudar o README (Q7); folha com 520 pt (Q8); escolher versão marca a plataforma
+  (Q9); nota de compatibilidade só com versão anterior escolhida, sem confirmação
+  extra (Q10). Frames aprovados: página 08, linha y=8620 (`92:7540`, `92:7871`,
+  `92:8203`, `92:8552`, `92:8892`, `92:9230`, `92:9562`, `92:9781`).
+- **Catálogo:** `AppleRuntimeCatalogClient` faz um GET a
+  `https://devimages-cdn.apple.com/downloads/xcode/simulators/index2.dvtdownloadableindex`
+  (`Constants.runtimeCatalogURL`), sem credenciais nem cookies, numa sessão
+  `ephemeral` própria, com 15 s, `reloadIgnoringLocalCacheData`, só 2xx e até 8 MiB
+  (`expectedContentLength` e o corpo); o parse roda em `@concurrent`. O
+  `RuntimeCatalogParser` lê plist binário ou XML com DTOs tolerantes
+  (`RuntimeCatalogDTO`, `LossyElement`): uma entrada com campo de tipo inesperado sai
+  sozinha, e só a falta da lista `downloadables` torna o catálogo ilegível
+  (`.malformed`). Filtro R2: plataforma conhecida (`iphoneos`, `watchos`,
+  `appletvos`, `xros`), `cryptexDiskImage` por `mobileAsset`, sem `hostRequirements`
+  (qualquer valor), nome sem "beta" nem "release candidate", `architectures` com a
+  arquitetura do Mac, versão válida como `RuntimeBuildVersion`, build e tamanho
+  presentes. Uma entrada por plataforma e versão numérica: o último build na ordem do
+  catálogo e, dele, a variante só do Mac, senão a primeira que o inclui; o tamanho é
+  o da variante. Em Apple silicon, a fixture dá 8 entradas: iOS 27.2 (24B8117), 27.1,
+  26.5, 26.1 (23B86, 8.321.575.375 B), 26.0 (7.986.028.446 B), watchOS 26.5, tvOS
+  27.2 e visionOS 26.4.1. (O AC2 do plano dizia "9 entradas", mas a lista do próprio
+  plano e a contagem da fixture dão 8; os testes fixam a lista.)
+- **Cache:** `FileRuntimeCatalogCache` grava o catálogo já filtrado em
+  `~/Library/Caches/<bundle id>/simulator-runtime-catalog.json` (`formatVersion` 1,
+  `fetchedAt`, `refreshIntervalSeconds`, `entries` com plataforma, versão, build e
+  tamanho), por escrita atômica, com o I/O em `@concurrent`; a falha de escrita é
+  ignorada. A leitura revalida cada entrada (plataforma conhecida, versão válida,
+  tamanho > 0); formato desconhecido ou ilegível é "sem cache". O bundle id vem do
+  `AppConfiguration` (o mesmo do Info.plist), com `com.didisouzacosta.CleanerXcode`
+  quando falta.
+- **SDKs e fonte:** `XcodebuildSimulatorSDKReader` roda
+  `xcrun xcodebuild -showsdks -json` (prazo padrão de 60 s) e lê só `platform` e
+  `sdkVersion` dos SDKs de simulador; plataforma repetida fica com a maior versão;
+  exit 72 vira `.toolUnavailable`. O contrato `RuntimeVersionProviding` tem duas
+  metades, `sdkVersions()` e `catalog()` (desde a revisão 1, B2), que só lançam
+  `CancellationError`. `RuntimeVersionSource` as implementa: cache fresco (idade ≥ 0 e menor que o intervalo limitado) é usado sem
+  rede; senão lê e salva; a falha usa um cache de até 30 dias; uma data no futuro é
+  vencida. Falha dos SDKs dá um dicionário vazio. Cancelar (inclusive o
+  `URLError(.cancelled)` da `URLSession`) lança `CancellationError` e nunca cai no
+  fallback. O test host e as previews usam o `InertRuntimeVersionSource`.
+- **Opções e folha:** `RuntimeVersionOptions` (puro) dá, por plataforma, a versão do
+  Xcode primeiro ("27.2 (Xcode)", com o tamanho quando o catálogo tem a mesma versão
+  numérica; "Versão do Xcode" sem SDK) e depois as versões do catálogo estritamente
+  menores que o SDK, da mais nova à mais antiga, sem as instaladas na mesma
+  plataforma (comparação numérica). `RuntimeVersionsModel` (`@Observable`, main
+  actor) guarda o snapshot e o `isLoading` com geração; lê as duas metades lado a
+  lado (`async let` do catálogo, sem `Task.detached`) e publica as versões do SDK
+  assim que chegam, com o último catálogo, então os seletores mostram "27.2 (Xcode)"
+  sem tamanho enquanto o catálogo carrega (F3); a geração descarta também a fase do
+  SDK de uma carga obsoleta; o cancelamento mantém o snapshot anterior e nunca deixa
+  a folha carregando. Versões nunca carregadas contam como carregando (nota
+  "Carregando…", nunca "indisponível" no primeiro quadro, B1). A folha (520 pt) carrega pelo
+  `.task(id: retryCount)` (fechar cancela; "Tentar de novo" muda o id), com um
+  `Picker` `.menu` à direita de cada linha (`RuntimeDownloadPlatformRow`, extraída
+  para arquivo próprio), a nota "Carregando versões anteriores…" com spinner, a nota
+  de indisponível com "Tentar de novo" e a nota de compatibilidade só com uma versão
+  anterior escolhida numa plataforma marcada. `RuntimeDownloadChoice.select(_:for:)`
+  marca a plataforma; desmarcar mantém a versão.
+- **Download e textos:** `RuntimeDownloadRun(_:versions:)` guarda só as versões da
+  fila e nomeia "iOS 26.5" (`displayName(of:)`), usado em todos os textos do cartão;
+  sem versão, os textos do C30/C34 são os mesmos. O `SimulatorsViewModel` passa
+  `buildVersion` por item; "Tentar de novo" repete as versões da fila. Desvio
+  registrado: a confirmação passa só as versões que a folha mostra
+  (`shownVersions`); uma versão que saiu do menu (instalada depois, ou fora de um
+  catálogo novo) cai na do Xcode, como a folha já mostra.
+- **Recusa:** `RuntimeDownloadOutputParser.isUnavailableVersion(_:)` reconhece o fim
+  " is not available for download." (não confunde com "is already downloaded…"); o
+  `XcodebuildRuntimeDownloader` marca a recusa numa classe final privada com
+  `Mutex`, e com a marca, ou com a frase no stderr (resumo da falha ou stderr de um
+  exit 0), lança `CleanupError.runtimeVersionUnavailable` ("Indisponível para o
+  Xcode selecionado"), nunca "instalado". Cancelamento continua cancelamento. O
+  `CleanupOutcomeReporter` o trata como `.other`; nada novo vai ao Sentry nem ao
+  analytics.
+- **Fixture:** `Tests/Support/Fixtures/simulator-runtime-index-reduced.plist` (XML,
+  22.295 bytes, SHA-256
+  `618f7a5a81f5ddc1256c6ee05e979fd4c407330da6bbd36d3b5343e0466b9d15`), gerada com
+  `python3 -I` a partir da cópia JSON do catálogo real de 2026-11-09: 24 entradas
+  reais com os valores originais (índices 41, 107, 192, 222, 243, 244, 273, 274, 289,
+  290, 363, 364, 375, 376, 381, 382, 383, 384, 418, 428, 434, 435, 437 e 439 da
+  cópia) e duas inventadas a partir de entradas reais: iOS 26.2 (23C54, arm64) com
+  `fileSize` em texto e uma entrada `com.apple.platform.macosx`. Topo
+  `downloadables`, `refreshInterval` 86400, `version` "2". Só valores públicos do
+  catálogo, sem caminho nem usuário.
+- **Limites conhecidos:** o filtro é heurístico (P2) e foi observado em 2026-11-09
+  (o Xcode 27.2 recusou 17.5/18.x e baixou 26.0, 26.5 e 27.1); o `-buildVersion 26.1`
+  escolhe um build final pelo próprio `xcodebuild` (P3); o corpo da resposta é lido
+  inteiro antes da checagem do tamanho (`URLSession.data(for:)`), mas a URL é
+  constante e HTTPS. Só no primeiro quadro, antes de o SDK chegar (cerca de 0,4 s),
+  os seletores mostram "Versão do Xcode".
+- **Correções da revisão 1 do Manager:**
+  - B1: a nota "indisponível" aparecia no primeiro quadro (snapshot nil e ainda sem
+    `isLoading`); agora `versions == nil` conta como carregando
+    (`versionsNeverLoadedReadAsLoading`);
+  - B2: carga em duas fases, como acima (`theSDKVersionsShowBeforeTheCatalog`,
+    `loadingAgainKeepsTheLastCatalogUntilTheNewOneArrives`,
+    `theSDKVersionsAloneShowXcodesNumberWhileLoading`); o preview "Loading the
+    versions" tem o SDK e o catálogo que nunca termina;
+  - B3: previews do cartão com iOS 26.5 baixando 42% (F6), recusado (F7) e recusado
+    no escuro, por `RuntimeDownloadPreviewFixtures`
+    (`theCardPreviewsOfTheFramesNameTheVersion`);
+  - N1: a sessão do catálogo não envia nem aceita cookies
+    (`httpCookieAcceptPolicy = .never`, `httpShouldSetCookies = false`, sem
+    armazenamento de credenciais) e cada requisição tem
+    `httpShouldHandleCookies = false`;
+  - N4: `RuntimeDownloadPlatformRow` usa `@Binding var`;
+  - validação da correção: 794 testes únicos (993 casos executados), sem avisos;
+    Release sem avisos; lint sem violações.
+- **Correção da revisão 2 do Manager:**
+  - B4: reabrir a folha depois de uma carga cancelada (ou de um resultado
+    indisponível real, F4) mostrava "indisponível" no primeiro quadro, porque o
+    snapshot já não era nil e o `isLoading` só subia quando o `.task(id:)` rodava.
+    Agora `SimulatorsViewModel.requestRuntimeDownload()`, quando cria a escolha, chama
+    `RuntimeVersionsModel.beginLoading()`, que põe `isLoading = true` sem suspender e
+    sem tomar geração; o `load()` da folha vem em seguida e termina o carregamento só
+    para a carga mais nova. Sem a escolha (download, exclusão ou confirmação aberta),
+    nada é marcado. Se a folha fechar antes de o `load()` começar, nada mostra esse
+    estado, e a próxima abertura carrega de novo (testes
+    `cancellingAfterTheSDKPhaseKeepsItAndTheNextOpeningIsLoading`,
+    `aLoadAfterBeginLoadingEndsTheLoading`,
+    `reopeningAfterUnavailableVersionsIsLoadingFromTheFirstFrame`,
+    `requestingTheSheetMarksTheVersionsAsLoading`, `aSheetThatCannotOpenMarksNothing`);
+  - ajuste intencional do contrato 4.2 do plano ("cancelado não muda snapshot"):
+    cancelado mantém o snapshot publicado até ali, inclusive a fase SDK. Na reabertura,
+    os seletores mostram "27.2 (Xcode)" sem tamanho com "Carregando…", como o F3
+    aprovado;
+  - validação da correção: 799 testes únicos (998 casos executados), sem avisos;
+    Release sem avisos; lint sem violações.
+- **Validação do Developer:** 788 testes únicos (987 casos executados), sem avisos;
+  Release sem avisos; lint sem violações. A conferência visual (AC20) fica com o
+  agente principal; o download real (AC22-live) com o dono ou o agente principal
+  autorizado.
+- **Conferência visual (AC20, 2026-11-09):** sem permissão de Gravação de Tela neste
+  Mac, as capturas são offscreen (`cacheDisplay`) dos previews em pt-BR. Esse método
+  não desenha checkbox marcado, botão azul nem barra de progresso, e o texto sai com
+  outra suavização (o cartão do C34, sem mudança no código, mede 88,3 / 94,8 nele).
+  Primeira medição da folha: 90–92 / 94,4–95,4, com as posições a até 4 px. Por
+  decisão do dono, os frames da folha (F1–F5 e F2b) foram ajustados às medidas
+  nativas, sem mudar o código:
+  - cabeçalho de 38 pt (o símbolo de 32 pt);
+  - pop-up com 12/8 pt de margem, a seta à direita e a largura do item mais longo;
+  - watchOS e visionOS sem tamanho no padrão (o catálogo não tem o 27.2 deles);
+  - notas a 8 pt uma da outra, com o texto 3 pt abaixo do símbolo;
+  - botões com 11 pt de margem e "Baixar runtimes" quando nada está marcado;
+  - "Tentar de novo" como link (F4);
+  - o menu do F2b com o item marcado sobre o seletor.
+
+  Resultado, geral / layout com o texto mascarado / layout sem as limitações da
+  captura e sem os ícones anteriores ao C35: F1 93,5 / 98,2 / 98,9; F2 92,9 / 97,7 /
+  98,7; F3 93,9 / 98,3 / 99,0; F4 93,5 / 98,2 / 98,9; F5 escuro 92,2 / 97,9 / 98,7;
+  cartões F6 87,8 / 94,7 / 99,1 e F7 93,8 / 99,6 / 99,5. As alturas ficam a 1 pt do
+  app. No F2 e no F5, o que falta para 98 no layout são os dois checkboxes marcados
+  e o botão azul, que a captura não desenha. O geral abaixo de 95 é a suavização do
+  texto nesse método, a mesma do C34.

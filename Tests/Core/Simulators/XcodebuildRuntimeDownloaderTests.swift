@@ -89,6 +89,101 @@ struct XcodebuildRuntimeDownloaderTests {
         }
     }
 
+    /// AC10: the chosen version goes to `-buildVersion`, without a shell (C35).
+    @Test
+    func downloadsTheChosenVersion() async throws {
+        let runner = ProcessRunnerSpy()
+        let version = try #require(RuntimeBuildVersion("26.5"))
+
+        try await XcodebuildRuntimeDownloader(runner: runner).download(.iOS, buildVersion: version)
+
+        #expect(runner.requests == [
+            .xcrun(downloadIOS + ["-buildVersion", "26.5"], timeout: ProcessRequest.runtimeDownloadTimeout),
+        ])
+    }
+
+    /// AC11: Xcode refuses a version on the standard output and exits with an error (C35, R9).
+    @Test
+    func aRefusalOnTheStandardOutputIsAnUnavailableVersion() async throws {
+        let runner = ScriptedProcessRunner(
+            standardOutput: "Finding content...\niOS 18.0 is not available for download.\n",
+            failure: .commandFailed(exitCode: 1, summary: "")
+        )
+
+        await #expect(throws: CleanupError.runtimeVersionUnavailable) {
+            try await XcodebuildRuntimeDownloader(runner: runner).download(
+                .iOS,
+                buildVersion: RuntimeBuildVersion("18.0")
+            )
+        }
+    }
+
+    @Test
+    func aRefusalOnTheStandardErrorIsAnUnavailableVersion() async {
+        let runner = ProcessRunnerSpy(responses: [
+            downloadIOS + ["-buildVersion", "17.5"]: .failure(.commandFailed(
+                exitCode: 70,
+                summary: "2026-11-09 07:00:00.000 xcodebuild[1:2] Note: one\n"
+                    + "xcodebuild: error: iOS 17.5 is not available for download."
+            )),
+        ])
+
+        await #expect(throws: CleanupError.runtimeVersionUnavailable) {
+            try await XcodebuildRuntimeDownloader(runner: runner).download(
+                .iOS,
+                buildVersion: RuntimeBuildVersion("17.5")
+            )
+        }
+    }
+
+    /// A refusal is never an install, even when `xcodebuild` exits with 0.
+    @Test
+    func aRefusalWithExitZeroIsStillAnUnavailableVersion() async {
+        let onStandardOutput = ProcessRunnerSpy(responses: [
+            downloadIOS + ["-buildVersion", "18.6"]: .success("iOS 18.6 is not available for download.\n"),
+        ])
+        let onStandardError = ScriptedProcessRunner(
+            standardOutput: "",
+            standardError: "iOS 18.6 is not available for download.\n"
+        )
+
+        await #expect(throws: CleanupError.runtimeVersionUnavailable) {
+            try await XcodebuildRuntimeDownloader(runner: onStandardOutput)
+                .download(.iOS, buildVersion: RuntimeBuildVersion("18.6"))
+        }
+
+        await #expect(throws: CleanupError.runtimeVersionUnavailable) {
+            try await XcodebuildRuntimeDownloader(runner: onStandardError)
+                .download(.iOS, buildVersion: RuntimeBuildVersion("18.6"))
+        }
+    }
+
+    @Test
+    func anAlreadyDownloadedRuntimeIsNotARefusal() async throws {
+        let runner = ProcessRunnerSpy(responses: [
+            downloadIOS: .success("iOS 27.2 is already downloaded, and no downloadable is available.\n"),
+        ])
+
+        try await XcodebuildRuntimeDownloader(runner: runner).download(.iOS, buildVersion: nil)
+    }
+
+    /// Cancelling after the refusal was printed is still a cancellation.
+    @Test
+    func aCancellationIsNeverARefusal() async {
+        let runner = ScriptedProcessRunner(
+            standardOutput: "iOS 18.0 is not available for download.\n",
+            failure: nil,
+            error: CancellationError()
+        )
+
+        await #expect(throws: CancellationError.self) {
+            try await XcodebuildRuntimeDownloader(runner: runner).download(
+                .iOS,
+                buildVersion: RuntimeBuildVersion("18.0")
+            )
+        }
+    }
+
     /// The progress comes from the real output of `xcodebuild` (C34), step by step.
     @Test
     func reportsTheProgressOfTheRealOutput() async throws {
@@ -148,6 +243,45 @@ struct XcodebuildRuntimeDownloaderTests {
     }
 
     // MARK: - Nested Types
+
+    /// Hands its standard output line by line, as `ProcessRunner` does, then answers with the
+    /// standard error, or throws.
+    nonisolated private struct ScriptedProcessRunner: ProcessRunning {
+
+        // MARK: - Public Properties
+
+        let standardOutput: String
+
+        var standardError = ""
+        var failure: CleanupError?
+        var error: (any Error & Sendable)?
+
+        // MARK: - Public Methods
+
+        func run(_ request: ProcessRequest) async throws -> ProcessOutput {
+            try await run(request) { _ in }
+        }
+
+        func run(
+            _ request: ProcessRequest,
+            onStandardOutputLine: @escaping @Sendable (String) -> Void
+        ) throws -> ProcessOutput {
+            var splitter = OutputLineSplitter()
+
+            (splitter.append(Data(standardOutput.utf8)) + splitter.finish()).forEach(onStandardOutputLine)
+
+            if let error {
+                throw error
+            }
+
+            if let failure {
+                throw failure
+            }
+
+            return ProcessOutput(standardOutput: Data(standardOutput.utf8), standardError: Data(standardError.utf8))
+        }
+
+    }
 
     /// The steps a download reported, in order.
     nonisolated private final class EventCollector: Sendable {

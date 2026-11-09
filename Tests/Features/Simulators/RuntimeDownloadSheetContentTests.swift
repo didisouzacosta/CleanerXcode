@@ -22,7 +22,12 @@ struct RuntimeDownloadSheetContentTests {
 
     @Test
     func listsTheFourPlatformsInOrderWithTheirSymbols() {
-        let content = RuntimeDownloadSheetContent(choice: RuntimeDownloadChoice(), runtimes: [])
+        let content = RuntimeDownloadSheetContent(
+            choice: RuntimeDownloadChoice(),
+            runtimes: [],
+            versions: nil,
+            isLoadingVersions: false
+        )
 
         #expect(content.rows.map(\.platform) == [.iOS, .watchOS, .tvOS, .visionOS])
         #expect(content.rows.map(\.systemImage) == ["iphone", "applewatch", "appletv", "visionpro"])
@@ -32,7 +37,12 @@ struct RuntimeDownloadSheetContentTests {
 
     @Test
     func theSymbolsExist() {
-        let content = RuntimeDownloadSheetContent(choice: RuntimeDownloadChoice(), runtimes: [])
+        let content = RuntimeDownloadSheetContent(
+            choice: RuntimeDownloadChoice(),
+            runtimes: [],
+            versions: nil,
+            isLoadingVersions: false
+        )
 
         for symbol in content.rows.map(\.systemImage) + ["arrow.down.circle"] {
             #expect(NSImage(systemSymbolName: symbol, accessibilityDescription: nil) != nil, "\(symbol)")
@@ -51,7 +61,12 @@ struct RuntimeDownloadSheetContentTests {
             runtime(prefix + "watchOS-11-0", version: "", platform: "watchsimulator"),
         ]
 
-        let content = RuntimeDownloadSheetContent(choice: RuntimeDownloadChoice(), runtimes: runtimes)
+        let content = RuntimeDownloadSheetContent(
+            choice: RuntimeDownloadChoice(),
+            runtimes: runtimes,
+            versions: nil,
+            isLoadingVersions: false
+        )
         let details = content.rows.map(\.installedDetail)
 
         #expect(details[0] == String(localized: "Installed: \("iOS 27.2, iOS 27.1, iOS 9.3")"))
@@ -62,7 +77,12 @@ struct RuntimeDownloadSheetContentTests {
 
     @Test
     func nothingSelectedCannotBeConfirmed() {
-        let content = RuntimeDownloadSheetContent(choice: RuntimeDownloadChoice(), runtimes: [])
+        let content = RuntimeDownloadSheetContent(
+            choice: RuntimeDownloadChoice(),
+            runtimes: [],
+            versions: nil,
+            isLoadingVersions: false
+        )
 
         #expect(content.selectionSummary == String(localized: "None selected"))
         #expect(content.confirmTitle.key == "Download runtimes")
@@ -75,11 +95,11 @@ struct RuntimeDownloadSheetContentTests {
 
         choice.toggle(.visionOS)
 
-        let one = RuntimeDownloadSheetContent(choice: choice, runtimes: [])
+        let one = RuntimeDownloadSheetContent(choice: choice, runtimes: [], versions: nil, isLoadingVersions: false)
 
         choice.toggle(.watchOS)
 
-        let two = RuntimeDownloadSheetContent(choice: choice, runtimes: [])
+        let two = RuntimeDownloadSheetContent(choice: choice, runtimes: [], versions: nil, isLoadingVersions: false)
 
         #expect(one.selectionSummary == String(localized: "\(1) selected"))
         #expect(one.confirmTitle.key == "Download %lld runtimes")

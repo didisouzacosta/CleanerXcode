@@ -94,6 +94,22 @@ nonisolated struct InertRuntimeDownloader: RuntimeDownloading {
 
 }
 
+/// Offers only the version that matches Xcode: the test host and previews never run `xcodebuild`
+/// nor read Apple's catalog (C35).
+nonisolated struct InertRuntimeVersionSource: RuntimeVersionProviding {
+
+    // MARK: - Public Methods
+
+    func sdkVersions() -> [RuntimePlatform: RuntimeBuildVersion] {
+        [:]
+    }
+
+    func catalog() -> [RuntimeCatalogEntry]? {
+        nil
+    }
+
+}
+
 /// Runs nothing and reports an empty run.
 struct InertCleanupExecutor: CleanupExecuting {
 

@@ -203,7 +203,12 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     `RuntimeDownloadChoice`, `RuntimeDownloadRun` e `RuntimeDownloadState`) e,
     desde o C34, o progresso do item atual (`RuntimeDownloadProgress`,
     `RuntimeDownloadProgressTracker`, `RuntimeDownloadRateEstimator` e
-    `RuntimeDownloadRemaining`);
+    `RuntimeDownloadRemaining`) e, desde o C35, as versões anteriores
+    (`RuntimeVersionOption`, `RuntimeVersionOptions`, puro: a versão do Xcode
+    primeiro, depois as do catálogo estritamente menores que o SDK, sem as
+    instaladas; `RuntimeVersionsModel`, `@Observable` do main actor, dono do
+    snapshot e do carregamento com geração; `RuntimeDownloadPlatformRow`, a
+    linha com o seletor; `PreviewRuntimeVersionSource`, só em `DEBUG`);
   - `Settings/`: as páginas Geral e Sobre (C40), o painel e o rótulo da barra
     de menus;
   - `Update/`: `UpdateViewModel` e `VersionUpdateRow` (C40).
@@ -314,11 +319,34 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     o argumento; `matches(_:)` liga um runtime instalado à plataforma pelo
     `platformIdentifier` ou pelo prefixo, com `xrOS` para o visionOS) e
     `RuntimeBuildVersion` (de 1 a 3 grupos de dígitos ASCII;
-    outra entrada não constrói valor). O test host e as previews usam o
+    outra entrada não constrói valor; desde o C35, `compareNumerically`
+    ignora zeros finais, sem conformar `Comparable`: a igualdade continua a
+    do texto). O test host e as previews usam o
     `InertRuntimeDownloader`, que lança `.toolUnavailable`. Os testes usam
     `ProcessRunnerSpy`, `GatedProcessRunner`, `RuntimeDownloaderSpy` e
     `ServiceRestarterSpy` e nunca rodam o `simctl` nem o `xcodebuild` nem
-    sinalizam o serviço real;
+    sinalizam o serviço real. Desde o C35: `RuntimeCatalogParser` (lê o
+    `index2.dvtdownloadableindex`, plist binário ou XML, por DTOs tolerantes
+    em `RuntimeCatalogDTO` com `LossyElement`, e guarda só cryptex finais por
+    mobile asset, com `architectures` contendo o Mac e sem
+    `hostRequirements`, uma entrada por plataforma e versão, com o tamanho da
+    variante do Mac), `AppleRuntimeCatalogClient` (GET à URL constante,
+    sessão `ephemeral` própria sem cookies nem credenciais, 15 s, `reloadIgnoringLocalCacheData`, só 2xx,
+    até 8 MB, parse em `@concurrent`), `FileRuntimeCatalogCache` (JSON pequeno
+    em `~/Library/Caches/<bundle id>/simulator-runtime-catalog.json`, escrita
+    atômica, revalidado na leitura), `XcodebuildSimulatorSDKReader`
+    (`xcrun xcodebuild -showsdks -json`, só `platform` e `sdkVersion`) e
+    `RuntimeVersionSource` (contrato `RuntimeVersionProviding` em duas metades,
+    `sdkVersions()` e `catalog()`, que o `RuntimeVersionsModel` lê lado a lado,
+    publicando o SDK antes do catálogo; cache fresco
+    pelo intervalo do catálogo limitado a 1 h…7 d; falha usa cache de até 30
+    dias; cancelamento propaga). O `XcodebuildRuntimeDownloader` transforma a
+    recusa "… is not available for download." (stdout ou stderr, com
+    qualquer código de saída) em `CleanupError.runtimeVersionUnavailable`. O
+    test host e as previews usam o `InertRuntimeVersionSource` (só a versão
+    do Xcode); os testes usam a cópia reduzida do catálogo em
+    `Tests/Support/Fixtures/simulator-runtime-index-reduced.plist`, stubs de
+    `URLProtocol` e os fakes de `RuntimeVersionFakes`;
   - `Xcode/` (C16): `UserDefaultsPreferencesResetter` (reset do domínio
     `com.apple.dt.Xcode` por `removePersistentDomain`; testes usam domínios
     próprios) e `WorkspaceRunningApplications` (Xcode e Simulator por
@@ -392,7 +420,12 @@ existente por conta própria.
     "Simuladores e runtimes", lista de novo depois de lista vazia, falha ou
     ferramentas ausentes. Reativar a janela nunca roda o `simctl` de novo.
     Desde o C30 também o `runtimeDownload` (ocioso, `downloading(run)` ou
-    `finished(run)`) e a folha aberta (`downloadChoice`); desde o C34, o
+    `finished(run)`) e a folha aberta (`downloadChoice`, que desde o C35
+    guarda uma versão por plataforma); desde o C35, o `runtimeVersions`
+    (`RuntimeVersionsModel`), marcado como carregando ao pedir a folha
+    (`beginLoading()`) e carregado pelo `.task(id:)` dela, que cancela ao
+    fechar; a confirmação passa só as versões que a folha mostra,
+    e "Tentar de novo" repete as versões da fila; desde o C34, o
     `runtimeDownloadProgress` do item atual, separado do `runtimeDownload`
     para só o cartão ser invalidado, publicado no máximo cerca de uma vez por
     segundo (mudança de fase na hora) e limpo entre os itens e no fim. Os
@@ -494,9 +527,15 @@ existente por conta própria.
     (`SafePathPolicy`), manda os itens perigosos para a Lixeira, usa `simctl`
     por API e confirma itens de atenção e perigosos; por isso o app não usa
     sandbox;
-  - a rede se limita a `URLSession.shared` para o `version.json` e, em Release
-    com chave e com a preferência "Enviar estatísticas de uso" ligada (opt-out,
-    padrão ligado), aos eventos do Himetrica;
+  - a rede se limita a `URLSession.shared` para o `version.json`, a uma
+    sessão `ephemeral` própria para o catálogo público de runtimes da Apple
+    (C35: só ao abrir "Baixar runtimes" e com o cache vencido, sem cookies nem
+    credenciais) e, em Release com chave e com a preferência "Enviar
+    estatísticas de uso" ligada (opt-out, padrão ligado), aos eventos do
+    Himetrica;
+  - desde o C35 o app grava um cache em
+    `~/Library/Caches/<bundle id>/simulator-runtime-catalog.json` (só versões,
+    builds e tamanhos públicos); apagá-lo só faz o catálogo ser lido de novo;
   - o Himetrica 1.0.0 grava `hm_visitor_id` (UUID aleatório) em
     `UserDefaults.standard` (o C33 o copia do domínio do id antigo, com o nome
     espelhado em `HimetricaAnalytics.visitorIDKey`) e envia `visitorId`,
@@ -634,7 +673,7 @@ validação em dispositivo físico e de serviços externos.
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
     passaram, sem avisos. No C18: 295 execuções passaram, sem avisos. No C19: 325 execuções
     passaram, sem avisos. No C20: 345 execuções passaram, sem avisos. No C21: 370
-    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos. No C30: 489 testes únicos (557 casos executados), sem avisos, e a build Release sem avisos; no adendo A1 do C30 (folha e fila de plataformas), depois das revisões: 520 testes únicos (592 casos executados), sem avisos, e a Release sem avisos; no C34 (progresso e tempo estimado do download): 575 testes únicos (699 casos executados), sem avisos, e a Release sem avisos; no C40 (layout, Ajustes na barra lateral e medição em segundo plano): 618 testes únicos (755 casos executados), sem avisos, e a Release sem avisos; no C40 · tempo real (FSEvents): 689 testes únicos (838 casos executados), sem avisos, e a Release sem avisos; depois da revisão 1 (B1/B2): 692 testes únicos (841 casos executados), sem avisos, e a Release sem avisos do compilador;
+    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos. No C30: 489 testes únicos (557 casos executados), sem avisos, e a build Release sem avisos; no adendo A1 do C30 (folha e fila de plataformas), depois das revisões: 520 testes únicos (592 casos executados), sem avisos, e a Release sem avisos; no C34 (progresso e tempo estimado do download): 575 testes únicos (699 casos executados), sem avisos, e a Release sem avisos; no C40 (layout, Ajustes na barra lateral e medição em segundo plano): 618 testes únicos (755 casos executados), sem avisos, e a Release sem avisos; no C40 · tempo real (FSEvents): 689 testes únicos (838 casos executados), sem avisos, e a Release sem avisos; depois da revisão 1 (B1/B2): 692 testes únicos (841 casos executados), sem avisos, e a Release sem avisos do compilador; antes do C35, com as alterações locais do dono em andamento: 697 testes únicos (847 casos executados); no C35 (versões anteriores de runtime): 788 testes únicos (987 casos executados), sem avisos, e a Release sem avisos; depois da revisão 1 do C35: 794 testes únicos (993 casos executados), sem avisos, e a Release sem avisos; depois da revisão 2 do C35: 799 testes únicos (998 casos executados), sem avisos, e a Release sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código
@@ -666,6 +705,11 @@ validação em dispositivo físico e de serviços externos.
     (`pgrep -fl xcodebuild` vazio), sair do app no meio, e os casos sem
     Xcode, sem rede e com a licença não aceita. Nenhum agente roda esse
     download de vários GB sem autorização explícita;
+  - versões anteriores reais (C35, AC22-live): abrir a folha com e sem rede,
+    baixar iOS 26.5 junto de um padrão, ver o cartão com a versão e a lista
+    atualizada, e uma versão recusada terminar como "Indisponível para o Xcode
+    selecionado". O filtro só foi validado contra a cópia reduzida do
+    catálogo de 2026-11-09;
   - progresso real do download (C34, AC-live): a porcentagem e o tempo
     estimado num download real (sem `-exportPath`), "Instalando…" depois de
     100% e o Cancelar encerrando o `xcodebuild`; conferir também se o tempo

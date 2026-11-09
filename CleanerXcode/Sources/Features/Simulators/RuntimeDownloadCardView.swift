@@ -210,6 +210,22 @@ struct RuntimeDownloadCardView: View {
         RuntimeDownloadCardPreview(RuntimeDownloadPreviewFixtures.queueUpdatingList)
     }
 
+    #Preview("iOS 26.5, downloading 42%, about 12 min") {
+        RuntimeDownloadCardPreview(
+            RuntimeDownloadPreviewFixtures.downloadingEarlierVersion,
+            progress: RuntimeDownloadPreviewFixtures.fortyTwoPercent
+        )
+    }
+
+    #Preview("iOS 26.5 not available for the selected Xcode") {
+        RuntimeDownloadCardPreview(RuntimeDownloadPreviewFixtures.earlierVersionUnavailable)
+    }
+
+    #Preview("iOS 26.5 not available, dark") {
+        RuntimeDownloadCardPreview(RuntimeDownloadPreviewFixtures.earlierVersionUnavailable)
+            .preferredColorScheme(.dark)
+    }
+
     #Preview("Downloading 42%, dark") {
         RuntimeDownloadCardPreview(
             RuntimeDownloadPreviewFixtures.downloadingOne,

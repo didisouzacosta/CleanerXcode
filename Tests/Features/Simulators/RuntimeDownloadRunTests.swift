@@ -73,4 +73,21 @@ struct RuntimeDownloadRunTests {
         #expect(run.current == .iOS)
     }
 
+    /// The queue keeps the chosen version of its own platforms only (C35, R8, R10).
+    @Test
+    func keepsTheVersionsOfItsPlatformsAndNamesThem() throws {
+        let versions = try [
+            RuntimePlatform.iOS: #require(RuntimeBuildVersion("26.5")),
+            .tvOS: #require(RuntimeBuildVersion("27.1")),
+        ]
+
+        let run = RuntimeDownloadRun([.watchOS, .iOS], versions: versions)
+
+        #expect(run.versions.mapValues(\.rawValue) == [.iOS: "26.5"])
+        #expect(run.displayName(of: .iOS) == "iOS 26.5")
+        #expect(run.displayName(of: .watchOS) == "watchOS")
+        #expect(RuntimeDownloadRun([.iOS]).versions.isEmpty)
+        #expect(RuntimeDownloadRun([.iOS]).displayName(of: .iOS) == "iOS")
+    }
+
 }

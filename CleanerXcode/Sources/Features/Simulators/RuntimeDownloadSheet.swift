@@ -8,8 +8,15 @@
 import SwiftUI
 
 /// The "Download runtimes" sheet (C30, A1, Figma 47:1911): the four platforms with what is installed
-/// for each, nothing selected when it opens, and a queue that downloads one at a time.
+/// for each, nothing selected when it opens, and a queue that downloads one at a time. Each platform
+/// has a menu of versions, the selected Xcode's first (C35, Figma 92:7540): the sheet opens at once
+/// and loads the earlier versions while it is open; closing it cancels the load.
 struct RuntimeDownloadSheet: View {
+
+    // MARK: - States
+
+    /// "Try again" loads the versions again by changing the task's id.
+    @State private var retryCount = 0
 
     // MARK: - Public Properties
 
@@ -18,6 +25,9 @@ struct RuntimeDownloadSheet: View {
     let isLocked: Bool
 
     var body: some View {
+        // Built once per update: each platform's menu is derived from the versions and the runtimes.
+        let content = self.content
+
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
                 Image(systemName: "arrow.down.circle")
@@ -29,27 +39,34 @@ struct RuntimeDownloadSheet: View {
                     .font(.title2.weight(.semibold))
             }
 
-            Text(message)
+            Text(content.message)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(spacing: 0) {
                 ForEach(content.rows) { row in
-                    RuntimeDownloadPlatformRow(row: row, isSelected: isSelected(row))
+                    RuntimeDownloadPlatformRow(
+                        row: row,
+                        isSelected: isSelected(row),
+                        selectedOptionID: selectedOptionID(row)
+                    )
                 }
             }
             .padding(.vertical, 4)
             .background(.background.secondary, in: .rect(cornerRadius: 12))
 
-            Label {
-                Text(note)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            } icon: {
-                Image(systemName: "info.circle")
-                    .font(.system(size: 16))
-                    .foregroundStyle(.secondary)
+            if let versionsNote = content.versionsNote {
+                RuntimeVersionsNoteView(note: versionsNote, retry: retry)
+                    .subtleTransition()
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                RuntimeDownloadNoteLabel(text: note)
+
+                if content.showsEarlierVersionNote {
+                    RuntimeDownloadNoteLabel(text: RuntimeDownloadSheetContent.earlierVersionNote)
+                        .subtleTransition()
+                }
             }
 
             HStack(spacing: 10) {
@@ -74,18 +91,15 @@ struct RuntimeDownloadSheet: View {
             }
         }
         .padding(24)
-        .frame(width: 460)
+        .frame(width: 520)
         .subtleAnimation(value: choice)
+        .subtleAnimation(value: content.versionsNote)
+        .task(id: retryCount) {
+            await viewModel.runtimeVersions.load()
+        }
     }
 
     // MARK: - Private Properties
-
-    private var message: LocalizedStringResource {
-        """
-        Choose the platforms. CleanerXcode downloads the runtime that matches the selected Xcode, one at a \
-        time. Each one is several GB.
-        """
-    }
 
     private var note: LocalizedStringResource {
         """
@@ -99,7 +113,12 @@ struct RuntimeDownloadSheet: View {
     }
 
     private var content: RuntimeDownloadSheetContent {
-        RuntimeDownloadSheetContent(choice: choice, runtimes: viewModel.runtimes)
+        RuntimeDownloadSheetContent(
+            choice: choice,
+            runtimes: viewModel.runtimes,
+            versions: viewModel.runtimeVersions.snapshot,
+            isLoadingVersions: viewModel.runtimeVersions.isLoading
+        )
     }
 
     private var isBusy: Bool {
@@ -126,67 +145,86 @@ struct RuntimeDownloadSheet: View {
         }
     }
 
+    /// Choosing a version, Xcode's included, also checks the platform.
+    private func selectedOptionID(_ row: RuntimeDownloadSheetContent.Row) -> Binding<String> {
+        Binding {
+            row.selectedOption.id
+        } set: { id in
+            guard let option = row.options.first(where: { $0.id == id }) else { return }
+
+            viewModel.selectRuntimeVersion(option.version, for: row.platform)
+        }
+    }
+
+    private func retry() {
+        retryCount += 1
+    }
+
     private func confirm() {
         Task { await viewModel.confirmRuntimeDownload() }
     }
 
 }
 
-/// One platform: checkbox, symbol, name and what is installed, centered on one vertical axis (Figma
-/// 47:1911). A checkbox with a label aligns to the label's first line, so the native checkbox has
-/// its label hidden and sits in a centered row; the rest of the row is a plain button that toggles
-/// it, so the whole row stays clickable. Only the checkbox is exposed to VoiceOver: the platform
-/// name is its label, what is installed its hint, and its on/off value stays its own.
-private struct RuntimeDownloadPlatformRow: View {
+/// The note while the versions load (a small spinner), or when they are unavailable (with "Try
+/// again"), below the list of platforms (C35, Figma 92:8552 and 92:8892).
+private struct RuntimeVersionsNoteView: View {
 
     // MARK: - Public Properties
 
-    let row: RuntimeDownloadSheetContent.Row
-    let isSelected: Binding<Bool>
+    let note: RuntimeDownloadSheetContent.VersionsNote
+    let retry: () -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            Toggle(isOn: isSelected) {
-                Text(verbatim: row.platform.rawValue)
+        switch note {
+        case .loading:
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                    .accessibilityHidden(true)
+
+                Text(note.text)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .toggleStyle(.checkbox)
-            .labelsHidden()
-            .accessibilityHint(Text(verbatim: row.installedDetail))
+            .padding(.horizontal, 4)
+            .accessibilityElement(children: .combine)
 
-            Button(action: toggle) {
-                HStack(alignment: .center, spacing: 10) {
-                    // A fixed frame for every symbol: the iPhone glyph is taller than the TV one.
-                    Image(systemName: row.systemImage)
-                        .font(.system(size: 18))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 24, height: 24)
+        case .unavailable:
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                RuntimeDownloadNoteLabel(text: note.text, systemImage: "exclamationmark.circle")
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: row.platform.rawValue)
-                            .font(.body.weight(.semibold))
+                Spacer(minLength: 0)
 
-                        Text(verbatim: row.installedDetail)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-
-                    Spacer(minLength: 0)
-                }
-                .contentShape(.rect)
+                Button("Try again", action: retry)
+                    .buttonStyle(.link)
+                    .font(.caption)
             }
-            .buttonStyle(.plain)
-            .focusable(false)
-            .accessibilityHidden(true)
         }
-        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-        .padding(.horizontal, 12)
     }
 
-    // MARK: - Private Methods
+}
 
-    private func toggle() {
-        isSelected.wrappedValue.toggle()
+/// A secondary note with its symbol, as the sheet's other notes.
+private struct RuntimeDownloadNoteLabel: View {
+
+    // MARK: - Public Properties
+
+    let text: LocalizedStringResource
+
+    var systemImage = "info.circle"
+
+    var body: some View {
+        Label {
+            Text(text)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: systemImage)
+                .font(.system(size: 16))
+                .foregroundStyle(.secondary)
+        }
     }
 
 }
@@ -200,8 +238,25 @@ private struct RuntimeDownloadPlatformRow: View {
         RuntimeDownloadSheetPreview([.watchOS, .visionOS])
     }
 
+    #Preview("iOS 26.5 and watchOS selected") {
+        RuntimeDownloadSheetPreview([.watchOS], versions: [.iOS: "26.5"])
+    }
+
+    #Preview("Loading the versions") {
+        RuntimeDownloadSheetPreview([], source: .neverFinishes)
+    }
+
+    #Preview("Versions unavailable") {
+        RuntimeDownloadSheetPreview([], source: .unavailable)
+    }
+
     #Preview("Download disabled during a cleanup") {
-        RuntimeDownloadSheetPreview([.watchOS, .visionOS], isLocked: true)
+        RuntimeDownloadSheetPreview([.watchOS], versions: [.iOS: "26.5"], isLocked: true)
+    }
+
+    #Preview("iOS 26.5 and watchOS selected, dark") {
+        RuntimeDownloadSheetPreview([.watchOS], versions: [.iOS: "26.5"])
+            .preferredColorScheme(.dark)
     }
 
     #Preview("Two selected, dark") {

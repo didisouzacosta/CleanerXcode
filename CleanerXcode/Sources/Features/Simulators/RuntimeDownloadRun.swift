@@ -6,12 +6,15 @@
 //
 
 /// A queue of runtime downloads (C30, A1): the chosen platforms, always in the order of
-/// `RuntimePlatform.allCases`, downloaded one at a time, and how each one ended.
+/// `RuntimePlatform.allCases`, downloaded one at a time, and how each one ended. A platform may
+/// have an earlier version chosen, which "Try again" repeats (C35, R8).
 struct RuntimeDownloadRun: Equatable {
 
     // MARK: - Public Properties
 
     let platforms: [RuntimePlatform]
+    /// Only the queue's platforms; a missing one downloads the version that matches Xcode.
+    let versions: [RuntimePlatform: RuntimeBuildVersion]
 
     private(set) var outcomes: [RuntimePlatform: RuntimeDownloadOutcome] = [:]
 
@@ -61,14 +64,23 @@ struct RuntimeDownloadRun: Equatable {
 
     // MARK: - Initializers
 
-    /// Sorts the selection by `RuntimePlatform.allCases` and drops repeats.
-    init(_ selection: some Sequence<RuntimePlatform>) {
+    /// Sorts the selection by `RuntimePlatform.allCases` and drops repeats; versions of platforms
+    /// outside the selection are dropped.
+    init(_ selection: some Sequence<RuntimePlatform>, versions: [RuntimePlatform: RuntimeBuildVersion] = [:]) {
         let selected = Set(selection)
 
         platforms = RuntimePlatform.allCases.filter(selected.contains)
+        self.versions = versions.filter { selected.contains($0.key) }
     }
 
     // MARK: - Public Methods
+
+    /// "iOS 26.5" with a chosen version, otherwise "iOS" (R10).
+    func displayName(of platform: RuntimePlatform) -> String {
+        guard let version = versions[platform] else { return platform.rawValue }
+
+        return "\(platform.rawValue) \(version.rawValue)"
+    }
 
     /// A platform outside the queue is ignored.
     mutating func record(_ outcome: RuntimeDownloadOutcome, for platform: RuntimePlatform) {

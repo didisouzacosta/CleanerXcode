@@ -149,6 +149,30 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
     durante uma limpeza ou exclusão; "Remover" dos runtimes fica bloqueado
     enquanto baixa; o download continua ao sair da página, é cancelado ao sair
     do app e tem prazo de 6 h por item. Sem evento de analytics novo.
+  - Versões anteriores de runtime (C35): cada plataforma da folha "Baixar
+    runtimes" ganha, à direita, um seletor de versão. A primeira opção é
+    sempre a versão do Xcode selecionado ("27.2 (Xcode) · 8,32 GB", o
+    download do C30, sem `-buildVersion`); depois vêm as versões finais do
+    catálogo público da Apple estritamente menores que o SDK daquela
+    plataforma, da mais nova à mais antiga, com o tamanho, sem as já
+    instaladas e nunca uma mais nova que o Xcode. Escolher uma versão marca a
+    plataforma; desmarcar mantém a versão escolhida; uma versão por
+    plataforma em cada fila. A fila passa `-buildVersion <versão>` por
+    plataforma ao `xcodebuild`, e o cartão nomeia a versão ("Baixando o
+    runtime do iOS 26.5… 42%", "iOS 26.5 instalado", "Na fila: iOS 26.5,
+    watchOS"); "Tentar de novo" repete as mesmas versões. A folha abre na
+    hora e carrega as versões enquanto está aberta ("Carregando versões
+    anteriores…"); fechar a folha cancela a leitura. O catálogo
+    (`index2.dvtdownloadableindex` em `devimages-cdn.apple.com`) é lido só ao
+    abrir a folha e com o cache vencido (o intervalo do catálogo, limitado a
+    1 h…7 d; hoje 24 h); sem rede, um cache de até 30 dias serve. Sem rede e
+    sem cache, catálogo ilegível ou sem a versão do SDK, a folha mostra só a
+    versão do Xcode, com a nota "As versões anteriores não estão disponíveis
+    agora…" e "Tentar de novo", e funciona como no C30. Uma versão recusada
+    pelo Xcode ("… is not available for download.", em qualquer saída e com
+    qualquer código) termina como "Indisponível para o Xcode selecionado",
+    sem nada instalado. Com uma versão anterior escolhida, a folha avisa que
+    versões anteriores servem para testar em sistemas mais antigos.
 - Recursos premium ou condicionais: não há recursos pagos. A doação é opcional,
   por link externo.
 - Limites conhecidos:
@@ -195,6 +219,13 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
 - Sincronização ou serviços externos:
   - GitHub raw (`VERSION_FILE_URL` em `Config.xcconfig` → `Info.plist`) para
     a versão e o DMG;
+  - catálogo público de runtimes da Apple (C35): um GET sem autenticação nem
+    cookies a `https://devimages-cdn.apple.com/downloads/xcode/simulators/index2.dvtdownloadableindex`,
+    em sessão `ephemeral`, só ao abrir "Baixar runtimes" e no máximo uma vez
+    por intervalo do catálogo (24 h hoje); o filtrado fica em
+    `~/Library/Caches/<bundle id>/simulator-runtime-catalog.json`
+    (`formatVersion` 1, revalidado na leitura). Nada do usuário é enviado; a
+    Apple vê o IP e o User-Agent padrão da `URLSession`;
   - links externos (GitHub, X, LinkedIn, Stripe).
 - Regras de migração e recuperação: até a 0.7 não havia migração versionada;
   a 1.0 traz o `PreferencesMigrator` (C18) e o `PreferencesDomainMigrator`
@@ -252,6 +283,12 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
   - download real de runtime (C30, AC28-live): concluir e aparecer na lista,
     uma fila de 2, Cancelar no meio encerrar o `xcodebuild`, sair do app no meio, e os casos sem
     Xcode, sem rede e com a licença não aceita. Fica com o dono, junto do C27;
+  - versões anteriores reais (C35, AC22-live, equivale ao AC36): abrir a
+    folha com rede e sem rede, escolher iOS 26.5 e um padrão, baixar, ver o
+    cartão com "iOS 26.5", a nova versão aparecer na lista e ser usada pelo
+    Xcode, e uma versão recusada terminar como "Indisponível para o Xcode
+    selecionado". Os testes só usam uma cópia reduzida do catálogo de
+    2026-11-09. Fica com o dono ou com o agente principal autorizado;
   - progresso real do download (C34, AC-live): a porcentagem e o tempo
     estimado aparecem num download real sem `-exportPath`, "Instalando…"
     aparece depois de 100% e o Cancelar encerra o `xcodebuild`; conferir
@@ -298,6 +335,7 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
 | Simuladores e runtimes (C21) | `Sources/Features/Simulators/*.swift` |
 | Download de runtimes (C30) | `Sources/Core/Simulators/{RuntimeDownloading,XcodebuildRuntimeDownloader,RuntimePlatform,RuntimeBuildVersion}.swift`, `Sources/Core/Process/XcrunFailure.swift`, `Sources/Features/Simulators/{RuntimeDownloadState,RuntimeDownloadRun,RuntimeDownloadOutcome,RuntimeDownloadChoice,RuntimeDownloadSheetContent,RuntimeDownloadPresentation,RuntimeDownloadCardView,RuntimeDownloadSheet}.swift` |
 | Progresso do download de runtimes (C34) | `Sources/Core/Process/{ProcessRunning,ProcessRunner,OutputLineSplitter}.swift`, `Sources/Core/Simulators/{RuntimeDownloadEvent,RuntimeDownloadOutputParser,XcodebuildRuntimeDownloader}.swift`, `Sources/Features/Simulators/{RuntimeDownloadProgress,RuntimeDownloadProgressTracker,RuntimeDownloadRateEstimator,RuntimeDownloadRemaining,RuntimeDownloadPresentation,RuntimeDownloadCardView}.swift` e o `SimulatorsViewModel` |
+| Versões anteriores de runtime (C35) | `Sources/Core/Simulators/{RuntimeCatalog,RuntimeCatalogEntry,RuntimeCatalogError,RuntimeCatalogDTO,RuntimeCatalogParser,RuntimeCatalogFetching,RuntimeCatalogCache,LossyElement,SimulatorSDKReading,RuntimeVersionsSnapshot,RuntimeVersionProviding,XcodebuildRuntimeDownloader}.swift`, `Sources/Features/Simulators/{RuntimeVersionOption,RuntimeVersionOptions,RuntimeVersionsModel,RuntimeDownloadChoice,RuntimeDownloadRun,RuntimeDownloadPresentation,RuntimeDownloadSheetContent,RuntimeDownloadSheet,RuntimeDownloadPlatformRow,PreviewRuntimeVersionSource}.swift`, `Sources/App/AppContainer.swift` |
 | Janela de tamanho comum com barra lateral (C32) | `Sources/App/{CleanerXcodeApp,WindowID}.swift`, `Sources/Features/Cleaner/Window/{CleanerWindowView,CleanerSidebarView,SidebarFooterView,CleanerDetailView,ActionBarView,OverviewView,OverviewSummaryCard,SpaceBreakdownBar,SectionCardView,CategoryPageView,SectionHeaderView,GlassSurface,CleanerCommands}.swift`, `Sources/Features/Cleaner/Presentation/{SidebarDestination,ActionBarContent,SpaceBreakdown,CleanerNotice,OverviewPresentation}.swift`, `Sources/Features/Simulators/SimulatorsPageView.swift` |
 | Ajustes, barra de menus e Sobre (C22) | `Sources/Features/Settings/*.swift`, `Sources/App/CleanerXcodeApp.swift` (`AppDelegate`) |
 | Layout do C40: grade, Ajustes na barra lateral, versão e medição em segundo plano | `Sources/Features/Cleaner/Window/{SectionGridLayout,CleanerPageView,CleanerToolbar,CleanerCommands,SidebarFooterView}.swift`, `Sources/Features/Settings/{GeneralSettingsView,AboutSettingsView,SettingsSectionView,SettingsRowView}.swift`, `Sources/Features/Update/VersionUpdateRow.swift`, `Sources/App/AppRouter.swift`, `Sources/Features/Cleaner/{BackgroundMeasurementPolicy,BackgroundMeasurementScheduler,BackgroundMeasuring}.swift`, `Sources/Core/Platform/PowerConditions.swift` |
@@ -335,7 +373,19 @@ Caminhos relativos a `CleanerXcode/`, exceto `resources/`, `releases/` e
   a D11 ("fora do marco 1.0"), e depois escolheu "Só plataformas": as 4
   plataformas numa folha, em fila, sem versões antigas, sem tamanhos, sem
   seletor de versão e sem evento de analytics (ver o adendo do C30 no plano
-  1.0).
+  1.0). **Substituída em parte pelo C35:** "sem versões antigas, sem
+  tamanhos, sem seletor de versão" deixou de valer; a fila, a ordem fixa e a
+  ausência de analytics continuam.
+- Decisão do C35 (2026-11-09): o dono pediu baixar runtimes de versões
+  anteriores sem `.dmg`. Origem só o catálogo público da Apple, com fallback
+  "só a versão do Xcode"; sem entrada manual, sem `-architectureVariant`, sem
+  betas nem RCs, sem `diskImage`/`package`; já instaladas ficam fora do menu;
+  nota de privacidade em `docs/PRIVACY.md` (ver o adendo do C35 no plano
+  1.0). Limite conhecido (P2): o filtro (cryptex por mobile asset, com
+  `architectures` contendo a arquitetura do Mac e sem `hostRequirements`) é
+  uma heurística sobre um formato não documentado, observada em 2026-11-09
+  (o `xcodebuild` do Xcode 27.2 recusou 17.5/18.x e baixou 26.x/27.x); uma
+  recusa futura aparece como "Indisponível para o Xcode selecionado".
 - Decisão do C34: o dono pediu o progresso e o tempo estimado do download
   de runtime. A saída do `xcodebuild -downloadPlatform` não é documentada:
   o formato fica fixado por uma amostra real nos testes, e uma saída

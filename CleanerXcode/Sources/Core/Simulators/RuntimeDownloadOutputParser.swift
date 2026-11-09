@@ -17,6 +17,8 @@ nonisolated enum RuntimeDownloadOutputParser {
 
     private static let downloadingPrefix = "Downloading "
     private static let payloadSeparator = ": "
+    /// How `xcodebuild` ends the line that refuses a version (strings of `Xcode3Core`, C35).
+    private static let unavailableSuffix = " is not available for download."
 
     // MARK: - Public Methods
 
@@ -40,6 +42,12 @@ nonisolated enum RuntimeDownloadOutputParser {
         guard !payload.isEmpty, !payload.hasPrefix("Preparing") else { return .preparing }
 
         return progress(in: payload)
+    }
+
+    /// "iOS 18.0 is not available for download.": the selected Xcode refuses the version (C35, R9).
+    /// "… is already downloaded." is not a refusal.
+    static func isUnavailableVersion(_ line: String) -> Bool {
+        normalized(line).hasSuffix(unavailableSuffix)
     }
 
     /// A number written with a decimal comma or point and optional thousands separators: with both

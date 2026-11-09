@@ -24,6 +24,7 @@ extension CleanupError {
         case .blockedByRunningApp: "Blocked by an open app"
         case .unsafePath: "Location not allowed"
         case .unsupportedRoot: "Unsupported location"
+        case .runtimeVersionUnavailable: "Not available for the selected Xcode"
         case .unknown: "Unknown error"
         }
     }

@@ -2927,16 +2927,6 @@
         }
       }
     },
-    "Choose the platforms. CleanerXcode downloads the runtime that matches the selected Xcode, one at a time. Each one is several GB." : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha as plataformas. O CleanerXcode baixa o runtime compatível com o Xcode selecionado, um de cada vez. Cada um tem vários GB."
-          }
-        }
-      }
-    },
     "Installed: %@" : {
       "localizations" : {
         "pt-BR" : {
@@ -3313,6 +3303,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Instalando"
+          }
+        }
+      }
+    },
+    "%@ (Xcode)" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (Xcode)"
+          }
+        }
+      }
+    },
+    "Xcode version" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versão do Xcode"
+          }
+        }
+      }
+    },
+    "%@ version" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versão do %@"
+          }
+        }
+      }
+    },
+    "Loading earlier versions…" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carregando versões anteriores…"
+          }
+        }
+      }
+    },
+    "Earlier versions are unavailable right now. You can still download the version that matches Xcode." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As versões anteriores não estão disponíveis agora. Você ainda pode baixar a versão do Xcode."
+          }
+        }
+      }
+    },
+    "Earlier versions help you test on older systems. If Xcode doesn't accept a version, the download fails without downloading anything." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versões anteriores servem para testar em sistemas mais antigos. Se o Xcode não aceitar uma versão, o download falha sem baixar nada."
+          }
+        }
+      }
+    },
+    "Not available for the selected Xcode" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indisponível para o Xcode selecionado"
+          }
+        }
+      }
+    },
+    "Choose the platforms and, if you want, an earlier version. CleanerXcode downloads one at a time. Each one is several GB." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha as plataformas e, se quiser, uma versão anterior. O CleanerXcode baixa uma de cada vez. Cada uma tem vários GB."
           }
         }
       }

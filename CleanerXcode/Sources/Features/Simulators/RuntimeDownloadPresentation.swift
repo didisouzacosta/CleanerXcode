@@ -9,7 +9,8 @@ import Foundation
 
 /// What the runtime download card shows in each state (C30, A1 section 4), with the progress of the
 /// current platform when its output shows it (C34). The title and caption are already localized,
-/// because a queue joins several phrases.
+/// because a queue joins several phrases. A platform with a chosen version is named with it, as
+/// "iOS 26.5"; otherwise the texts are those of the C30 (C35, R10).
 struct RuntimeDownloadPresentation {
 
     // MARK: - Private Properties
@@ -72,7 +73,7 @@ struct RuntimeDownloadPresentation {
     // MARK: - Private Methods
 
     private static func downloading(_ run: RuntimeDownloadRun, progress: RuntimeDownloadProgress?) -> Self {
-        let platform = (run.current ?? run.platforms.last ?? .iOS).rawValue
+        let platform = run.displayName(of: run.current ?? run.platforms.last ?? .iOS)
         let updating = String(localized: "Updating the runtimes list…")
 
         // Every platform has an outcome: the last installed runtime is being listed (N5).
@@ -148,7 +149,7 @@ struct RuntimeDownloadPresentation {
             parts += fragments(of: run)
 
             if !run.queued.isEmpty {
-                let queued = run.queued.map(\.rawValue).joined(separator: ", ")
+                let queued = run.queued.map(run.displayName(of:)).joined(separator: ", ")
 
                 parts.append(String(localized: "Queued: \(queued)"))
             }
@@ -165,7 +166,7 @@ struct RuntimeDownloadPresentation {
 
     private static func finished(_ run: RuntimeDownloadRun) -> Self {
         let count = run.platforms.count
-        let first = (run.platforms.first ?? .iOS).rawValue
+        let first = run.displayName(of: run.platforms.first ?? .iOS)
 
         if run.isCancelled {
             let nothingFinished = run.installed.isEmpty && run.failed.isEmpty
@@ -197,7 +198,7 @@ struct RuntimeDownloadPresentation {
             )
         }
 
-        let names = run.installed.map(\.rawValue).formatted(.list(type: .and))
+        let names = run.installed.map(run.displayName(of:)).formatted(.list(type: .and))
 
         return Self(
             systemImage: "checkmark.circle.fill",
@@ -216,7 +217,7 @@ struct RuntimeDownloadPresentation {
     /// "visionOS: Timed out" or "visionOS was not downloaded".
     private static func fragments(of run: RuntimeDownloadRun) -> [String] {
         run.finished.compactMap { platform in
-            let name = platform.rawValue
+            let name = run.displayName(of: platform)
 
             return switch run.outcomes[platform] {
             case .installed: String(localized: "\(name) installed")

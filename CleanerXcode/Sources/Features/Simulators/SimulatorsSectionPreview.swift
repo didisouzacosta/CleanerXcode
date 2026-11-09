@@ -46,10 +46,15 @@
 
         // MARK: - Public Methods
 
-        static func makeViewModel(for scenario: Scenario) -> SimulatorsViewModel {
+        /// The versions of the "Download runtimes" sheet come from `versionSource` (C35).
+        static func makeViewModel(
+            for scenario: Scenario,
+            versionSource: PreviewRuntimeVersionSource = PreviewRuntimeVersionSource(.loaded)
+        ) -> SimulatorsViewModel {
             SimulatorsViewModel(
                 simulators: PreviewSimulatorsService(scenario: scenario),
                 downloader: downloader(for: scenario),
+                versionSource: versionSource,
                 analytics: NullAnalytics(),
                 now: PreviewClock().tick
             )

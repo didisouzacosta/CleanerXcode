@@ -137,6 +137,22 @@ struct RuntimeDownloadOutputParserTests {
         #expect(RuntimeDownloadOutputParser.number(from: text) == nil)
     }
 
+    /// Xcode's refusal of a version it cannot download (C35, R9), told apart from "already downloaded".
+    @Test(arguments: [
+        ("iOS 18.0 is not available for download.", true),
+        ("xcodebuild: error: iOS 17.5 is not available for download.", true),
+        ("  watchOS 11.0 is not available for download.\u{00A0}", true),
+        ("iOS 26.0 is already downloaded.", false),
+        ("iOS 26.0 is already downloaded, and no downloadable is available.", false),
+        ("Downloading iOS 26.0 Simulator (23A343) (arm64): 0,1% (10,6 MB of 7,99 GB)", false),
+        ("is not available for download", false),
+        ("", false),
+    ])
+    func recognizesTheRefusalOfAVersion(line: String, isRefusal: Bool) {
+        #expect(RuntimeDownloadOutputParser.isUnavailableVersion(line) == isRefusal)
+        #expect(RuntimeDownloadOutputParser.event(from: line) == nil || !isRefusal)
+    }
+
     // MARK: - Private Methods
 
     private func sampleLines() throws -> [String] {

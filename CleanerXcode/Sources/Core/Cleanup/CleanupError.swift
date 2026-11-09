@@ -27,6 +27,9 @@ nonisolated enum CleanupError: Error, Sendable, Hashable {
     case unsafePath
     /// The root cannot be cleaned safely on this Mac (for example a symlink): skipped, not a bug.
     case unsupportedRoot
+    /// `xcodebuild -downloadPlatform -buildVersion` refused the version: the selected Xcode cannot
+    /// download it (C35, R9). Nothing was downloaded nor installed.
+    case runtimeVersionUnavailable
     case unknown(domain: String, code: Int)
 
     // MARK: - Initializers

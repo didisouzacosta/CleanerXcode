@@ -8,36 +8,77 @@
 import Foundation
 
 /// What the "Download runtimes" sheet shows (C30, A1): the four platforms in order, with what is
-/// installed for each, the selection and the primary button.
+/// installed for each, the selection and the primary button. Each platform has a menu of versions,
+/// Xcode's first (C35, R3, R4); while they load, or when they are unavailable, a note says so (R5, R6).
 struct RuntimeDownloadSheetContent {
 
     // MARK: - Public Properties
+
+    /// Shown with an earlier version chosen for a checked platform (R11).
+    static let earlierVersionNote: LocalizedStringResource = """
+    Earlier versions help you test on older systems. If Xcode doesn't accept a version, the download \
+    fails without downloading anything.
+    """
 
     let rows: [Row]
     let selectionSummary: String
     let confirmTitle: LocalizedStringResource
     let isConfirmEnabled: Bool
+    let versionsNote: VersionsNote?
+    let showsEarlierVersionNote: Bool
+
+    let message: LocalizedStringResource = """
+    Choose the platforms and, if you want, an earlier version. CleanerXcode downloads one at a time. \
+    Each one is several GB.
+    """
 
     // MARK: - Initializers
 
-    init(choice: RuntimeDownloadChoice, runtimes: [SimulatorRuntime]) {
+    /// `versions` is `nil` until the first half of the first load arrives.
+    init(
+        choice: RuntimeDownloadChoice,
+        runtimes: [SimulatorRuntime],
+        versions: RuntimeVersionsSnapshot?,
+        isLoadingVersions: Bool
+    ) {
         let count = choice.selected.count
 
         rows = RuntimePlatform.allCases.map { platform in
-            Row(
+            let options = RuntimeVersionOptions.options(for: platform, snapshot: versions, installed: runtimes)
+            let chosen = options.first { $0.version != nil && $0.version == choice.versions[platform] }
+
+            return Row(
                 platform: platform,
                 systemImage: Self.systemImage(for: platform),
                 installedDetail: Self.installedDetail(of: platform, in: runtimes),
-                isSelected: choice.selected.contains(platform)
+                isSelected: choice.selected.contains(platform),
+                options: options,
+                selectedOption: chosen ?? options[0]
             )
         }
 
         selectionSummary = count > 0 ? String(localized: "\(count) selected") : String(localized: "None selected")
         confirmTitle = count > 0 ? "Download \(count) runtimes" : "Download runtimes"
         isConfirmEnabled = count > 0
+        showsEarlierVersionNote = rows.contains { $0.isSelected && $0.selectedOption.version != nil }
+
+        // The sheet always loads when it opens: never loaded yet is loading, even in the first frame,
+        // before the load has started (B1).
+        if isLoadingVersions || versions == nil {
+            versionsNote = .loading
+        } else if versions?.isComplete != true {
+            versionsNote = .unavailable
+        } else {
+            versionsNote = nil
+        }
     }
 
     // MARK: - Public Methods
+
+    /// What VoiceOver reads for a platform's menu: "iOS version".
+    static func versionMenuLabel(for platform: RuntimePlatform) -> String {
+        String(localized: "\(platform.rawValue) version")
+    }
 
     /// The same symbols as the simulators of each platform on the page.
     static func systemImage(for platform: RuntimePlatform) -> String {
@@ -87,9 +128,39 @@ struct RuntimeDownloadSheetContent {
         /// Already localized.
         let installedDetail: String
         let isSelected: Bool
+        /// Never empty: Xcode's version comes first.
+        let options: [RuntimeVersionOption]
+        /// The chosen version when the menu offers it, otherwise Xcode's.
+        let selectedOption: RuntimeVersionOption
 
         var id: RuntimePlatform {
             platform
+        }
+
+    }
+
+    /// Below the list of platforms.
+    enum VersionsNote: Equatable {
+
+        // MARK: - Cases
+
+        case loading
+        /// With "Try again".
+        case unavailable
+
+        // MARK: - Public Properties
+
+        var text: LocalizedStringResource {
+            switch self {
+            case .loading:
+                "Loading earlier versions…"
+
+            case .unavailable:
+                """
+                Earlier versions are unavailable right now. You can still download the version that matches \
+                Xcode.
+                """
+            }
         }
 
     }

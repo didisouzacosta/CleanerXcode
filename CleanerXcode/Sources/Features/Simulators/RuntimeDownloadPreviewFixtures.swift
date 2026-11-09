@@ -42,6 +42,16 @@
             run([.watchOS, .visionOS], [.watchOS: .installed, .visionOS: .installed])
         )
 
+        /// C35: iOS 26.5 chosen, downloading (Figma 92:9562).
+        static let downloadingEarlierVersion = RuntimeDownloadState.downloading(
+            RuntimeDownloadRun([.iOS], versions: earlierIOSVersion)
+        )
+
+        /// C35: iOS 26.5 refused by the selected Xcode (Figma 92:9781).
+        static let earlierVersionUnavailable = RuntimeDownloadState.finished(
+            run([.iOS], [.iOS: .failed(.runtimeVersionUnavailable)], versions: earlierIOSVersion)
+        )
+
         static let threePercent = RuntimeDownloadProgress(phase: .downloading(fraction: 0.03), remaining: nil)
 
         static let fortyTwoPercent = RuntimeDownloadProgress(
@@ -63,6 +73,12 @@
 
         static let fortyTwoPercentSteps = steps(to: 0.42, secondsLeft: 690)
         static let sevenPercentSteps = steps(to: 0.07, secondsLeft: 4_790)
+
+        // MARK: - Private Properties
+
+        private static var earlierIOSVersion: [RuntimePlatform: RuntimeBuildVersion] {
+            RuntimeBuildVersion("26.5").map { [.iOS: $0] } ?? [:]
+        }
 
         // MARK: - Private Methods
 
@@ -86,9 +102,10 @@
 
         private static func run(
             _ platforms: [RuntimePlatform],
-            _ outcomes: [RuntimePlatform: RuntimeDownloadOutcome]
+            _ outcomes: [RuntimePlatform: RuntimeDownloadOutcome],
+            versions: [RuntimePlatform: RuntimeBuildVersion] = [:]
         ) -> RuntimeDownloadRun {
-            var run = RuntimeDownloadRun(platforms)
+            var run = RuntimeDownloadRun(platforms, versions: versions)
 
             for platform in platforms {
                 if let outcome = outcomes[platform] {

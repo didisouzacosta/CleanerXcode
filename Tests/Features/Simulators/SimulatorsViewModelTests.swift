@@ -402,6 +402,7 @@ struct SimulatorsViewModelTests {
         SimulatorsViewModel(
             simulators: service,
             downloader: RuntimeDownloaderSpy(),
+            versionSource: InertRuntimeVersionSource(),
             analytics: analytics,
             onDeleted: onDeleted
         )

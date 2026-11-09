@@ -148,6 +148,7 @@ struct SimulatorsViewModelRuntimeProgressTests {
         let viewModel = SimulatorsViewModel(
             simulators: SimulatorsServiceSpy(runtimes: [installedRuntime]),
             downloader: downloader,
+            versionSource: InertRuntimeVersionSource(),
             analytics: AnalyticsStub(),
             now: { clock.now }
         )
@@ -217,6 +218,7 @@ struct SimulatorsViewModelRuntimeProgressTests {
         SimulatorsViewModel(
             simulators: service ?? SimulatorsServiceSpy(runtimes: [installedRuntime]),
             downloader: downloader,
+            versionSource: InertRuntimeVersionSource(),
             analytics: AnalyticsStub()
         )
     }
