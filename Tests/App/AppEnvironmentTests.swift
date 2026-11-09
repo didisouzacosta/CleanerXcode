@@ -66,6 +66,65 @@ struct AppEnvironmentTests {
     }
 
     @Test
+    func debugBuildTurnsOnTheDemoWithItsVariable() {
+        let environment = AppEnvironment(processEnvironment: ["CLEANERXCODE_DEMO": "1"], isDebug: true)
+
+        #expect(environment.isDemo)
+        #expect(environment.demoStartDelay == .seconds(3))
+    }
+
+    @Test
+    func releaseBuildIgnoresTheDemoVariable() {
+        let environment = AppEnvironment(processEnvironment: ["CLEANERXCODE_DEMO": "1"], isDebug: false)
+
+        #expect(environment.isDemo == false)
+    }
+
+    @Test(arguments: [nil, "0", "yes", ""])
+    func demoStaysOffWithoutTheExactVariable(value: String?) {
+        let processEnvironment = value.map { ["CLEANERXCODE_DEMO": $0] } ?? [:]
+
+        let environment = AppEnvironment(processEnvironment: processEnvironment, isDebug: true)
+
+        #expect(environment.isDemo == false)
+    }
+
+    @Test
+    func testsAndPreviewsNeverRunTheDemo() {
+        let tests = AppEnvironment(
+            processEnvironment: ["CLEANERXCODE_DEMO": "1", "XCTestBundlePath": "/tmp/Tests.xctest"],
+            isDebug: true
+        )
+        let previews = AppEnvironment(
+            processEnvironment: ["CLEANERXCODE_DEMO": "1", "XCODE_RUNNING_FOR_PREVIEWS": "1"],
+            isDebug: true
+        )
+
+        #expect(tests.isDemo == false)
+        #expect(previews.isDemo == false)
+    }
+
+    @Test
+    func demoReadsItsStartDelay() {
+        let environment = AppEnvironment(
+            processEnvironment: ["CLEANERXCODE_DEMO": "1", "CLEANERXCODE_DEMO_START_DELAY": "1.5"],
+            isDebug: true
+        )
+
+        #expect(environment.demoStartDelay == .milliseconds(1_500))
+    }
+
+    @Test(arguments: ["-2", "abc", "nan", "inf", "600"])
+    func invalidStartDelayFallsBackToTheDefault(value: String) {
+        let environment = AppEnvironment(
+            processEnvironment: ["CLEANERXCODE_DEMO": "1", "CLEANERXCODE_DEMO_START_DELAY": value],
+            isDebug: true
+        )
+
+        #expect(environment.demoStartDelay == .seconds(3))
+    }
+
+    @Test
     func detectsTheHostedTestProcess() {
         let environment = AppEnvironment.current()
 

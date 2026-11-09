@@ -23,6 +23,8 @@ enum AppContainer {
     // MARK: - Public Properties
 
     static let testHostSuiteName = "didisouzacosta.CleanerXcode.test-host"
+    /// The demo's own preferences (C36), emptied at every start so each recording looks the same.
+    static let demoSuiteName = "com.didisouzacosta.CleanerXcode.demo"
     /// The app's bundle id, when the build does not say.
     static let defaultBundleIdentifier = "com.didisouzacosta.CleanerXcode"
     /// The user's choices copied from the 0.7 bundle id (C33, D3). "Launch at login" has its own
@@ -46,16 +48,12 @@ enum AppContainer {
         makeErrorReporter: @MainActor (ErrorReportingConfiguration)
             -> any ErrorReporting = SentryErrorReporter.init(configuration:)
     ) -> AppServices {
-        // Tests and previews never touch the system nor start a third-party SDK.
-        if environment.isRunningTests || environment.isRunningPreviews {
-            guard let testHostDefaults = UserDefaults(suiteName: testHostSuiteName) else {
-                preconditionFailure("Could not create the test host UserDefaults suite.")
-            }
-
+        // Tests, previews and the demo never touch the system nor start a third-party SDK.
+        if environment.isInert {
             return AppServices(
                 analytics: NullAnalytics(),
                 errorReporter: NullErrorReporter(),
-                userDefaults: testHostDefaults,
+                userDefaults: inertUserDefaults(isDemo: environment.isDemo),
                 configuration: configuration
             )
         }
@@ -84,8 +82,9 @@ enum AppContainer {
     }
 
     /// The main window's state. The test host and previews get inert services over folders that
-    /// do not exist, so the window opens and measures without reading this Mac or running `simctl`.
-    /// `legacyPreferences` reads the 0.7 domain; tests pass their own reader.
+    /// do not exist, so the window opens and measures without reading this Mac or running `simctl`;
+    /// the demo gets mocked sizes over the same folders (C36). `legacyPreferences` reads the 0.7
+    /// domain; tests pass their own reader.
     static func makeCleanerViewModel(
         environment: AppEnvironment,
         services: AppServices,
@@ -97,7 +96,13 @@ enum AppContainer {
         let store = UserDefaultsPreferencesStore(defaults: services.userDefaults)
         let appBundleIdentifier = services.configuration.bundleIdentifier ?? ""
 
-        if environment.isRunningTests || environment.isRunningPreviews {
+        #if DEBUG
+            if environment.isDemo {
+                return makeDemoCleanerViewModel(services: services)
+            }
+        #endif
+
+        if environment.isInert {
             return CleanerViewModel(
                 catalog: CleanupCatalog(locations: .inert),
                 measurer: CategorySizeMeasurer(scanner: InertDiskUsageScanner()),
@@ -148,13 +153,13 @@ enum AppContainer {
         )
     }
 
-    /// Settings. The test host and previews never register a login item.
+    /// Settings. The test host, previews and the demo never register a login item.
     static func makeSettingsViewModel(
         environment: AppEnvironment,
         services: AppServices,
         onMinimumAgeChanged: @escaping (Int) -> Void = { _ in }
     ) -> SettingsViewModel {
-        let loginItem: any LoginItemManaging = environment.isRunningTests || environment.isRunningPreviews
+        let loginItem: any LoginItemManaging = environment.isInert
             ? InertLoginItem()
             : MainAppLoginItem()
 
@@ -166,9 +171,9 @@ enum AppContainer {
         )
     }
 
-    /// The update check. The test host and previews never reach the network.
+    /// The update check. The test host, previews and the demo never reach the network.
     static func makeUpdateViewModel(environment: AppEnvironment, services: AppServices) -> UpdateViewModel {
-        let checker: any VersionChecking = environment.isRunningTests || environment.isRunningPreviews
+        let checker: any VersionChecking = environment.isInert
             ? InertVersionChecker()
             : RemoteVersionChecker(url: services.configuration.versionFileURL)
 
@@ -181,14 +186,20 @@ enum AppContainer {
         )
     }
 
-    /// The Simulators section. The test host and previews never run `simctl` nor `xcodebuild`, nor
-    /// read Apple's catalog of runtimes (C35).
+    /// The Simulators section. The test host, previews and the demo never run `simctl` nor
+    /// `xcodebuild`, nor read Apple's catalog of runtimes (C35); the demo lists fixtures (C36).
     static func makeSimulatorsViewModel(
         environment: AppEnvironment,
         services: AppServices,
         onDeleted: @escaping () async -> Void = {}
     ) -> SimulatorsViewModel {
-        let isInert = environment.isRunningTests || environment.isRunningPreviews
+        #if DEBUG
+            if environment.isDemo {
+                return makeDemoSimulatorsViewModel()
+            }
+        #endif
+
+        let isInert = environment.isInert
         let simulators: any SimulatorManaging = isInert ? InertSimulatorManager() : SimctlSimulatorService()
         let downloader: any RuntimeDownloading = isInert ? InertRuntimeDownloader() : XcodebuildRuntimeDownloader()
         let versionSource: any RuntimeVersionProviding = if isInert {
@@ -222,15 +233,15 @@ enum AppContainer {
     }
 
     /// The menu bar icon's background measurement (C40) and its live measurement over FSEvents
-    /// (C40 · tempo real). Nothing measures nor watches in the test host or in previews; the app
-    /// starts the scheduler it gets, and nothing is watched before that.
+    /// (C40 · tempo real). Nothing measures nor watches in the test host, in previews or in the
+    /// demo; the app starts the scheduler it gets, and nothing is watched before that.
     static func makeBackgroundMeasurementScheduler(
         environment: AppEnvironment,
         measuring: any BackgroundMeasuring & LiveMeasuring,
         isEnabled: @escaping () -> Bool,
         isBusy: @escaping () -> Bool
     ) -> BackgroundMeasurementScheduler? {
-        guard !environment.isRunningTests, !environment.isRunningPreviews else { return nil }
+        guard !environment.isInert else { return nil }
 
         let live = LiveMeasurementScheduler(measuring: measuring, watcher: FSEventsChangeWatcher(), isBusy: isBusy)
 
@@ -238,6 +249,21 @@ enum AppContainer {
     }
 
     // MARK: - Private Methods
+
+    /// The test host and previews share one suite; the demo empties its own at every start.
+    private static func inertUserDefaults(isDemo: Bool) -> UserDefaults {
+        let suiteName = isDemo ? demoSuiteName : testHostSuiteName
+
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            preconditionFailure("Could not create the \(suiteName) UserDefaults suite.")
+        }
+
+        if isDemo {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+
+        return defaults
+    }
 
     /// Before the view model, Settings, analytics or the app delegate read the domain: first the
     /// 0.7 domain is copied (C33), then v1 → v2. The outcome goes to Sentry without the keys.

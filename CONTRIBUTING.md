@@ -14,6 +14,14 @@ Thanks for helping. Bug reports, ideas and pull requests are all welcome.
 
 You don't need any key. Without `CleanerXcode/Secrets.xcconfig` the app builds and works fully, with analytics and crash reporting off. To test them, copy `CleanerXcode/Secrets.example.xcconfig` to `CleanerXcode/Secrets.xcconfig` and fill in your own keys. That file is git-ignored; never commit keys.
 
+### Demo mode
+
+A Debug build started with `CLEANERXCODE_DEMO=1` runs a scripted tour of the window with mocked data, in light mode: it measures, opens a few pages, cleans and shows the report. It never reads your disk, runs `simctl` or `xcodebuild`, reaches the network or starts analytics, and it keeps its preferences in a separate domain. macOS still saves the window's size under the app's bundle id, so the next normal launch may open at 920×620. `CLEANERXCODE_DEMO_START_DELAY` (seconds, default 3) leaves time to start a screen recording. Release builds ignore both variables.
+
+```bash
+open -n -F -a <DerivedData>/Build/Products/Debug/CleanerXcode.app --env CLEANERXCODE_DEMO=1 --args -AppleLanguages '(en)'
+```
+
 ## Before you open a pull request
 
 - **Tests:** add or update unit tests for any behavior change. Write the failing test first. Tests must never touch real data, the Trash, `simctl` or the network. Use the fakes in `Tests/Support`. Don't add UI tests.

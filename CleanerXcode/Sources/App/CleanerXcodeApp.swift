@@ -66,6 +66,9 @@ struct CleanerXcodeApp: App {
                 // Inert in the test host and previews; errors stay silent (R16).
                 await updateViewModel.check()
             }
+            .task {
+                await runDemoIfNeeded()
+            }
         }
         .defaultSize(width: 920, height: 620)
         .windowResizability(.contentMinSize)
@@ -130,10 +133,16 @@ struct CleanerXcodeApp: App {
         _settingsViewModel = .init(initialValue: settingsViewModel)
         _backgroundMeasurement = .init(initialValue: backgroundMeasurement)
 
-        if !environment.isRunningTests, !environment.isRunningPreviews {
+        if !environment.isInert {
             Self.observeAppLifecycle(simulators: simulatorsViewModel, backgroundMeasurement: backgroundMeasurement)
             backgroundMeasurement?.start()
         }
+
+        #if DEBUG
+            if environment.isDemo {
+                DemoSession.applyAppearance()
+            }
+        #endif
     }
 
     // MARK: - Private Methods
@@ -182,6 +191,20 @@ struct CleanerXcodeApp: App {
                 }
             }
         }
+    }
+
+    /// The demo's tour of the window (C36), only in Debug builds started with `CLEANERXCODE_DEMO=1`.
+    private func runDemoIfNeeded() async {
+        #if DEBUG
+            guard environment.isDemo else { return }
+
+            await DemoSession.run(
+                viewModel: cleanerViewModel,
+                simulators: simulatorsViewModel,
+                router: router,
+                startDelay: environment.demoStartDelay
+            )
+        #endif
     }
 
 }

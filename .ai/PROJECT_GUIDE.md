@@ -212,6 +212,34 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
   - `Settings/`: as páginas Geral e Sobre (C40), o painel e o rótulo da barra
     de menus;
   - `Update/`: `UpdateViewModel` e `VersionUpdateRow` (C40).
+  - `Demo/` (C36, tudo em `#if DEBUG`): o modo demo para a gravação do
+    README. Liga só com `CLEANERXCODE_DEMO=1` numa build Debug, fora de teste
+    e de preview (`AppEnvironment.isDemo`; a Release ignora a variável);
+    `CLEANERXCODE_DEMO_START_DELAY` (0 a 120 s, padrão 3) adia o roteiro para
+    a captura começar. `AppEnvironment.isInert` (teste, preview ou demo)
+    substitui as checagens de teste/preview do `AppContainer`: o demo recebe
+    `NullAnalytics`, `NullErrorReporter`, login item e checker inertes, sem
+    medição em segundo plano e sem migração de preferências, e a suíte própria
+    `com.didisouzacosta.CleanerXcode.demo`, esvaziada a cada abertura.
+    `AppContainer+Demo` monta o `CleanerViewModel` sobre
+    `CleanupLocations.inert` com `DemoDiskState` (os números do storyboard
+    da página `09 · Demo` do Figma, por sufixo do caminho, em `Mutex`, com
+    resíduo depois da limpeza), `DemoDiskScanner` (chegada escalonada),
+    `DemoCleanupExecutor` (seção por seção, categoria a categoria, sem tocar
+    arquivo nem Lixeira), `DemoSimulatorManager` (dois simuladores
+    indisponíveis, 1,6 GB) e `DemoRunningApplications`. Os arquivos órfãos de
+    simulador são medidos pelo `FilteredContentsMeasurer` sobre a pasta
+    temporária inerte, que não existe, então ficam em "Zero kB" no demo; a
+    parte deles está nos caches do CoreSimulator. A página de
+    simuladores usa `SimulatorsSectionPreview.makeViewModel(for: .loaded)`. O
+    roteiro é o `DemoScript.tour` (passos puros), tocado pelo `DemoDirector`
+    sobre o `DemoTourDriver` (navega por `AppRouter.show(_:)`). A
+    `DemoSession` força a aparência clara, ajusta a janela para 920×620 e
+    centraliza, ativa o app, carrega os simuladores e espera o atraso; o
+    roteiro toca uma vez só, mesmo se a janela reabrir (`RunClaim`). O
+    macOS ainda grava o frame da janela no domínio do bundle id: ao gravar
+    numa máquina com o app instalado, salve e restaure as chaves
+    `NSWindow Frame cleaner` e `NSSplitView Subview Frames cleaner, …`.
 - Infraestrutura (`Sources/Core`):
   - `Process/`: `ProcessRequest`, `ProcessRunner` e afins (sem shell; não há
     scripts `.sh` desde o C24);
@@ -673,7 +701,7 @@ validação em dispositivo físico e de serviços externos.
     passaram, sem avisos. No C16: 256 execuções passaram, sem avisos. No C17: 278 execuções
     passaram, sem avisos. No C18: 295 execuções passaram, sem avisos. No C19: 325 execuções
     passaram, sem avisos. No C20: 345 execuções passaram, sem avisos. No C21: 370
-    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos. No C30: 489 testes únicos (557 casos executados), sem avisos, e a build Release sem avisos; no adendo A1 do C30 (folha e fila de plataformas), depois das revisões: 520 testes únicos (592 casos executados), sem avisos, e a Release sem avisos; no C34 (progresso e tempo estimado do download): 575 testes únicos (699 casos executados), sem avisos, e a Release sem avisos; no C40 (layout, Ajustes na barra lateral e medição em segundo plano): 618 testes únicos (755 casos executados), sem avisos, e a Release sem avisos; no C40 · tempo real (FSEvents): 689 testes únicos (838 casos executados), sem avisos, e a Release sem avisos; depois da revisão 1 (B1/B2): 692 testes únicos (841 casos executados), sem avisos, e a Release sem avisos do compilador; antes do C35, com as alterações locais do dono em andamento: 697 testes únicos (847 casos executados); no C35 (versões anteriores de runtime): 788 testes únicos (987 casos executados), sem avisos, e a Release sem avisos; depois da revisão 1 do C35: 794 testes únicos (993 casos executados), sem avisos, e a Release sem avisos; depois da revisão 2 do C35: 799 testes únicos (998 casos executados), sem avisos, e a Release sem avisos;
+    execuções passaram, sem avisos. No C22: 389 execuções passaram, sem avisos. No C23: 405 execuções passaram, sem avisos. No C24: 368 execuções passaram, sem avisos (saíram os testes do código antigo). No C25: 376 execuções passaram, sem avisos. No alinhamento ao Figma (AC30b): 401 execuções passaram, sem avisos. No C32: 432 testes únicos passaram (476 casos executados, porque os testes parametrizados contam cada argumento à parte), sem avisos; saíram os `WindowFittingTests`. Nas correções da conferência visual do C32: 438 testes únicos (482 casos executados), sem avisos. No C33: 458 testes únicos (507 casos executados), sem avisos. No C30: 489 testes únicos (557 casos executados), sem avisos, e a build Release sem avisos; no adendo A1 do C30 (folha e fila de plataformas), depois das revisões: 520 testes únicos (592 casos executados), sem avisos, e a Release sem avisos; no C34 (progresso e tempo estimado do download): 575 testes únicos (699 casos executados), sem avisos, e a Release sem avisos; no C40 (layout, Ajustes na barra lateral e medição em segundo plano): 618 testes únicos (755 casos executados), sem avisos, e a Release sem avisos; no C40 · tempo real (FSEvents): 689 testes únicos (838 casos executados), sem avisos, e a Release sem avisos; depois da revisão 1 (B1/B2): 692 testes únicos (841 casos executados), sem avisos, e a Release sem avisos do compilador; antes do C35, com as alterações locais do dono em andamento: 697 testes únicos (847 casos executados); no C35 (versões anteriores de runtime): 788 testes únicos (987 casos executados), sem avisos, e a Release sem avisos; depois da revisão 1 do C35: 794 testes únicos (993 casos executados), sem avisos, e a Release sem avisos; depois da revisão 2 do C35: 799 testes únicos (998 casos executados), sem avisos, e a Release sem avisos; no C36 (modo demo), depois da revisão 1: 866 casos executados no xcresult (contagem que inclui testes de outra frente em andamento no mesmo checkout), 0 falhas, sem avisos novos; a Release sem avisos na primeira entrega; no C31 (sugestão de doação), com as alterações locais do C36 na árvore: 858 testes únicos (1.078 casos executados) no xcresult, sem avisos novos (o do `#require` em `RuntimeBuildVersionTests` é anterior), e a Release sem avisos;
   - teste focado: acrescente `-only-testing:CleanerXcodeTests/<Suite>` ao
     mesmo comando;
   - avisos do compilador: nenhum desde o C03. Avisos novos no código
