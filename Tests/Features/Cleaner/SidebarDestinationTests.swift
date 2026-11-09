@@ -5,7 +5,7 @@
 //  Created by Adriano Costa on 31/10/26.
 //
 
-import Foundation
+import AppKit
 import Testing
 @testable import CleanerXcode
 
@@ -85,6 +85,20 @@ struct SidebarDestinationTests {
 
         for section in CleanerSection.allCases {
             #expect(SidebarDestination(section: section).section == section)
+        }
+    }
+
+    /// A dashboard gauge, not the old rays that read as a loading spinner; the symbol exists on
+    /// the system, so the row never shows an empty icon.
+    @Test
+    func showsTheOverviewAsADashboardGauge() {
+        #expect(SidebarDestination.overview.systemImage == "gauge.with.dots.needle.67percent")
+
+        for destination in SidebarDestination.allCases {
+            #expect(
+                NSImage(systemSymbolName: destination.systemImage, accessibilityDescription: nil) != nil,
+                "\(destination)"
+            )
         }
     }
 

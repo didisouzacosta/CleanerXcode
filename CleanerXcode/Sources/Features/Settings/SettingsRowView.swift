@@ -55,6 +55,19 @@ struct SettingsRowView<Accessory: View>: View {
 
 }
 
+/// The line between two consecutive rows of a Settings card (C40), inset like the rows' text;
+/// never before the first row nor after the last one.
+struct SettingsRowDivider: View {
+
+    // MARK: - Public Properties
+
+    var body: some View {
+        Divider()
+            .padding(.leading, 14)
+    }
+
+}
+
 #if DEBUG
     #Preview("Rows") {
         @Previewable @State var isOn = true
@@ -65,6 +78,8 @@ struct SettingsRowView<Accessory: View>: View {
                     .toggleStyle(.switch)
                     .labelsHidden()
             }
+
+            SettingsRowDivider()
 
             SettingsRowView(
                 title: "Show in the menu bar",

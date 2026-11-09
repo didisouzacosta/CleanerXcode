@@ -63,6 +63,8 @@ struct GeneralSettingsView: View {
                     )
                 }
 
+                SettingsRowDivider()
+
                 SettingsRowView(title: "Show the size that can be freed") {
                     SettingsSwitch(
                         "Show the size that can be freed",

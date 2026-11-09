@@ -71,11 +71,11 @@ enum SidebarDestination: String, CaseIterable, Hashable, Identifiable {
 
     var systemImage: String {
         switch self {
-        case .overview: "rays"
+        case .overview: "gauge.with.dots.needle.67percent"
         case .simulatorsAndRuntimes: "iphone"
         case .general: "gearshape"
         case .about: "info.circle"
-        case .xcode, .simulators, .temporary, .userData: section?.systemImage ?? "rays"
+        case .xcode, .simulators, .temporary, .userData: section?.systemImage ?? "gauge.with.dots.needle.67percent"
         }
     }
 

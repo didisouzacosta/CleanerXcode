@@ -33,15 +33,13 @@ struct AboutSettingsView: View {
                     open(Constants.githubURL, social: .github)
                 }
 
-                Divider()
-                    .padding(.leading, 14)
+                SettingsRowDivider()
 
                 AboutLinkRow(title: "X", subtitle: nil) {
                     open(Constants.xURL, social: .xPlatform)
                 }
 
-                Divider()
-                    .padding(.leading, 14)
+                SettingsRowDivider()
 
                 AboutLinkRow(title: "LinkedIn", subtitle: nil) {
                     open(Constants.linkedinURL, social: .linkedin)
