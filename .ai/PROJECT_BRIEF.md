@@ -283,12 +283,10 @@ Evidências separadas por tipo. Validação local não comprova comportamento li
   - download real de runtime (C30, AC28-live): concluir e aparecer na lista,
     uma fila de 2, Cancelar no meio encerrar o `xcodebuild`, sair do app no meio, e os casos sem
     Xcode, sem rede e com a licença não aceita. Fica com o dono, junto do C27;
-  - versões anteriores reais (C35, AC22-live, equivale ao AC36): abrir a
-    folha com rede e sem rede, escolher iOS 26.5 e um padrão, baixar, ver o
-    cartão com "iOS 26.5", a nova versão aparecer na lista e ser usada pelo
-    Xcode, e uma versão recusada terminar como "Indisponível para o Xcode
-    selecionado". Os testes só usam uma cópia reduzida do catálogo de
-    2026-11-09. Fica com o dono ou com o agente principal autorizado;
+  - versões anteriores reais (C35, AC22-live, equivale ao AC36): em
+    2026-11-09 o dono baixou de verdade uma versão anterior, e funcionou. Falta
+    confirmar a folha sem rede e uma versão recusada terminando como
+    "Indisponível para o Xcode selecionado";
   - progresso real do download (C34, AC-live): a porcentagem e o tempo
     estimado aparecem num download real sem `-exportPath`, "Instalando…"
     aparece depois de 100% e o Cancelar encerra o `xcodebuild`; conferir

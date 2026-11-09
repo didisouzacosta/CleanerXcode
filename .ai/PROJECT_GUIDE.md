@@ -705,11 +705,9 @@ validação em dispositivo físico e de serviços externos.
     (`pgrep -fl xcodebuild` vazio), sair do app no meio, e os casos sem
     Xcode, sem rede e com a licença não aceita. Nenhum agente roda esse
     download de vários GB sem autorização explícita;
-  - versões anteriores reais (C35, AC22-live): abrir a folha com e sem rede,
-    baixar iOS 26.5 junto de um padrão, ver o cartão com a versão e a lista
-    atualizada, e uma versão recusada terminar como "Indisponível para o Xcode
-    selecionado". O filtro só foi validado contra a cópia reduzida do
-    catálogo de 2026-11-09;
+  - versões anteriores reais (C35, AC22-live): o download real de uma versão
+    anterior foi validado pelo dono em 2026-11-09. Faltam a folha sem rede e uma
+    versão recusada terminando como "Indisponível para o Xcode selecionado";
   - progresso real do download (C34, AC-live): a porcentagem e o tempo
     estimado num download real (sem `-exportPath`), "Instalando…" depois de
     100% e o Cancelar encerrando o `xcodebuild`; conferir também se o tempo

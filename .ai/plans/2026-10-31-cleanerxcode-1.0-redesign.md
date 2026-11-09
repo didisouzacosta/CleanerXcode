@@ -3111,3 +3111,6 @@ a ausência de analytics continuam.
   app. No F2 e no F5, o que falta para 98 no layout são os dois checkboxes marcados
   e o botão azul, que a captura não desenha. O geral abaixo de 95 é a suavização do
   texto nesse método, a mesma do C34.
+- **Download real (AC22-live, 2026-11-09):** o dono baixou de verdade uma versão
+  anterior, e funcionou. Ainda não foram conferidas a folha sem rede e uma versão
+  recusada pelo `xcodebuild`.
