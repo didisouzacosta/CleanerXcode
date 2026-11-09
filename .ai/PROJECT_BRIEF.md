@@ -61,6 +61,17 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
     desde o C40, é um botão redondo com seta ao lado de "Versão x (y)", no
     rodapé da barra lateral e no Sobre.
   - Links sociais (GitHub, X, LinkedIn) e doação (Stripe) abrem no navegador.
+  - Sugestão de doação (1.0, C31): a cada 5 limpezas bem-sucedidas (5ª, 10ª…),
+    contadas entre aberturas, o sucesso troca "OK" por "Apoiar o projeto"
+    (rosa, com coração) e "Fechar" em texto, e o detalhe passa a "Gostou?
+    Qualquer valor ajuda — 100% vai para abrigos e hospitais". "Apoiar o
+    projeto" abre a folha "Apoie o CleanerXcode" e o resultado volta ao
+    sucesso comum com OK; só "Doar qualquer valor" na folha abre o Stripe e
+    registra `donate`; "Agora não" e Esc só fecham. O painel da barra de menus
+    mostra a mesma sugestão e "Apoiar" abre a janela principal com a folha.
+    Falha parcial, falha, cancelamento e permissão negada não contam nem
+    sugerem. O rodapé da barra lateral e o Sobre continuam abrindo o Stripe
+    direto.
   - Sair (`Quit`) encerra o app.
 
 ### Estados
@@ -215,7 +226,9 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
 - Armazenamento local (até a 0.7; na 1.0 o acesso é o `PreferencesStoring` do
   C18): `UserDefaults.standard` via `StoragedValue<T>` (valor em JSON). As chaves das opções são os nomes dos scripts
   (`remove-archives` etc.) mais `display-free-up-space-in-menu-bar` e
-  `launch-at-login`.
+  `launch-at-login`. Na 1.0, `successful-cleanup-count` (C31, `Int`) conta as
+  limpezas bem-sucedidas para a sugestão de doação; ausente, ilegível ou
+  negativo vale 0, e a chave não entra na migração de domínio.
 - Sincronização ou serviços externos:
   - GitHub raw (`VERSION_FILE_URL` em `Config.xcconfig` → `Info.plist`) para
     a versão e o DMG;

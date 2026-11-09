@@ -100,6 +100,8 @@ Settings are pages in the sidebar, under Settings. Open them with ⌘, (CleanerX
   - anonymous usage statistics (see [PRIVACY.md](PRIVACY.md)).
 - **About:** version, updates, links, the dedication and donations.
 
+Every fifth successful cleanup, the result also asks for support: "Support the project" opens a short note about donating, with "Donate any amount" (Stripe, in your browser) and "Not now". "Close" dismisses the result as usual.
+
 ## Updates
 
 CleanerXcode checks GitHub for a new version. When there is one, a small round button with an arrow appears next to the version, at the bottom of the sidebar and on the About page; it opens the download.

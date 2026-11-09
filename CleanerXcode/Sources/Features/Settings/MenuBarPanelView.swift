@@ -10,7 +10,9 @@ import SwiftUI
 
 /// The menu bar panel (flow 2.3, item 6; Figma page 05): the total, the main action, Settings
 /// (the main window on General since C40), "Open CleanerXcode" and Quit. A plan that needs a
-/// confirmation opens the main window, which shows it; the panel never asks on its own.
+/// confirmation opens the main window, which shows it; the panel never asks on its own. The
+/// success that suggests a donation offers "Support the project", which opens the main window
+/// with the support sheet, and "Close" as text under it (C31, Figma 105:238).
 struct MenuBarPanelView: View {
 
     // MARK: - Environments
@@ -75,6 +77,10 @@ struct MenuBarPanelView: View {
 
             if let action = content.actions.first {
                 primaryButton(action)
+            }
+
+            if let action = MenuBarPresentation.textAction(in: content.actions) {
+                textButton(action)
             }
 
             footer(content)
@@ -171,7 +177,7 @@ struct MenuBarPanelView: View {
         let button = Button {
             perform(action.kind)
         } label: {
-            Text(title)
+            primaryLabel(action, title: title)
                 .font(.title3.weight(.semibold))
                 .frame(maxWidth: .infinity, minHeight: 28)
         }
@@ -181,13 +187,48 @@ struct MenuBarPanelView: View {
             isDeletingSimulators: isDeletingSimulators
         ))
 
-        if action.style == .destructive {
+        switch action.style {
+        case .destructive:
             button
                 .buttonStyle(.glassProminent)
                 .tint(.red)
-        } else {
+
+        case .support:
+            button
+                .buttonStyle(.glassProminent)
+                .tint(Palette.support)
+
+        case .prominent, .secondary, .plain:
             button.buttonStyle(.glassProminent)
         }
+    }
+
+    @ViewBuilder
+    private func primaryLabel(_ action: HeroContent.Action, title: LocalizedStringResource) -> some View {
+        if action.style == .support {
+            Label {
+                Text(title)
+            } icon: {
+                Image(systemName: "heart.fill")
+                    .accessibilityHidden(true)
+            }
+        } else {
+            Text(title)
+        }
+    }
+
+    private func textButton(_ action: HeroContent.Action) -> some View {
+        Button {
+            perform(action.kind)
+        } label: {
+            Text(action.title)
+                .font(.system(size: 13))
+                .padding(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .subtleTransition()
     }
 
     private func perform(_ kind: HeroContent.Action.Kind) {
@@ -215,10 +256,18 @@ struct MenuBarPanelView: View {
             }
 
         case .toggleDetails:
-            openMainWindow()
+            break
 
         case .openPrivacySettings:
             openURL(HeroContent.fullDiskAccessURL)
+
+        case .supportProject:
+            // Before the window opens, so it shows the sheet as soon as it appears.
+            viewModel.supportProject()
+        }
+
+        if MenuBarPresentation.opensMainWindow(for: kind) {
+            openMainWindow()
         }
     }
 
@@ -293,6 +342,15 @@ struct MenuBarLabelView: View {
 
     #Preview("Panel · success") {
         MenuBarPanelPreview(.finished(.success))
+    }
+
+    #Preview("Panel · donation prompt") {
+        MenuBarPanelPreview(.donationPrompt)
+    }
+
+    #Preview("Dark · Panel · donation prompt") {
+        MenuBarPanelPreview(.donationPrompt)
+            .preferredColorScheme(.dark)
     }
 
     #Preview("Panel · partial failure") {

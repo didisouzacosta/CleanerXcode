@@ -13,13 +13,16 @@ import Observation
 /// (C40 · tempo real), never during a cleanup (R1); it asks before plans with
 /// attention or danger, or that would close Xcode-related work or the simulators (R5, F31); it
 /// runs plans through the executor and keeps the report on screen until the user dismisses it.
-/// Analytics and error reports only go through their protocols, in `CleanupOutcomeReporter`.
+/// Every fifth successful cleanup suggests a donation (C31). Analytics and error reports only go
+/// through their protocols: the cleanup's in `CleanupOutcomeReporter`, `donate` from the sheet.
 @Observable
 final class CleanerViewModel {
 
     // MARK: - Public Properties
 
     let categories: [CleanupCategory]
+    /// The donation suggestion and its sheet (C31), forwarded in `CleanerViewModel+Donation`.
+    let donation: DonationPrompt
 
     private(set) var phase: CleanerPhase = .measuring(first: true)
     private(set) var rows: [CleanupCategoryID: CategoryRowState]
@@ -141,6 +144,7 @@ final class CleanerViewModel {
         self.preferences = preferences
         self.runningApplications = runningApplications
         self.reporter = CleanupOutcomeReporter(analytics: analytics, errorReporter: errorReporter)
+        self.donation = DonationPrompt(preferences: preferences, analytics: analytics)
         self.temporaryPolicy = TemporaryItemsPolicy(
             minimumAgeInDays: minimumTemporaryAgeInDays,
             appBundleIdentifier: appBundleIdentifier
@@ -323,6 +327,7 @@ final class CleanerViewModel {
     func dismissReport() {
         guard phase.report != nil else { return }
 
+        donation.reportDismissed()
         phase = idlePhase()
     }
 
@@ -437,6 +442,7 @@ final class CleanerViewModel {
     private func run(_ plan: CleanupPlan) async {
         activationTask?.cancel()
         measurementTask?.cancel()
+        donation.cleanupStarted()
         phase = .cleaning(CleanupProgress(totalCategories: plan.categories.count))
         reporter.started()
 
@@ -448,6 +454,9 @@ final class CleanerViewModel {
 
         cleanupTask = nil
         reporter.finished(report, for: plan)
+
+        // Before the phase, so the success never shows OK for a frame before the suggestion.
+        donation.cleanupFinished(report)
 
         let wasDenied = report.failedResults.contains { $0.outcome == .failed(.permissionDenied) }
         phase = report.outcome != .cancelled && wasDenied ? .permissionDenied(report) : .finished(report)

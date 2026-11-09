@@ -80,6 +80,12 @@
                 catalog.categories.forEach { preferences.setSelected($0.id, false) }
             } else if case .confirming = scenario {
                 preferences.setSelected(.removeArchives, true)
+            } else if scenario.suggestsDonation {
+                // The next success is the one that suggests a donation (C31).
+                preferences.set(
+                    DonationPromptPolicy().interval - 1,
+                    for: DonationPrompt.successfulCleanupCountKey
+                )
             }
 
             return CleanerViewModel(
@@ -103,10 +109,15 @@
             case .confirming, .confirmingWhileXcodeIsOpen:
                 await viewModel.requestClean()
 
-            case .cleaning, .finished, .permissionDenied:
+            case .cleaning, .finished, .permissionDenied, .donationPrompt:
                 // `confirm()` does nothing when the plan ran without a confirmation.
                 await viewModel.requestClean()
                 await viewModel.confirm()
+
+            case .supportSheet:
+                await viewModel.requestClean()
+                await viewModel.confirm()
+                viewModel.supportProject()
 
             case .cancelling:
                 await cancelARunningCleanup(viewModel)
@@ -153,6 +164,16 @@
             case xcodeOpen
             case simulatorOpen
             case toolsUnavailable
+            /// The fifth successful cleanup, which suggests a donation (C31).
+            case donationPrompt
+            /// "Support the project" pressed on that success: the sheet over the usual one.
+            case supportSheet
+
+            // MARK: - Public Properties
+
+            var suggestsDonation: Bool {
+                self == .donationPrompt || self == .supportSheet
+            }
         }
 
     }
@@ -205,6 +226,7 @@
         let phase: CleanerPhase
 
         var isShowingDetails = false
+        var suggestsDonation = false
 
         var body: some View {
             ActionBarView(content: content) { _ in }
@@ -221,7 +243,8 @@
                 totalBytes: 35_800_000_000,
                 foundBytes: 87_700_000_000,
                 measuredCategoryCount: 15,
-                categoryCount: 15
+                categoryCount: 15,
+                suggestsDonation: suggestsDonation
             )
 
             return ActionBarContent(hero: hero, phase: phase, isShowingDetails: isShowingDetails)
@@ -362,6 +385,9 @@
 
             case let .finished(outcome):
                 return report(outcome)
+
+            case .donationPrompt, .supportSheet:
+                return report(.success)
 
             case .permissionDenied:
                 return CleanupReport(results: [result(.removeArchives, .failed(.permissionDenied))])

@@ -135,6 +135,38 @@ struct MenuBarPresentationTests {
         #expect(MenuBarPresentation.ReviewNote(risks: []) == .appsOpen)
     }
 
+    /// "Support the project" never waits for a simulator deletion, and it opens the main window,
+    /// which shows the sheet (C31); the failures' details also open it.
+    @Test
+    func supportingTheProjectOpensTheMainWindow() {
+        #expect(MenuBarPresentation.isEnabled(.supportProject, isDeletingSimulators: true))
+        #expect(MenuBarPresentation.opensMainWindow(for: .supportProject))
+        #expect(MenuBarPresentation.opensMainWindow(for: .toggleDetails))
+
+        for kind: HeroContent.Action.Kind in [.clean, .cancel, .dismiss, .retry, .openPrivacySettings] {
+            #expect(!MenuBarPresentation.opensMainWindow(for: kind), "\(kind)")
+        }
+
+        #expect(MenuBarPresentation.link(for: [.supportProject, .dismiss]) == .openApp)
+    }
+
+    /// "Close" goes under the main action as text only when it is a plain action (C31).
+    @Test
+    func onlyAPlainSecondActionShowsUnderTheMainOne() {
+        let suggestion = [
+            HeroContent.Action(.supportProject, "Support the project", style: .support),
+            HeroContent.Action(.dismiss, "Close", style: .plain),
+        ]
+        let partial = [
+            HeroContent.Action(.retry, "Try again"),
+            HeroContent.Action(.toggleDetails, "See details", style: .secondary),
+        ]
+
+        #expect(MenuBarPresentation.textAction(in: suggestion)?.kind == .dismiss)
+        #expect(MenuBarPresentation.textAction(in: partial) == nil)
+        #expect(MenuBarPresentation.textAction(in: [suggestion[1]]) == nil, "Never the main action itself.")
+    }
+
     /// A failed run or a permission denial both offer their details from the panel.
     @Test
     func aPermissionDenialAlsoOffersItsDetails() {

@@ -172,6 +172,9 @@ struct CleanerDetailView: View {
 
         case .openPrivacySettings:
             openURL(HeroContent.fullDiskAccessURL)
+
+        case .supportProject:
+            viewModel.supportProject()
         }
     }
 

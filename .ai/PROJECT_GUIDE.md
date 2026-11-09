@@ -196,6 +196,11 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
   `Sources/Core/Update` (`SemanticVersion`, `VersionChecking`).
 - Features (`Sources/Features`):
   - `Cleaner/`: `CleanerViewModel`, `Presentation/` e `Window/` (a janela);
+    desde o C31, `DonationPromptPolicy` (a cada 5 sucessos), `DonationPrompt`
+    (estado e regras da sugestão de doação, dono o `CleanerViewModel`, que os
+    repassa em `CleanerViewModel+Donation`), `Presentation/CleanerWindowSheet`
+    (a única folha da janela: confirmação ou apoio) e
+    `Window/SupportProjectSheet` (folha visual, sem ViewModel);
   - `Simulators/`: a página "Simuladores e runtimes" (`SimulatorsPageView`),
     com o cartão e a folha de download de runtimes desde o C30
     (`RuntimeDownloadCardView`, `RuntimeDownloadSheet`,
@@ -247,7 +252,10 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     `cleaner`, `cleaner_partial_failure`, `simulator_deleted`,
     `simulator_unavailable_deleted`, `runtime_deleted`, `social`, `donate` e
     `update_opened`, sem caminhos nem tamanhos exatos), `HimetricaAnalytics`,
-    `NullAnalytics`, chamados só pelos ViewModels. Também `ErrorReporting` (com
+    `NullAnalytics`, chamados só pelos ViewModels. `donate` registra a abertura
+    do Stripe: rodapé da barra lateral, Sobre e, desde o C31, "Doar qualquer
+    valor" na folha "Apoie o CleanerXcode" (nunca o "Apoiar o projeto" do
+    sucesso, que só abre a folha). Também `ErrorReporting` (com
     `ReportableFailure` e `ReportingStage`), `NullErrorReporter`,
     `SentryErrorReporter`, `ErrorReportingConfiguration` e
     `SentryEventSanitizer`. Só esses dois últimos arquivos do Sentry importam
@@ -400,7 +408,8 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     `failed_categories` vai para `extra` do Sentry). A janela do C20 o usa;
   - `Persistence/`: desde o C18, `PreferencesStoring`,
     `UserDefaultsPreferencesStore` (formato legado `Data` com JSON de
-    `Bool`) e `PreferencesMigrator` (v1→v2, uma vez; valores salvos
+    `Bool`; os `Int`, como `successful-cleanup-count` do C31, ficam crus) e
+    `PreferencesMigrator` (v1→v2, uma vez; valores salvos
     preservados; `launch-at-login` entregue ao `SMAppService` uma vez) e,
     desde o C33, `PreferencesDomainMigrator`: cópia crua, uma vez (marcador
     `legacy-domain-migration-version`), sem sobrescrever e sem copiar o schema,
@@ -441,7 +450,16 @@ existente por conta própria.
 - Fonte de verdade de cada estado:
   - `CleanerViewModel`: fase da janela (`CleanerPhase`), linhas por categoria,
     seleção (persistida no `PreferencesStoring`), restrições de apps abertos e
-    o relatório da última limpeza;
+    o relatório da última limpeza; desde o C31, o `donation`
+    (`DonationPrompt`): `suggestsDonation` e `isShowingSupportSheet`, com as
+    intenções `supportProject()` (abre a folha e consome a sugestão, sem
+    evento), `donateFromSupportSheet()` (registra `donate` uma vez e fecha) e
+    `dismissSupportSheet()`. O `run(_:)` zera os dois ao começar e, depois do
+    relatório e antes de publicar a fase, conta o sucesso em
+    `successful-cleanup-count` (ausente ou negativo vale 0, sem estourar) e
+    decide a sugestão; `dismissReport()` a zera. Tudo no main actor, sem
+    `Task` nova; cancelado, falha, falha parcial e permissão negada não
+    contam;
   - `SimulatorsViewModel`: fase das listas, simuladores, runtimes, seleção e a
     confirmação pendente; `loadOnActivation()` lista só na primeira ativação
     da janela (a partir de `idle`), e `loadIfNeeded()`, ao abrir a página

@@ -10,8 +10,9 @@ import SwiftUI
 /// The single window (R14, Figma page 08): a native sidebar with the overview, the four cleanup
 /// sections, "Simulators and runtimes" and the Settings pages (C40), and a detail column that
 /// scrolls under the fixed action bar. The selected page is kept per window; "Settings…" (⌘,) and
-/// the panel's gear choose it through the `AppRouter`. The cleanup confirmation sheet lives here, so it
-/// shows on any page and when the menu bar panel asks for it.
+/// the panel's gear choose it through the `AppRouter`. The window's only sheet lives here, so it
+/// shows on any page and when the menu bar panel asks for it: the cleanup confirmation or, after
+/// "Support the project", "Support CleanerXcode" (C31).
 struct CleanerWindowView: View {
 
     // MARK: - States
@@ -55,8 +56,14 @@ struct CleanerWindowView: View {
                 versionText: versionText
             )
         }
-        .sheet(isPresented: isConfirming) {
-            CleanupConfirmationSheet(viewModel: viewModel)
+        .sheet(item: presentedSheet) { sheet in
+            switch sheet {
+            case .confirmation:
+                CleanupConfirmationSheet(viewModel: viewModel)
+
+            case .support:
+                SupportProjectSheet(onDonate: viewModel.donateFromSupportSheet)
+            }
         }
         .focusedSceneValue(\.sidebarDestination, $destination)
         .onChange(of: viewModel.phase.report) { oldReport, _ in
@@ -75,18 +82,15 @@ struct CleanerWindowView: View {
 
     // MARK: - Private Properties
 
-    /// Closing the sheet only cancels while it is still a confirmation, never a running cleanup.
-    private var isConfirming: Binding<Bool> {
+    /// Closing the confirmation only cancels while it is still a confirmation, never a running
+    /// cleanup; closing the support sheet in any way only closes it.
+    private var presentedSheet: Binding<CleanerWindowSheet?> {
         Binding {
-            if case .confirming = viewModel.phase {
-                true
-            } else {
-                false
-            }
-        } set: { isPresented in
-            guard !isPresented, case .confirming = viewModel.phase else { return }
+            CleanerWindowSheet.resolve(phase: viewModel.phase, isShowingSupportSheet: viewModel.isShowingSupportSheet)
+        } set: { sheet in
+            guard sheet == nil else { return }
 
-            viewModel.cancel()
+            closeSheet()
         }
     }
 
@@ -116,6 +120,14 @@ struct CleanerWindowView: View {
     }
 
     // MARK: - Private Methods
+
+    private func closeSheet() {
+        if case .confirming = viewModel.phase {
+            viewModel.cancel()
+        } else {
+            viewModel.dismissSupportSheet()
+        }
+    }
 
     /// `OverviewPresentation.closesFailures` decides; a first report keeps the previews' state.
     private func closeFailures(after oldReport: CleanupReport?) {
@@ -183,6 +195,24 @@ struct CleanerWindowView: View {
 
     #Preview("Partial failure · details open") {
         CleanerWindowPreview(.finished(.partialFailure), isShowingFailures: true)
+    }
+
+    #Preview("Success · donation prompt") {
+        CleanerWindowPreview(.donationPrompt)
+    }
+
+    #Preview("Dark · Success · donation prompt") {
+        CleanerWindowPreview(.donationPrompt)
+            .preferredColorScheme(.dark)
+    }
+
+    #Preview("Support sheet") {
+        CleanerWindowPreview(.supportSheet)
+    }
+
+    #Preview("Dark · Support sheet") {
+        CleanerWindowPreview(.supportSheet)
+            .preferredColorScheme(.dark)
     }
 
     #Preview("Failure") {

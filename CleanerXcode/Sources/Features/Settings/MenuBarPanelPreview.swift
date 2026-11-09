@@ -63,6 +63,8 @@
             case cleaning
             case finished(CleanupReport.Outcome)
             case permissionDenied
+            /// The fifth successful cleanup, which suggests a donation (C31).
+            case donationPrompt
 
             // MARK: - Public Properties
 
@@ -74,6 +76,7 @@
                 case .cleaning: .cleaning
                 case let .finished(outcome): .finished(outcome)
                 case .permissionDenied: .permissionDenied
+                case .donationPrompt: .donationPrompt
                 }
             }
 

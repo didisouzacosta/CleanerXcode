@@ -79,6 +79,19 @@ enum MenuBarPresentation {
         actions.contains(.toggleDetails) || actions.contains(.openPrivacySettings) ? .seeDetails : .openApp
     }
 
+    /// The failures' details live in the main window, and so does the support sheet (C31).
+    static func opensMainWindow(for kind: HeroContent.Action.Kind) -> Bool {
+        switch kind {
+        case .toggleDetails, .supportProject: true
+        case .clean, .cancel, .dismiss, .retry, .openPrivacySettings: false
+        }
+    }
+
+    /// The text button under the main action: "Close" next to the donation suggestion (C31).
+    static func textAction(in actions: [HeroContent.Action]) -> HeroContent.Action? {
+        actions.dropFirst().first { $0.style == .plain }
+    }
+
     // MARK: - Nested Types
 
     /// Why the plan waits for the main window: the riskiest kind it holds, or an open app.

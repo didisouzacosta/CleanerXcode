@@ -128,9 +128,32 @@ struct ActionBarContentTests {
         #expect(bar.suffix == .freed)
         #expect(bar.symbol?.tint == .success)
 
-        for kind: HeroContent.Action.Kind in [.clean, .retry, .toggleDetails, .openPrivacySettings] {
+        for kind: HeroContent.Action.Kind in [.clean, .retry, .toggleDetails, .openPrivacySettings, .supportProject] {
             #expect(bar.shortcut(for: kind) == nil, "\(kind)")
         }
+    }
+
+    /// With the donation suggestion (C31), "Close" sits on the left and keeps Return; "Support
+    /// the project" is the main action on the right, with no shortcut.
+    @Test
+    func theDonationSuggestionKeepsCloseOnTheLeft() {
+        let phase = CleanerPhase.finished(CleanupReport(results: [result(.removed)]))
+        let hero = HeroContent(
+            phase: phase,
+            totalBytes: 0,
+            foundBytes: 0,
+            measuredCategoryCount: 3,
+            categoryCount: 15,
+            suggestsDonation: true
+        )
+        let bar = ActionBarContent(hero: hero, phase: phase, isShowingDetails: false)
+
+        #expect(bar.actions.map(\.kind) == [.dismiss, .supportProject])
+        #expect(bar.actions.map(\.style) == [.plain, .support])
+        #expect(bar.shortcut(for: .dismiss) == .default)
+        #expect(bar.shortcut(for: .supportProject) == nil)
+        #expect(bar.symbol?.tint == .success)
+        #expect(bar.suffix == .freed)
     }
 
     // MARK: - Private Methods

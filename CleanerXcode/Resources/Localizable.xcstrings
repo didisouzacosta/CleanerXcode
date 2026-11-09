@@ -3386,6 +3386,86 @@
           }
         }
       }
+    },
+    "Enjoying it? Any amount helps — 100% goes to shelters and hospitals" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gostou? Qualquer valor ajuda — 100% vai para abrigos e hospitais"
+          }
+        }
+      }
+    },
+    "Close" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fechar"
+          }
+        }
+      }
+    },
+    "Support CleanerXcode" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apoie o CleanerXcode"
+          }
+        }
+      }
+    },
+    "CleanerXcode is free and open source. Your donation, of any amount, goes a long way to keep the project going — and all of it goes to shelters and hospitals." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O CleanerXcode é gratuito e open source. Sua doação, de qualquer valor, ajuda muito a manter o projeto — e todo o valor arrecadado vai para abrigos e hospitais."
+          }
+        }
+      }
+    },
+    "Any amount · 100% goes to shelters and hospitals" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qualquer valor · 100% vai para abrigos e hospitais"
+          }
+        }
+      }
+    },
+    "Donate any amount" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doar qualquer valor"
+          }
+        }
+      }
+    },
+    "Not now" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agora não"
+          }
+        }
+      }
+    },
+    "Secure payment by Stripe, in your browser. The app never sees your payment details." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagamento seguro pelo Stripe, no navegador. O app não recebe nenhum dado do pagamento."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

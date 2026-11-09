@@ -3114,3 +3114,62 @@ a ausência de analytics continuam.
 - **Download real (AC22-live, 2026-11-09):** o dono baixou de verdade uma versão
   anterior, e funcionou. Ainda não foram conferidas a folha sem rede e uma versão
   recusada pelo `xcodebuild`.
+
+## Implementação do C31 (2026-11-09)
+
+Card C31 (AC32, https://trello.com/c/VpYLmbEg). Pedido do dono: sugerir a doação
+a cada N limpezas. Nível 2: estado novo no `CleanerViewModel`, persistência nova
+(`successful-cleanup-count`) e analytics. Numeração própria do cartão (C31 · R1–R10,
+N1–N6, AC1–AC13).
+
+- **Decisões do dono (2026-11-09):** N = 5 (`DonationPromptPolicy.interval`). Depois
+  de "Apoiar o projeto", a sugestão é consumida e o resultado volta ao sucesso comum
+  com OK (Q1). O painel da barra de menus mostra a mesma sugestão, com "Fechar" em
+  texto abaixo do botão rosa, e "Apoiar" abre a janela principal com a folha (Q2).
+  Rodapé e Sobre continuam abrindo o Stripe direto (Q3). `donate` é registrado em
+  "Doar qualquer valor" na folha, nunca em "Apoiar o projeto", que só abre a folha;
+  `docs/PRIVACY.md` não muda (Q4). Nota da folha: "Pagamento seguro pelo Stripe, no
+  navegador. O app não recebe nenhum dado do pagamento." (Q5).
+- **Frames aprovados:** página 08, linha y=9400: `102:9568`/`102:9737` (sucesso com
+  a sugestão, claro/escuro) e `102:9906`/`102:9999` (folha sobre o sucesso comum);
+  página 05: `105:238`/`105:261` (painel). Base: `Glass/Button Estado=Apoiar`
+  (`18:158`) e `Sheet/Apoiar o projeto` (`18:274`, 400×390).
+- **Contagem:** cada limpeza com `CleanupReport.outcome == .success` soma 1 em
+  `successful-cleanup-count` (`Int` cru no `PreferencesStoring`), inclusive "Tentar
+  de novo" que termina em sucesso; ausente, ilegível ou negativo vale 0, sem estourar
+  `Int.max`. Falha parcial, falha, cancelamento e permissão negada não contam. Sem
+  migração: a chave não entra em `legacyDomainKeys`.
+- **Estado:** `DonationPrompt` (`@Observable`, do `CleanerViewModel`, repassado em
+  `CleanerViewModel+Donation`) guarda `suggestsDonation` e `isShowingSupportSheet`.
+  Divergência do plano: o estado e as regras ficaram nesse modelo em vez de
+  diretamente no `CleanerViewModel`, porque o arquivo passaria do limite de 500
+  linhas do SwiftLint; a API vista pelas Views e pelos testes é a do plano, e a chave
+  é `DonationPrompt.successfulCleanupCountKey`.
+- **Apresentação:** `HeroContent` recebe `suggestsDonation`; só o sucesso muda: o
+  detalhe passa a "Gostou? Qualquer valor ajuda — 100% vai para abrigos e
+  hospitais" e as ações a `supportProject` (`.support`) e `dismiss` "Fechar"
+  (`.plain`). A barra de ação põe as ações não principais à esquerda; "Fechar" mantém
+  Return e "Apoiar" não tem atalho. A janela tem um único `.sheet(item:)` sobre
+  `CleanerWindowSheet` (a confirmação tem prioridade e fechar só a cancela enquanto
+  confirma). `SupportProjectSheet` é visual, sem ViewModel: "Doar qualquer valor"
+  abre `Constants.donateURL`, chama `donateFromSupportSheet()` e fecha; "Agora não"
+  e Esc só fecham.
+- **Conferência visual (AC11, 2026-11-09):** com a Gravação de Tela liberada no
+  terminal, um teste temporário abriu cada estado numa janela ativa (pt-BR) e o
+  terminal capturou a janela real, com o vidro e o rosa desenhados. Comparação com os
+  frames aprovados:
+  - a captura revelou 10 pt a menos acima de "Doar qualquer valor" (o componente tem
+    10 + 6 + 10). Corrigido em `SupportProjectSheet` (`.padding(.top, 16)`), com
+    re-revisão do Manager aprovada;
+  - os frames do C31 foram ajustados às métricas nativas, sem mudar o código: sem a
+    sombra rosa do componente `Glass/Button Apoiar` (o vidro nativo não a desenha),
+    botão da barra com 204 pt e margem direita de 10, mensagem da folha com
+    entrelinha 15 e o painel com margens de 9/11 pt;
+  - resultado, geral / layout com o texto mascarado / layout sem o ícone do app (a
+    arte do Figma é outra): barra 92,4 / 97,0 (claro) e 91,7 / 95,9 (escuro); folha
+    91,8 / 95,3 / 98,6 (claro) e 91,4 / 95,2 / 98,7 (escuro); painel 88,9 / 94,3
+    (claro) e 87,9 / 92,9 (escuro). A barra do sucesso comum, sem mudança no código,
+    mede 95,3 / 99,3 no mesmo método;
+  - o que sobra: o anel de borda do vidro em volta do botão rosa (barra e folha), o
+    fundo do painel (vidro sobre o papel de parede no Figma, fundo da janela no teste)
+    e a suavização do texto no geral. As posições batem a até 4 pt.

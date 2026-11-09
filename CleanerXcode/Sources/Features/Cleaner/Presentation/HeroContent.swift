@@ -42,11 +42,20 @@ struct HeroContent {
             totalBytes: viewModel.totalBytes,
             foundBytes: viewModel.foundBytes,
             measuredCategoryCount: viewModel.measuredCategoryCount,
-            categoryCount: viewModel.categories.count
+            categoryCount: viewModel.categories.count,
+            suggestsDonation: viewModel.suggestsDonation
         )
     }
 
-    init(phase: CleanerPhase, totalBytes: Int64, foundBytes: Int64, measuredCategoryCount: Int, categoryCount: Int) {
+    /// `suggestsDonation` only changes a success (C31): any other phase ignores it.
+    init(
+        phase: CleanerPhase,
+        totalBytes: Int64,
+        foundBytes: Int64,
+        measuredCategoryCount: Int,
+        categoryCount: Int,
+        suggestsDonation: Bool = false
+    ) {
         let total = Self.format(totalBytes)
 
         switch phase {
@@ -100,7 +109,7 @@ struct HeroContent {
             )
 
         case let .finished(report):
-            self.init(report: report)
+            self.init(report: report, suggestsDonation: suggestsDonation)
 
         case let .permissionDenied(report):
             self.init(permissionDenied: report)
@@ -162,7 +171,7 @@ struct HeroContent {
         )
     }
 
-    private init(report: CleanupReport) {
+    private init(report: CleanupReport, suggestsDonation: Bool) {
         let freed = Self.format(report.freedBytes)
         let finished = report.finishedCategoryCount
         let failedCategories = report.failedCategoryIDs.count
@@ -171,17 +180,20 @@ struct HeroContent {
         switch report.outcome {
         case .success:
             let trashed = Self.format(report.trashedBytes)
+            let summary = report.trashedBytes > 0
+                ? "\(cleaned) · \(String(localized: "\(trashed) went to the Trash"))"
+                : cleaned
 
             self.init(
                 eyebrow: "Cleanup finished",
                 amount: freed,
                 isFreedAmount: report.freedBytes > 0,
                 isAmountDimmed: report.freedBytes == 0,
-                detail: report.trashedBytes > 0
-                    ? "\(cleaned) · \(String(localized: "\(trashed) went to the Trash"))"
-                    : cleaned,
+                detail: suggestsDonation
+                    ? String(localized: "Enjoying it? Any amount helps — 100% goes to shelters and hospitals")
+                    : summary,
                 symbol: Symbol(name: "checkmark.circle.fill", tint: .success),
-                actions: [Action(.dismiss, "OK", style: .secondary)]
+                actions: suggestsDonation ? Action.donationSuggestion : [Action(.dismiss, "OK", style: .secondary)]
             )
 
         case .partialFailure:
@@ -263,6 +275,15 @@ struct HeroContent {
 
         // MARK: - Public Properties
 
+        /// The success that suggests a donation (C31): supporting the project is the main action
+        /// and "Close" stays as a text button.
+        static var donationSuggestion: [Action] {
+            [
+                Action(.supportProject, "Support the project", style: .support),
+                Action(.dismiss, "Close", style: .plain),
+            ]
+        }
+
         let kind: Kind
         let title: LocalizedStringResource
         let style: Style
@@ -301,12 +322,17 @@ struct HeroContent {
             case retry
             case toggleDetails
             case openPrivacySettings
+            case supportProject
         }
 
         enum Style: Hashable {
             case prominent
             case destructive
             case secondary
+            /// Pink, with a heart: supporting the project (C31).
+            case support
+            /// Text only, with less emphasis than a glass button.
+            case plain
         }
 
     }

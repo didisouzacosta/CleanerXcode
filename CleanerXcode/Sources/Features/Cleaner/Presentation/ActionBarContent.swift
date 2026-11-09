@@ -9,8 +9,8 @@ import Foundation
 
 /// The fixed action bar at the bottom of the window (Figma page 08), adapted from `HeroContent`,
 /// which stays the only source of each phase's texts and actions. The main action always comes
-/// last, on the right, and only Cancel and OK have keyboard shortcuts: nothing starts a cleanup
-/// from the keyboard (R39).
+/// last, on the right, and only Cancel and OK (or Close) have keyboard shortcuts: nothing starts a
+/// cleanup from the keyboard (R39), and supporting the project needs a click (C31).
 struct ActionBarContent {
 
     // MARK: - Public Properties
@@ -72,8 +72,8 @@ struct ActionBarContent {
         }
     }
 
-    /// The secondary actions on the left, the main one last; "See details" becomes "Hide details"
-    /// while they are open.
+    /// The secondary and text actions on the left, the main one last; "See details" becomes "Hide
+    /// details" while they are open.
     private static func actions(_ actions: [HeroContent.Action], isShowingDetails: Bool) -> [HeroContent.Action] {
         let retitled = actions.map { action in
             guard action.kind == .toggleDetails, isShowingDetails else { return action }
@@ -81,7 +81,14 @@ struct ActionBarContent {
             return HeroContent.Action(.toggleDetails, "Hide details", style: action.style, isEnabled: action.isEnabled)
         }
 
-        return retitled.filter { $0.style == .secondary } + retitled.filter { $0.style != .secondary }
+        return retitled.filter { !isMain($0) } + retitled.filter(isMain)
+    }
+
+    private static func isMain(_ action: HeroContent.Action) -> Bool {
+        switch action.style {
+        case .prominent, .destructive, .support: true
+        case .secondary, .plain: false
+        }
     }
 
     // MARK: - Public Methods
@@ -91,7 +98,7 @@ struct ActionBarContent {
         switch kind {
         case .cancel: .cancel
         case .dismiss: .default
-        case .clean, .retry, .toggleDetails, .openPrivacySettings: nil
+        case .clean, .retry, .toggleDetails, .openPrivacySettings, .supportProject: nil
         }
     }
 

@@ -158,6 +158,58 @@ struct HeroContentTests {
         }
     }
 
+    /// The fifth, tenth… success suggests a donation instead of OK (C31): the main action supports
+    /// the project and "Close" stays as a text button.
+    @Test
+    func aSuccessCanSuggestADonation() {
+        let content = hero(.finished(CleanupReport(results: [result(.removed)])), suggestsDonation: true)
+
+        #expect(content.actions.map(\.kind) == [.supportProject, .dismiss])
+        #expect(content.actions.map(\.style) == [.support, .plain])
+        #expect(content.actions.map(\.title.key) == ["Support the project", "Close"])
+        #expect(content.actions.allSatisfy { $0.isEnabled })
+        #expect(
+            content.detail == String(localized: "Enjoying it? Any amount helps — 100% goes to shelters and hospitals")
+        )
+        #expect(content.symbol?.tint == .success)
+        #expect(content.isFreedAmount)
+    }
+
+    @Test
+    func withoutTheSuggestionASuccessKeepsOK() {
+        let content = hero(.finished(CleanupReport(results: [result(.removed)])))
+
+        #expect(content.actions.map(\.kind) == [.dismiss])
+        #expect(content.actions.map(\.style) == [.secondary])
+        #expect(content.actions.map(\.title.key) == ["OK"])
+        #expect(content.detail == String(localized: "\(1) categories cleaned"))
+    }
+
+    /// Never on any other outcome or phase, even if the flag were left on (R6).
+    @Test
+    func onlyASuccessShowsTheSuggestion() {
+        let partial = CleanupReport(results: [result(.removed), result(.failed(.inUse), id: .removeCaches)])
+        let failure = CleanupReport(results: [result(.failed(.inUse))])
+        let cancelled = CleanupReport(results: [result(.removed)], wasCancelled: true)
+
+        for phase: CleanerPhase in [
+            .ready,
+            .measuring(first: false),
+            .cancelling(freedBytes: 1),
+            .finished(partial),
+            .finished(failure),
+            .finished(cancelled),
+            .permissionDenied(failure),
+        ] {
+            let plain = hero(phase)
+            let flagged = hero(phase, suggestsDonation: true)
+
+            #expect(flagged.actions.map(\.kind) == plain.actions.map(\.kind), "\(phase)")
+            #expect(flagged.actions.map(\.style) == plain.actions.map(\.style), "\(phase)")
+            #expect(flagged.detail == plain.detail, "\(phase)")
+        }
+    }
+
     /// The window no longer lists the categories below the total (Figma page 08).
     @Test
     func nothingSelectedNoLongerPointsBelow() {
@@ -166,13 +218,14 @@ struct HeroContentTests {
 
     // MARK: - Private Methods
 
-    private func hero(_ phase: CleanerPhase, totalBytes: Int64 = 0) -> HeroContent {
+    private func hero(_ phase: CleanerPhase, totalBytes: Int64 = 0, suggestsDonation: Bool = false) -> HeroContent {
         HeroContent(
             phase: phase,
             totalBytes: totalBytes,
             foundBytes: totalBytes,
             measuredCategoryCount: 3,
-            categoryCount: 15
+            categoryCount: 15,
+            suggestsDonation: suggestsDonation
         )
     }
 
