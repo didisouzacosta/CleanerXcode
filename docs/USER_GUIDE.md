@@ -104,4 +104,9 @@ Every fifth successful cleanup, the result also asks for support: "Support the p
 
 ## Updates
 
-CleanerXcode checks GitHub for a new version. When there is one, a small round button with an arrow appears next to the version, at the bottom of the sidebar and on the About page; it opens the download.
+CleanerXcode checks for a new version once a day. When there is one, it shows the release notes and installs the update after you confirm, then reopens. A small round button with an arrow also appears next to the version, at the bottom of the sidebar and on the About page; it opens the same update window.
+
+- **Check now:** CleanerXcode › Check for Updates…, or Settings › General › Updates › Check Now.
+- **Automatic checks:** turn "Check for updates automatically" off in Settings › General › Updates.
+- Every update is signed: CleanerXcode refuses a download that was not signed by its developer.
+- A build from source without the update settings checks [`resources/version.json`](../resources/version.json) instead and opens the download page.

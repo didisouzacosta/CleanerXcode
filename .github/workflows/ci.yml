@@ -1,0 +1,72 @@
+# Checks every pull request (C42): lint, the release tools' tests, the unit tests and an
+# unsigned Release build. It needs no secret, so pull requests from forks run it safely.
+# The release workflow calls it before publishing.
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  XCODE_PATH: /Applications/Xcode_27.2.app
+  DERIVED_DATA: ${{ github.workspace }}/.build/DerivedData
+
+jobs:
+  checks:
+    name: Lint, tests and Release build
+    runs-on: xcode-27
+    timeout-minutes: 60
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Select Xcode 27.2
+        run: |
+          sudo xcode-select --switch "$XCODE_PATH"
+          xcodebuild -version
+
+      - name: Cache Swift packages and lint tools
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ${{ env.DERIVED_DATA }}/SourcePackages
+            ~/Library/Caches/swift-quality-tools
+          key: spm-${{ runner.os }}-${{ hashFiles('CleanerXcode.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'scripts/lint-swift.sh') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Lint
+        run: |
+          scripts/install-swift-tools.sh
+          scripts/lint-swift.sh
+
+      - name: Test the release tools
+        run: python3 -m unittest discover -s scripts/release -p 'test_*.py' -v
+
+      - name: Unit tests
+        run: |
+          xcodebuild test \
+            -project CleanerXcode.xcodeproj \
+            -scheme CleanerXcode \
+            -destination 'platform=macOS' \
+            -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Release build (unsigned)
+        run: |
+          xcodebuild build \
+            -project CleanerXcode.xcodeproj \
+            -scheme CleanerXcode \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO

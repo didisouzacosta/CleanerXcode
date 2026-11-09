@@ -13,13 +13,12 @@
 
         // MARK: - Public Methods
 
-        static func makeViewModel(hasUpdate: Bool = false) -> UpdateViewModel {
-            let checker: any VersionChecking = hasUpdate ? PreviewVersionChecker() : InertVersionChecker()
-
-            return UpdateViewModel(
-                currentVersion: "1.0.0",
-                currentBuild: "115",
-                checker: checker,
+        static func makeViewModel(hasUpdate: Bool = false, supportsUserChecks: Bool = false) -> UpdateViewModel {
+            UpdateViewModel(
+                updater: PreviewSoftwareUpdater(
+                    newerVersion: hasUpdate ? "1.0.1" : nil,
+                    supportsUserChecks: supportsUserChecks
+                ),
                 analytics: NullAnalytics(),
                 errorReporter: NullErrorReporter()
             )
@@ -27,16 +26,37 @@
 
     }
 
-    nonisolated private struct PreviewVersionChecker: VersionChecking {
+    private final class PreviewSoftwareUpdater: SoftwareUpdating {
+
+        // MARK: - Public Properties
+
+        let supportsUserChecks: Bool
+
+        var automaticallyChecksForUpdates = true
+
+        // MARK: - Private Properties
+
+        private let version: String?
+
+        // MARK: - Initializers
+
+        init(newerVersion: String?, supportsUserChecks: Bool) {
+            self.version = newerVersion
+            self.supportsUserChecks = supportsUserChecks
+        }
 
         // MARK: - Public Methods
 
-        func latestVersion() throws -> Version {
-            guard let url = URL(string: "https://example.invalid/CleanerXcode.dmg") else {
-                throw RemoteVersionChecker.CheckError.notConfigured
-            }
+        func newerVersion() -> String? {
+            version
+        }
 
-            return Version(version: "1.0.1", build: "116", downloadURL: url)
+        func presentUpdate() {}
+
+        func checkForUpdates() {}
+
+        func setAutomaticallyChecksForUpdates(_ isOn: Bool) {
+            automaticallyChecksForUpdates = isOn
         }
 
     }

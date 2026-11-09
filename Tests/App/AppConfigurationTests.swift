@@ -37,6 +37,33 @@ struct AppConfigurationTests {
     }
 
     @Test
+    func readsTheSparkleFeedAndKey() {
+        let configuration = AppConfiguration(
+            infoDictionary: [
+                "SUFeedURL": "https://downloads.example.com/appcast.xml",
+                "SUPublicEDKey": "pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=",
+            ]
+        )
+
+        #expect(configuration.sparkleFeedURL == URL(string: "https://downloads.example.com/appcast.xml"))
+        #expect(configuration.sparklePublicKey == "pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=")
+        #expect(configuration.isSparkleConfigured)
+    }
+
+    @Test(arguments: [
+        ["SUFeedURL": "$(SPARKLE_FEED_URL)", "SUPublicEDKey": "key"],
+        ["SUFeedURL": "https://downloads.example.com/appcast.xml", "SUPublicEDKey": ""],
+        ["SUFeedURL": "https:", "SUPublicEDKey": "key"],
+        ["SUFeedURL": "http://downloads.example.com/appcast.xml", "SUPublicEDKey": "key"],
+        [:],
+    ])
+    func sparkleNeedsAnHTTPSFeedAndAKey(infoDictionary: [String: String]) {
+        let configuration = AppConfiguration(infoDictionary: infoDictionary)
+
+        #expect(configuration.isSparkleConfigured == false)
+    }
+
+    @Test
     func readsObservabilityKeysFromInfoDictionary() {
         let configuration = AppConfiguration(
             infoDictionary: [
@@ -106,7 +133,26 @@ struct AppConfigurationTests {
             !applePrefixes.contains { key.hasPrefix($0) }
         })
 
-        #expect(customKeys == ["HIMETRICA_API_KEY", "SENTRY_DSN", "VERSION_FILE_URL"])
+        #expect(customKeys == [
+            "HIMETRICA_API_KEY",
+            "SENTRY_DSN",
+            "VERSION_FILE_URL",
+            "SUAllowsAutomaticUpdates",
+            "SUEnableAutomaticChecks",
+            "SUEnableSystemProfiling",
+            "SUFeedURL",
+            "SUPublicEDKey",
+        ])
+    }
+
+    /// The Updates footer promises that nothing installs without asking (C42): Sparkle must not
+    /// offer silent installs.
+    @Test
+    func sparkleNeverInstallsWithoutAsking() {
+        let infoDictionary = Bundle.main.infoDictionary ?? [:]
+
+        #expect(infoDictionary["SUAllowsAutomaticUpdates"] as? Bool == false)
+        #expect(infoDictionary["SUEnableSystemProfiling"] as? Bool == false)
     }
 
     /// GitHub raw paths are case-sensitive, and the published 0.7.0 reads this same lowercase

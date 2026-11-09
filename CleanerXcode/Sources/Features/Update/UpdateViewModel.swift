@@ -8,37 +8,36 @@
 import Foundation
 import Observation
 
-/// The "Atualizar" button of the footer and the About tab (R16, R17). Only a newer version is
-/// offered; a failed check is never shown and leaves a breadcrumb.
+/// The update button of the footer and the About page (R16, R17), "Check for Updates…" and the
+/// automatic checks switch (C42). Only a newer version is offered; a failed check is never shown
+/// and leaves a breadcrumb.
 @Observable
 final class UpdateViewModel {
 
     // MARK: - Public Properties
 
     /// Read by the composition tests.
-    let checker: any VersionChecking
+    let updater: any SoftwareUpdating
 
-    private(set) var availableUpdate: Version?
+    private(set) var availableVersion: String?
+    private(set) var automaticallyChecksForUpdates: Bool
+
+    var canCheckForUpdates: Bool {
+        updater.supportsUserChecks
+    }
 
     // MARK: - Private Properties
 
-    private let current: SemanticVersion?
     private let analytics: any Analytics
     private let errorReporter: any ErrorReporting
 
     // MARK: - Initializers
 
-    init(
-        currentVersion: String,
-        currentBuild: String,
-        checker: any VersionChecking,
-        analytics: any Analytics,
-        errorReporter: any ErrorReporting
-    ) {
-        self.current = SemanticVersion(currentVersion, build: currentBuild)
-        self.checker = checker
+    init(updater: any SoftwareUpdating, analytics: any Analytics, errorReporter: any ErrorReporting) {
+        self.updater = updater
         self.analytics = analytics
         self.errorReporter = errorReporter
+        self.automaticallyChecksForUpdates = updater.supportsUserChecks && updater.automaticallyChecksForUpdates
     }
 
     // MARK: - Private Static Methods
@@ -50,28 +49,36 @@ final class UpdateViewModel {
     // MARK: - Public Methods
 
     func check() async {
+        // Sparkle's own window can change the automatic checks.
+        automaticallyChecksForUpdates = updater.supportsUserChecks && updater.automaticallyChecksForUpdates
+
         do {
-            let latest = try await checker.latestVersion()
-
-            guard
-                let current, let remote = SemanticVersion(latest.version, build: latest.build),
-                remote > current
-            else {
-                availableUpdate = nil
-                return
-            }
-
-            availableUpdate = latest
+            availableVersion = try await updater.newerVersion()
         } catch {
-            // Closing the window cancels the check: an expected end, not a failure.
+            // Closing the window, or a check that overlaps a running one, cancels it: an expected
+            // end, not a failure, and the version already found stays.
             guard !Self.isCancellation(error) else { return }
 
             errorReporter.breadcrumb(.updateCheckFailed)
         }
     }
 
-    func logUpdateOpened() {
+    func openUpdate() {
+        updater.presentUpdate()
         analytics.log(.updateOpened)
+    }
+
+    func checkForUpdates() {
+        guard canCheckForUpdates else { return }
+
+        updater.checkForUpdates()
+    }
+
+    func setAutomaticallyChecksForUpdates(_ isOn: Bool) {
+        guard canCheckForUpdates else { return }
+
+        updater.setAutomaticallyChecksForUpdates(isOn)
+        automaticallyChecksForUpdates = isOn
     }
 
 }

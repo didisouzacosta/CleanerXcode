@@ -171,19 +171,24 @@ enum AppContainer {
         )
     }
 
-    /// The update check. The test host, previews and the demo never reach the network.
+    /// The updates (C42). The test host, previews and the demo never reach the network. Sparkle
+    /// only runs in a Release build with its feed and key: a Debug build shares the bundle id and
+    /// would be replaced by the published Release. Every other build keeps `version.json`.
     static func makeUpdateViewModel(environment: AppEnvironment, services: AppServices) -> UpdateViewModel {
-        let checker: any VersionChecking = environment.isInert
-            ? InertVersionChecker()
-            : RemoteVersionChecker(url: services.configuration.versionFileURL)
+        let configuration = services.configuration
+        let updater: any SoftwareUpdating = if environment.isInert {
+            InertSoftwareUpdater()
+        } else if !environment.isDebug, configuration.isSparkleConfigured {
+            SparkleSoftwareUpdater(errorReporter: services.errorReporter)
+        } else {
+            VersionFileUpdater(
+                currentVersion: configuration.version ?? "",
+                currentBuild: configuration.build ?? "",
+                checker: RemoteVersionChecker(url: configuration.versionFileURL)
+            )
+        }
 
-        return UpdateViewModel(
-            currentVersion: services.configuration.version ?? "",
-            currentBuild: services.configuration.build ?? "",
-            checker: checker,
-            analytics: services.analytics,
-            errorReporter: services.errorReporter
-        )
+        return UpdateViewModel(updater: updater, analytics: services.analytics, errorReporter: services.errorReporter)
     }
 
     /// The Simulators section. The test host, previews and the demo never run `simctl` nor

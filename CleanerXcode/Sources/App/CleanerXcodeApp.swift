@@ -76,7 +76,7 @@ struct CleanerXcodeApp: App {
         .defaultLaunchBehavior(environment.isRunningTests ? .suppressed : .presented)
         .commands {
             SidebarCommands()
-            CleanerCommands(router: router)
+            CleanerCommands(router: router, updates: updateViewModel)
         }
 
         MenuBarExtra(isInserted: showsMenuBarExtra) {

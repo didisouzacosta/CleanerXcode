@@ -12,4 +12,9 @@ VERSION_FILE_URL = https:/$()/github.com/didisouzacosta/CleanerXcode/raw/refs/he
 HIMETRICA_API_KEY =
 SENTRY_DSN =
 
+// In-app updates with Sparkle (C42). The release workflow fills both from the repository's
+// settings; a build without them falls back to the version.json above.
+SPARKLE_FEED_URL =
+SPARKLE_PUBLIC_ED_KEY =
+
 #include? "Secrets.xcconfig"

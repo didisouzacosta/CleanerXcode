@@ -8,8 +8,8 @@
 import SwiftUI
 
 /// The General page in the detail column (C40): open at login, the menu bar item, the minimum age
-/// of the temporary items and the usage statistics switch (R14, R15, D7), in cards without a
-/// `Form`, as in the approved layout.
+/// of the temporary items, the automatic update checks with Sparkle (C42) and the usage statistics
+/// switch (R14, R15, D7), in cards without a `Form`, as in the approved layout.
 struct GeneralSettingsView: View {
 
     // MARK: - Private Properties
@@ -29,6 +29,7 @@ struct GeneralSettingsView: View {
     // MARK: - Public Properties
 
     let viewModel: SettingsViewModel
+    let updates: UpdateViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -90,6 +91,29 @@ struct GeneralSettingsView: View {
                     .pickerStyle(.menu)
                     .labelsHidden()
                     .fixedSize()
+                }
+            }
+
+            if updates.canCheckForUpdates {
+                SettingsSectionView(
+                    "Updates",
+                    footer: "New versions install after you confirm. Nothing is downloaded without asking."
+                ) {
+                    SettingsRowView(title: "Check for updates automatically") {
+                        SettingsSwitch(
+                            "Check for updates automatically",
+                            isOn: binding(
+                                updates.automaticallyChecksForUpdates,
+                                updates.setAutomaticallyChecksForUpdates
+                            )
+                        )
+                    }
+
+                    SettingsRowDivider()
+
+                    SettingsRowView(title: "Check for a new version now") {
+                        Button("Check Now", action: updates.checkForUpdates)
+                    }
                 }
             }
 
@@ -189,9 +213,12 @@ private struct LoginItemApprovalRow: View {
     }
 
     #Preview("General · login item waiting for approval") {
-        GeneralSettingsView(viewModel: SettingsPreview.makeViewModel(loginItemStatus: .requiresApproval))
-            .padding()
-            .frame(width: 628)
-            .background(Palette.window)
+        GeneralSettingsView(
+            viewModel: SettingsPreview.makeViewModel(loginItemStatus: .requiresApproval),
+            updates: UpdatePreview.makeViewModel(supportsUserChecks: true)
+        )
+        .padding()
+        .frame(width: 628)
+        .background(Palette.window)
     }
 #endif

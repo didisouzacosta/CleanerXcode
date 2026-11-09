@@ -9,8 +9,8 @@ import Foundation
 import Testing
 @testable import CleanerXcode
 
-/// "Atualizar" in the footer and the About tab (R16, R17): only a newer version shows it, network
-/// errors stay silent and become a breadcrumb, and opening it logs `update_opened`.
+/// The update button of the footer and the About page (R16, R17, C42): it shows what the updater
+/// found, errors stay silent and become a breadcrumb, and opening it logs `update_opened`.
 struct UpdateViewModelTests {
 
     // MARK: - Private Properties
@@ -22,43 +22,32 @@ struct UpdateViewModelTests {
 
     @Test
     func aNewerVersionIsOffered() async {
-        let viewModel = makeViewModel(current: "0.9.0", build: "90", remote: .success(version("0.10.0", "100")))
+        let updater = SoftwareUpdaterFake(result: .success("1.0.1"))
+        let viewModel = makeViewModel(updater)
 
-        #expect(viewModel.availableUpdate == nil)
-
-        await viewModel.check()
-
-        #expect(viewModel.availableUpdate?.version == "0.10.0")
-    }
-
-    @Test
-    func theSameOrAnOlderVersionIsNot() async {
-        let same = makeViewModel(current: "1.0.0", build: "115", remote: .success(version("1.0.0", "115")))
-        let older = makeViewModel(current: "1.0.0", build: "115", remote: .success(version("0.7.0", "70")))
-
-        await same.check()
-        await older.check()
-
-        #expect(same.availableUpdate == nil)
-        #expect(older.availableUpdate == nil)
-    }
-
-    @Test
-    func aNewerBuildOfTheSameVersionIsOffered() async {
-        let viewModel = makeViewModel(current: "1.0.0", build: "115", remote: .success(version("1.0.0", "116")))
+        #expect(viewModel.availableVersion == nil)
 
         await viewModel.check()
 
-        #expect(viewModel.availableUpdate?.build == "116")
+        #expect(viewModel.availableVersion == "1.0.1")
     }
 
     @Test
-    func networkErrorsStaySilentAndLeaveABreadcrumb() async {
-        let viewModel = makeViewModel(current: "1.0.0", build: "1", remote: .failure(URLError(.notConnectedToInternet)))
+    func nothingIsOfferedWhenTheAppIsUpToDate() async {
+        let viewModel = makeViewModel(SoftwareUpdaterFake(result: .success(nil)))
 
         await viewModel.check()
 
-        #expect(viewModel.availableUpdate == nil)
+        #expect(viewModel.availableVersion == nil)
+    }
+
+    @Test
+    func errorsStaySilentAndLeaveABreadcrumb() async {
+        let viewModel = makeViewModel(SoftwareUpdaterFake(result: .failure(URLError(.notConnectedToInternet))))
+
+        await viewModel.check()
+
+        #expect(viewModel.availableVersion == nil)
         #expect(errorReporter.stages == [.updateCheckFailed])
         #expect(analytics.events.isEmpty)
     }
@@ -66,8 +55,8 @@ struct UpdateViewModelTests {
     /// Closing the window cancels the check: that is not a failure.
     @Test
     func aCancelledCheckLeavesNoBreadcrumb() async {
-        let cancelled = makeViewModel(current: "1.0.0", build: "1", remote: .failure(CancellationError()))
-        let urlCancelled = makeViewModel(current: "1.0.0", build: "1", remote: .failure(URLError(.cancelled)))
+        let cancelled = makeViewModel(SoftwareUpdaterFake(result: .failure(CancellationError())))
+        let urlCancelled = makeViewModel(SoftwareUpdaterFake(result: .failure(URLError(.cancelled))))
 
         await cancelled.check()
         await urlCancelled.check()
@@ -75,53 +64,123 @@ struct UpdateViewModelTests {
         #expect(errorReporter.stages.isEmpty)
     }
 
+    /// Sparkle answers a check that overlaps a running one with a cancellation: the version it
+    /// already found stays on screen.
     @Test
-    func anUnreadableRemoteVersionIsIgnored() async {
-        let viewModel = makeViewModel(current: "1.0.0", build: "1", remote: .success(version("next", "1")))
+    func aCancelledCheckKeepsTheVersionFound() async {
+        let updater = SoftwareUpdaterFake(result: .success("1.0.1"))
+        let viewModel = makeViewModel(updater)
 
         await viewModel.check()
+        updater.result = .failure(CancellationError())
+        await viewModel.check()
 
-        #expect(viewModel.availableUpdate == nil)
+        #expect(viewModel.availableVersion == "1.0.1")
+    }
+
+    /// The automatic checks can change in Sparkle's own window; each check reads them again.
+    @Test
+    func eachCheckReadsTheAutomaticChecksAgain() async {
+        let updater = SoftwareUpdaterFake(result: .success(nil), supportsUserChecks: true)
+        let viewModel = makeViewModel(updater)
+
+        updater.setAutomaticallyChecksForUpdates(false)
+        await viewModel.check()
+
+        #expect(viewModel.automaticallyChecksForUpdates == false)
     }
 
     @Test
-    func openingTheUpdateIsLogged() async {
-        let viewModel = makeViewModel(current: "0.9.0", build: "1", remote: .success(version("1.0.0", "1")))
+    func openingTheUpdatePresentsItAndIsLogged() async {
+        let updater = SoftwareUpdaterFake(result: .success("1.0.1"))
+        let viewModel = makeViewModel(updater)
+
         await viewModel.check()
+        viewModel.openUpdate()
 
-        viewModel.logUpdateOpened()
-
+        #expect(updater.presentedUpdates == 1)
         #expect(analytics.events.map(\.name) == ["update_opened"])
+    }
+
+    @Test
+    func checkingFromTheMenuGoesToTheUpdater() {
+        let updater = SoftwareUpdaterFake(result: .success(nil), supportsUserChecks: true)
+        let viewModel = makeViewModel(updater)
+
+        viewModel.checkForUpdates()
+
+        #expect(viewModel.canCheckForUpdates)
+        #expect(updater.userChecks == 1)
+    }
+
+    @Test
+    func theMenuCheckIsUnavailableWithoutSparkle() {
+        let updater = SoftwareUpdaterFake(result: .success(nil), supportsUserChecks: false)
+        let viewModel = makeViewModel(updater)
+
+        viewModel.checkForUpdates()
+
+        #expect(viewModel.canCheckForUpdates == false)
+        #expect(updater.userChecks == 0)
+    }
+
+    @Test
+    func automaticChecksFollowTheSwitch() {
+        let updater = SoftwareUpdaterFake(result: .success(nil), supportsUserChecks: true)
+        let viewModel = makeViewModel(updater)
+
+        #expect(viewModel.automaticallyChecksForUpdates)
+
+        viewModel.setAutomaticallyChecksForUpdates(false)
+
+        #expect(viewModel.automaticallyChecksForUpdates == false)
+        #expect(updater.automaticallyChecksForUpdates == false)
     }
 
     // MARK: - Private Methods
 
-    private func makeViewModel(current: String, build: String, remote: Result<Version, any Error>) -> UpdateViewModel {
-        UpdateViewModel(
-            currentVersion: current,
-            currentBuild: build,
-            checker: VersionCheckerStub(result: remote),
-            analytics: analytics,
-            errorReporter: errorReporter
-        )
-    }
-
-    private func version(_ version: String, _ build: String) -> Version {
-        Version(version: version, build: build, downloadURL: URL(filePath: "/app.dmg"))
+    private func makeViewModel(_ updater: SoftwareUpdaterFake) -> UpdateViewModel {
+        UpdateViewModel(updater: updater, analytics: analytics, errorReporter: errorReporter)
     }
 
 }
 
-private struct VersionCheckerStub: VersionChecking {
+private final class SoftwareUpdaterFake: SoftwareUpdating {
 
     // MARK: - Public Properties
 
-    let result: Result<Version, any Error>
+    let supportsUserChecks: Bool
+
+    private(set) var automaticallyChecksForUpdates = true
+
+    private(set) var presentedUpdates = 0
+    private(set) var userChecks = 0
+
+    var result: Result<String?, any Error>
+
+    // MARK: - Initializers
+
+    init(result: Result<String?, any Error>, supportsUserChecks: Bool = false) {
+        self.result = result
+        self.supportsUserChecks = supportsUserChecks
+    }
 
     // MARK: - Public Methods
 
-    func latestVersion() throws -> Version {
+    func newerVersion() throws -> String? {
         try result.get()
+    }
+
+    func presentUpdate() {
+        presentedUpdates += 1
+    }
+
+    func checkForUpdates() {
+        userChecks += 1
+    }
+
+    func setAutomaticallyChecksForUpdates(_ isOn: Bool) {
+        automaticallyChecksForUpdates = isOn
     }
 
 }

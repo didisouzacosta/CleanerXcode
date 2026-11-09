@@ -51,7 +51,7 @@ struct CleanerPageView: View {
                 }
 
             case .general:
-                GeneralSettingsView(viewModel: settings)
+                GeneralSettingsView(viewModel: settings, updates: updates)
 
             case .about:
                 AboutSettingsView(viewModel: settings, updates: updates, versionText: versionText)

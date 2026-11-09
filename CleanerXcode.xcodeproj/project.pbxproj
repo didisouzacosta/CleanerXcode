@@ -11,6 +11,7 @@
 		A94471EB2D9305470079ED9B /* RELEASE_NOTES.md in Resources */ = {isa = PBXBuildFile; fileRef = A94471E92D9305470079ED9B /* RELEASE_NOTES.md */; };
 		C07A0001C07A0001C07A0001 /* Himetrica in Frameworks */ = {isa = PBXBuildFile; productRef = C07A0002C07A0002C07A0002 /* Himetrica */; };
 		C08A0001C08A0001C08A0001 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = C08A0002C08A0002C08A0002 /* Sentry */; };
+		C42A0001C42A0001C42A0001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = C42A0002C42A0002C42A0002 /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +73,7 @@
 			files = (
 				C07A0001C07A0001C07A0001 /* Himetrica in Frameworks */,
 				C08A0001C08A0001C08A0001 /* Sentry in Frameworks */,
+				C42A0001C42A0001C42A0001 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,6 +132,7 @@
 			packageProductDependencies = (
 				C07A0002C07A0002C07A0002 /* Himetrica */,
 				C08A0002C08A0002C08A0002 /* Sentry */,
+				C42A0002C42A0002C42A0002 /* Sparkle */,
 			);
 			productName = CleanerXcode;
 			productReference = A9D98E0D2D8FCBEF000448A2 /* CleanerXcode.app */;
@@ -189,6 +192,7 @@
 			packageReferences = (
 				C07A0003C07A0003C07A0003 /* XCRemoteSwiftPackageReference "himetrica-swift" */,
 				C08A0003C08A0003C08A0003 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+				C42A0003C42A0003C42A0003 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A9D98E0E2D8FCBEF000448A2 /* Products */;
@@ -541,6 +545,14 @@
 				version = 9.32.0;
 			};
 		};
+		C42A0003C42A0003C42A0003 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.10.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -553,6 +565,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C08A0003C08A0003C08A0003 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
 			productName = Sentry;
+		};
+		C42A0002C42A0002C42A0002 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C42A0003C42A0003C42A0003 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

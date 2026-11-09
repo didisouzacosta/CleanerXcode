@@ -40,7 +40,11 @@ open -n -F -a <DerivedData>/Build/Products/Debug/CleanerXcode.app --env CLEANERX
 - **Screens:** for UI changes, attach before-and-after screenshots in light and dark mode.
 - **Dependencies:** open an issue before adding a third-party dependency.
 
-Keep each pull request focused on one change and explain why it is needed.
+Keep each pull request focused on one change and explain why it is needed. Its title and description become the release notes.
+
+## Releases
+
+Every merge to `main` ships a new version automatically (see [docs/RELEASE.md](docs/RELEASE.md)). A maintainer labels the pull request `release:minor` or `release:major` for bigger changes, or `skip-release` when it should not ship on its own.
 
 ## License
 

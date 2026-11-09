@@ -100,7 +100,7 @@ struct AppContainerDemoTests {
 
         let viewModel = AppContainer.makeUpdateViewModel(environment: environment, services: services)
 
-        #expect(viewModel.checker is InertVersionChecker)
+        #expect(viewModel.updater is InertSoftwareUpdater)
     }
 
     @Test

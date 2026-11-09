@@ -32,6 +32,6 @@ The Himetrica key and the Sentry DSN live in the git-ignored `CleanerXcode/Secre
 
 ## Other network requests
 
-- To check for updates, the app reads [`resources/version.json`](../resources/version.json) from GitHub.
+- To check for updates, the app reads its update feed (`appcast.xml`) from the project's download server: when the window opens, once a day, and when you choose Check for Updates…. The request carries the app and macOS versions in its user agent and nothing about you; the system profile that the update framework (Sparkle) can send is turned off. Builds without the update settings read [`resources/version.json`](../resources/version.json) from GitHub instead.
 - Downloading a runtime runs Apple's own `xcodebuild -downloadPlatform`, which talks only to Apple.
 - When you open "Download runtimes", at most once a day, the app reads Apple's public catalog of simulator runtimes from `devimages-cdn.apple.com`, to list the earlier versions. The request carries no data about you and no cookies; like any web request, Apple sees the connection's IP address. The list is kept in the app's caches folder.

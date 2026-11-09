@@ -1,6 +1,12 @@
-# v1.0.0 (in development)
+# v1.0.0
 
-• Replace Firebase and all Google frameworks with Himetrica usage statistics: no personal data, paths, names or exact sizes; events carry a random installation ID and a session ID. An opt-out switch ships with the new Settings screen.
+• A new window with a sidebar: the Overview, a page for each section (Xcode, Simulators, Temporary files, User data), Simulators and runtimes, and Settings.
+• A native cleanup engine without shell scripts: each item shows its risk, only safe items are on by default, risky ones ask first and go to the Trash. Cancel at any time; the report offers Try Again.
+• Download simulator runtimes for the selected Xcode, including earlier versions, with progress and time left.
+• The menu bar size updates live after builds and archives.
+• In-app updates with Sparkle: signed updates, release notes and a daily check you can turn off.
+• English and Brazilian Portuguese.
+• Replace Firebase and all Google frameworks with Himetrica usage statistics: no personal data, paths, names or exact sizes; events carry a random installation ID and a session ID. An opt-out switch is in Settings.
 • Replace Crashlytics with Sentry crash and error reporting: home folder paths become `~`, temporary paths, user and computer names and the hardware-derived device hash are removed before sending, and session tracking is off.
 
 # v0.7.0 - Build 114

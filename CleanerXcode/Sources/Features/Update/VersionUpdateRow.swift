@@ -7,13 +7,10 @@
 
 import SwiftUI
 
-/// "Version x (y)" and, only when there is a newer version, a small round button that opens its
-/// download (C40). The same row sits in the sidebar footer and on the About page.
+/// "Version x (y)" and, only when there is a newer version, a small round button that shows it
+/// (C40): Sparkle's update window, or the download page without Sparkle (C42). The same row sits in
+/// the sidebar footer and on the About page.
 struct VersionUpdateRow: View {
-
-    // MARK: - Environments
-
-    @Environment(\.openURL) private var openURL
 
     // MARK: - Public Properties
 
@@ -27,8 +24,8 @@ struct VersionUpdateRow: View {
                 .font(style.font)
                 .foregroundStyle(.secondary)
 
-            if let update = updates.availableUpdate {
-                Button(action: openUpdate) {
+            if let version = updates.availableVersion {
+                Button(action: updates.openUpdate) {
                     Image(systemName: "arrow.down")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(.white)
@@ -37,21 +34,12 @@ struct VersionUpdateRow: View {
                         .contentShape(.circle)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Text("Update to \(update.version)"))
-                .help(Text("Update to \(update.version)"))
+                .accessibilityLabel(Text("Update to \(version)"))
+                .help(Text("Update to \(version)"))
                 .subtleTransition()
             }
         }
-        .subtleAnimation(value: updates.availableUpdate != nil)
-    }
-
-    // MARK: - Private Methods
-
-    private func openUpdate() {
-        guard let update = updates.availableUpdate else { return }
-
-        openURL(update.downloadURL)
-        updates.logUpdateOpened()
+        .subtleAnimation(value: updates.availableVersion != nil)
     }
 
 }

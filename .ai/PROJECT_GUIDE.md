@@ -67,9 +67,12 @@ nomes, pastas ou arquitetura sem escopo explícito.
 
   Os pacotes SPM compilam no próprio language mode. Toolchain local
   verificado: Xcode 27.2 (27B52).
-- Versão publicada: `MARKETING_VERSION = 0.7.0` e
-  `CURRENT_PROJECT_VERSION = 114`, iguais a `resources/version.json` e
-  `RELEASE_NOTES.md`.
+- Versão: o projeto diz `MARKETING_VERSION = 1.0.0` e
+  `CURRENT_PROJECT_VERSION = 116`; a última publicada é a 0.7.0 (build 114,
+  `resources/version.json`). Desde o C42 quem publica é o workflow `Release`
+  (`docs/RELEASE.md`): a versão vem da última tag `v*` mais o rótulo do PR
+  (ou do `MARKETING_VERSION`, se for maior) e o build é o número de commits do
+  `main`, passados ao `xcodebuild` sem commit de versão no código.
 - Dependências permitidas (SPM, já aprovadas e conectadas):
   - o `firebase-ios-sdk` e todas as dependências transitivas do Google saíram
     no card C05;
@@ -84,6 +87,10 @@ nomes, pastas ou arquitetura sem escopo explícito.
   - `swift-timeout` e `LaunchAtLogin` foram removidos no C24 (D4): o timeout
     de processo é do `ProcessRunner` e o "abrir no login" usa
     `SMAppService.mainApp`.
+  - `Sparkle` com versão exata 2.10.1 (revisão `ab7d712`), aprovado pelo dono
+    no C42. XCFramework dinâmico embutido em `Contents/Frameworks`; só
+    `SparkleSoftwareUpdater` importa o SDK. O release remove os serviços XPC
+    (o app não usa sandbox) e assina de novo `Autoupdate` e `Updater.app`;
   - Nenhuma dependência nova sem aprovação explícita.
 - Requisitos de hardware: Mac com macOS 26+. Para comportamento real, Xcode
   instalado com dados em `~/Library/Developer`. `xcrun simctl` e `pod` são
@@ -216,7 +223,27 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     linha com o seletor; `PreviewRuntimeVersionSource`, só em `DEBUG`);
   - `Settings/`: as páginas Geral e Sobre (C40), o painel e o rótulo da barra
     de menus;
-  - `Update/`: `UpdateViewModel` e `VersionUpdateRow` (C40).
+  - `Update/`: `UpdateViewModel` e `VersionUpdateRow` (C40). Desde o C42 o
+    `UpdateViewModel` fala com `SoftwareUpdating` (`Core/Update`):
+    `SparkleSoftwareUpdater` numa Release com `SUFeedURL` (https) e
+    `SUPublicEDKey` (`AppConfiguration.isSparkleConfigured`, vindos de
+    `SPARKLE_FEED_URL` e `SPARKLE_PUBLIC_ED_KEY` no xcconfig);
+    `VersionFileUpdater` (o `RemoteVersionChecker` do `version.json`, que abre
+    o download) em Debug e em builds sem essas chaves; `InertSoftwareUpdater`
+    no test host, nas previews e no demo. A Debug nunca usa o Sparkle, porque
+    tem o mesmo bundle id e seria trocada pela Release publicada. O Sparkle só
+    começa no primeiro uso; a checagem silenciosa do botão usa
+    `checkForUpdateInformation()` e a resposta chega pelo delegate, que retoma
+    a chamada uma vez (com `didFinishUpdateCycleFor` como garantia). "Check for
+    Updates…" (`CleanerCommands`) e a seção "Atualizações" de Ajustes › Geral
+    só existem com o Sparkle;
+  - CI e release (C42): `.github/workflows/ci.yml` (PR: lint, testes das
+    ferramentas, testes e build Release sem assinatura, runner `xcode-27` com o
+    Xcode 27.2), `release.yml` (merge no `main`: Developer ID, notarização,
+    R2, GitHub Release, `appcast.xml`, `version.json` legado e dSYMs) e
+    `rollback.yml`. Os scripts ficam em `scripts/release/`
+    (`release_tools.py` com testes em `test_release_tools.py`). Segredos,
+    variáveis e operação em `docs/RELEASE.md`.
   - `Demo/` (C36, tudo em `#if DEBUG`): o modo demo para a gravação do
     README. Liga só com `CLEANERXCODE_DEMO=1` numa build Debug, fora de teste
     e de preview (`AppEnvironment.isDemo`; a Release ignora a variável);

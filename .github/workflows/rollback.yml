@@ -1,0 +1,103 @@
+# Puts back an earlier release (C42): appcast.xml, the latest installer on R2, the "Latest" GitHub
+# Release and version.json. Run it by hand from the Actions tab, on main, with the version and the
+# build to restore.
+#
+# Sparkle never offers an older build, so people who already installed the bad version keep
+# it: ship a fixed patch for them. The rollback only stops the bad version from spreading.
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to restore (for example 1.0.1)
+        required: true
+      build:
+        description: Its build number (for example 221)
+        required: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  rollback:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      BUILD: ${{ inputs.build }}
+      R2_BUCKET: ${{ vars.R2_BUCKET }}
+    steps:
+      - name: Check the inputs
+        env:
+          CONFIGURED_DOWNLOADS_URL: ${{ vars.DOWNLOADS_BASE_URL }}
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Invalid version: $VERSION"; exit 1; }
+          [[ "$BUILD" =~ ^[0-9]+$ ]] || { echo "::error::Invalid build: $BUILD"; exit 1; }
+          case "$CONFIGURED_DOWNLOADS_URL" in
+            https://*) ;;
+            *) echo "::error::DOWNLOADS_BASE_URL must start with https://"; exit 1 ;;
+          esac
+          echo "DOWNLOADS_BASE_URL=${CONFIGURED_DOWNLOADS_URL%/}" >> "$GITHUB_ENV"
+
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Restore the feed and the installer on R2
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_EC2_METADATA_DISABLED: "true"
+        run: |
+          endpoint="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+          copy() {
+            aws s3 cp "s3://$R2_BUCKET/$1" "s3://$R2_BUCKET/$2" --endpoint-url "$endpoint" \
+              --content-type "$3" --cache-control "$4" --metadata-directive REPLACE --only-show-errors
+          }
+
+          aws s3api head-object --bucket "$R2_BUCKET" --key "appcasts/appcast-$BUILD.xml" --endpoint-url "$endpoint" >/dev/null \
+            || { echo "::error::No appcast snapshot for build $BUILD."; exit 1; }
+          aws s3api head-object --bucket "$R2_BUCKET" --key "CleanerXcode-$VERSION.dmg" --endpoint-url "$endpoint" >/dev/null \
+            || { echo "::error::No installer for version $VERSION."; exit 1; }
+
+          copy "CleanerXcode-$VERSION.dmg" "latest/CleanerXcode.dmg" application/x-apple-diskimage "public, max-age=300"
+          copy "appcasts/appcast-$BUILD.xml" "appcast.xml" application/xml "no-cache"
+
+      # The README downloads releases/latest/download/CleanerXcode.dmg from GitHub.
+      - name: Mark the restored GitHub Release as Latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "v$VERSION" --repo "$GITHUB_REPOSITORY" --latest
+
+      - name: Point version.json at the restored installer
+        env:
+          PUSH_TOKEN: ${{ secrets.RELEASE_PUSH_TOKEN || github.token }}
+        run: |
+          basic="$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 | tr -d '\n')"
+          echo "::add-mask::$basic"
+          auth="AUTHORIZATION: basic $basic"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 scripts/release/release_tools.py version-json \
+            --version "$VERSION" --build "$BUILD" \
+            --url "$DOWNLOADS_BASE_URL/latest/CleanerXcode.dmg" \
+            --output resources/version.json
+          git add resources/version.json
+
+          if git diff --cached --quiet; then
+            echo "version.json already points at $VERSION."
+            exit 0
+          fi
+
+          git commit -m "Roll back to $VERSION ($BUILD) [skip ci]"
+          git -c "http.https://github.com/.extraheader=$auth" push origin HEAD:main
