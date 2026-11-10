@@ -35,6 +35,18 @@ Run **Actions › Release › Run workflow** to publish by hand and pick the bum
 
 Create the secrets in **Settings › Secrets and variables › Actions › Secrets** and the variables in the **Variables** tab of the same page. Nothing here goes into the repository.
 
+The quickest way is to run `scripts/release/setup-github-secrets.sh` in a terminal. It:
+- creates the Sparkle keys (keychain account `cleanerxcode`);
+- packages the Developer ID certificate;
+- asks for each other value, without echoing it;
+- saves everything with `gh`.
+
+Secrets that already exist are kept unless you choose to replace them. The tables below say what each one is.
+
+Current values:
+- `R2_BUCKET` = `cleanerxcode-downloads`;
+- `DOWNLOADS_BASE_URL` = `https://cleanerxcode.adrianosouzacosta.com.br`, already connected to the bucket in Cloudflare.
+
 ### Apple (signing and notarization)
 
 | Name | Type | Value |
@@ -57,8 +69,8 @@ Create the certificate at developer.apple.com › Certificates › "Developer ID
 To create the key pair, download `Sparkle-2.10.1.tar.xz` from Sparkle's GitHub releases, then:
 
 ```bash
-./bin/generate_keys            # stores the pair in your login keychain and prints the public key
-./bin/generate_keys -x sparkle-private-key.txt   # exports the private key for the secret
+./bin/generate_keys --account cleanerxcode            # stores the pair in your login keychain and prints the public key
+./bin/generate_keys --account cleanerxcode -x sparkle-private-key.txt   # exports the private key for the secret
 ```
 
 Keep a copy of the private key in a password manager and delete the exported file. **If the private key is lost, installed apps stop accepting updates.**
