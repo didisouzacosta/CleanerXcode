@@ -1,0 +1,446 @@
+# Publishes a new version after every merge to main (C42).
+#
+#   test     the same checks as a pull request (ci.yml)
+#   plan     skip-release? which bump? the version and the build number
+#   release  Developer ID archive, Sparkle helpers re-signed, notarized and stapled app and DMG,
+#            Sparkle-signed zip, then: R2 files -> GitHub Release -> appcast.xml -> version.json
+#
+# Labels on the merged pull request: release:minor, release:major or skip-release (no label is a
+# patch). A run started by hand picks the bump. docs/RELEASE.md lists the secrets and variables.
+#
+# Secrets reach only the steps that use them. The checkout keeps no token, and the signing
+# keychain is removed before any later step downloads or uploads anything.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+# One release at a time, never cancelled halfway.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  XCODE_PATH: /Applications/Xcode_27.2.app
+  APP_BUNDLE_ID: com.didisouzacosta.CleanerXcode
+  MINIMUM_SYSTEM_VERSION: "26.0"
+
+jobs:
+  test:
+    name: Checks
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+
+  plan:
+    name: Plan the release
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      skip: ${{ steps.bump.outputs.skip }}
+      version: ${{ steps.version.outputs.version }}
+      build: ${{ steps.version.outputs.build }}
+      pr: ${{ steps.bump.outputs.pr }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # A failed API call stops the release: it must never publish a merge labelled skip-release.
+      - name: Read the bump from the merged pull request
+        id: bump
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MANUAL_BUMP: ${{ inputs.bump }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "kind=${MANUAL_BUMP:-patch}" >> "$GITHUB_OUTPUT"
+            echo "pr=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" > "$RUNNER_TEMP/pulls.json"
+          python3 scripts/release/release_tools.py merged-pull-request --base main \
+            < "$RUNNER_TEMP/pulls.json" > "$RUNNER_TEMP/pull.txt"
+
+          number="$(sed -n 's/^number=//p' "$RUNNER_TEMP/pull.txt")"
+          labels="$(sed -n 's/^labels=//p' "$RUNNER_TEMP/pull.txt")"
+          kind="$(python3 scripts/release/release_tools.py bump-from-labels --labels "$labels")"
+
+          echo "Pull request: ${number:-none (direct push)}; labels: ${labels:-none}; bump: $kind"
+          echo "pr=$number" >> "$GITHUB_OUTPUT"
+
+          if [ "$kind" = "skip" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::skip-release: nothing is published for this merge."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "kind=$kind" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compute the version and the build
+        id: version
+        if: steps.bump.outputs.skip == 'false'
+        env:
+          KIND: ${{ steps.bump.outputs.kind }}
+        run: |
+          tools=scripts/release/release_tools.py
+          pbxproj=CleanerXcode.xcodeproj/project.pbxproj
+          project_version="$(python3 "$tools" project-setting --name MARKETING_VERSION --bundle-id "$APP_BUNDLE_ID" < "$pbxproj")"
+          project_build="$(python3 "$tools" project-setting --name CURRENT_PROJECT_VERSION --bundle-id "$APP_BUNDLE_ID" < "$pbxproj")"
+          tags="$(git tag --list 'v*' | tr '\n' ' ')"
+
+          version="$(python3 "$tools" next-version --tags "$tags" --project-version "$project_version" --bump "$KIND")"
+          build="$(python3 "$tools" build-number --commit-count "$(git rev-list --count HEAD)" --project-build "$project_build")"
+
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "::error::The tag v$version already exists."
+            exit 1
+          fi
+
+          echo "Version $version, build $build"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+
+  release:
+    name: Build, notarize and publish
+    needs: [test, plan]
+    if: github.ref == 'refs/heads/main' && needs.plan.outputs.skip == 'false'
+    runs-on: xcode-27
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      pull-requests: read
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+      BUILD: ${{ needs.plan.outputs.build }}
+      APPLE_TEAM_ID: MM4N959BB5
+      SIGNING_IDENTITY: Developer ID Application
+      R2_BUCKET: ${{ vars.R2_BUCKET }}
+      WORK: ${{ github.workspace }}/.build/release
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check the release settings
+        env:
+          HAS_CERTIFICATE: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12_BASE64 != '' }}
+          HAS_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD != '' }}
+          HAS_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID != '' }}
+          HAS_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID != '' }}
+          HAS_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY != '' }}
+          HAS_SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY != '' }}
+          HAS_SPARKLE_PUBLIC_KEY: ${{ vars.SPARKLE_PUBLIC_ED_KEY != '' }}
+          HAS_R2_ACCOUNT: ${{ secrets.R2_ACCOUNT_ID != '' }}
+          HAS_R2_ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY_ID != '' }}
+          HAS_R2_SECRET: ${{ secrets.R2_SECRET_ACCESS_KEY != '' }}
+          HAS_R2_BUCKET: ${{ vars.R2_BUCKET != '' }}
+          HAS_DOWNLOADS_URL: ${{ vars.DOWNLOADS_BASE_URL != '' }}
+          CONFIGURED_DOWNLOADS_URL: ${{ vars.DOWNLOADS_BASE_URL }}
+        run: |
+          missing=()
+          for pair in \
+            "HAS_CERTIFICATE:secret DEVELOPER_ID_CERTIFICATE_P12_BASE64" \
+            "HAS_CERTIFICATE_PASSWORD:secret DEVELOPER_ID_CERTIFICATE_PASSWORD" \
+            "HAS_API_KEY_ID:secret APPLE_API_KEY_ID" \
+            "HAS_API_ISSUER_ID:secret APPLE_API_ISSUER_ID" \
+            "HAS_API_PRIVATE_KEY:secret APPLE_API_PRIVATE_KEY" \
+            "HAS_SPARKLE_PRIVATE_KEY:secret SPARKLE_ED_PRIVATE_KEY" \
+            "HAS_SPARKLE_PUBLIC_KEY:variable SPARKLE_PUBLIC_ED_KEY" \
+            "HAS_R2_ACCOUNT:secret R2_ACCOUNT_ID" \
+            "HAS_R2_ACCESS_KEY:secret R2_ACCESS_KEY_ID" \
+            "HAS_R2_SECRET:secret R2_SECRET_ACCESS_KEY" \
+            "HAS_R2_BUCKET:variable R2_BUCKET" \
+            "HAS_DOWNLOADS_URL:variable DOWNLOADS_BASE_URL"; do
+            flag="${pair%%:*}"
+            [ "${!flag}" = "true" ] || missing+=("${pair#*:}")
+          done
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            printf '::error::Missing release setting: %s\n' "${missing[@]}"
+            exit 1
+          fi
+
+          case "$CONFIGURED_DOWNLOADS_URL" in
+            https://*) ;;
+            *) echo "::error::DOWNLOADS_BASE_URL must start with https://"; exit 1 ;;
+          esac
+
+          mkdir -p "$WORK"
+          echo "DOWNLOADS_BASE_URL=${CONFIGURED_DOWNLOADS_URL%/}" >> "$GITHUB_ENV"
+
+      - name: Select Xcode 27.2
+        run: |
+          sudo xcode-select --switch "$XCODE_PATH"
+          xcodebuild -version
+
+      - name: Write the build secrets
+        env:
+          HIMETRICA_API_KEY: ${{ secrets.HIMETRICA_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SPARKLE_PUBLIC_ED_KEY: ${{ vars.SPARKLE_PUBLIC_ED_KEY }}
+        run: SPARKLE_FEED_URL="$DOWNLOADS_BASE_URL/appcast.xml" scripts/release/write-secrets-xcconfig.sh
+
+      - name: Import the Developer ID certificate
+        env:
+          DEVELOPER_ID_CERTIFICATE_P12_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12_BASE64 }}
+          DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+        run: |
+          keychain="$(scripts/release/import-certificate.sh | tail -n 1)"
+          echo "KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -project CleanerXcode.xcodeproj \
+            -scheme CleanerXcode \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath "$WORK/CleanerXcode.xcarchive" \
+            -derivedDataPath "$WORK/DerivedData" \
+            MARKETING_VERSION="$VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
+            "CODE_SIGN_IDENTITY[sdk=macosx*]=$SIGNING_IDENTITY" \
+            PROVISIONING_PROFILE_SPECIFIER= \
+            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN --timestamp"
+
+      - name: Export with Developer ID
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "$WORK/CleanerXcode.xcarchive" \
+            -exportPath "$WORK/export" \
+            -exportOptionsPlist scripts/release/ExportOptions.plist
+          echo "APP=$WORK/export/CleanerXcode.app" >> "$GITHUB_ENV"
+
+      - name: Re-sign Sparkle and check the version
+        run: |
+          scripts/release/sign-sparkle.sh "$APP" "$SIGNING_IDENTITY" "$KEYCHAIN"
+          shown="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP/Contents/Info.plist")"
+          build="$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "$APP/Contents/Info.plist")"
+          feed="$(/usr/libexec/PlistBuddy -c 'Print SUFeedURL' "$APP/Contents/Info.plist")"
+          echo "Built $shown ($build), feed $feed"
+          [ "$shown" = "$VERSION" ] && [ "$build" = "$BUILD" ] || { echo "::error::Unexpected version in the app."; exit 1; }
+          [ "$feed" = "$DOWNLOADS_BASE_URL/appcast.xml" ] || { echo "::error::Unexpected SUFeedURL in the app."; exit 1; }
+
+      - name: Notarize and staple the app
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "$WORK/notarize-app.zip"
+          scripts/release/notarize.sh "$WORK/notarize-app.zip"
+          xcrun stapler staple "$APP"
+          xcrun stapler validate "$APP"
+          spctl --assess --type execute --verbose=4 "$APP"
+
+      - name: Build, sign, notarize and staple the DMG
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+        run: |
+          DMG="$WORK/CleanerXcode-$VERSION.dmg"
+          scripts/release/make-dmg.sh "$APP" "$DMG"
+          codesign --force --timestamp --keychain "$KEYCHAIN" --sign "$SIGNING_IDENTITY" "$DMG"
+          scripts/release/notarize.sh "$DMG"
+          xcrun stapler staple "$DMG"
+          xcrun stapler validate "$DMG"
+          spctl --assess --type open --context context:primary-signature --verbose=4 "$DMG"
+          echo "DMG=$DMG" >> "$GITHUB_ENV"
+
+      # Signing is over: nothing after this point can reach the Developer ID key.
+      - name: Remove the signing keychain
+        run: |
+          security delete-keychain "$KEYCHAIN"
+          echo "KEYCHAIN=" >> "$GITHUB_ENV"
+          rm -f CleanerXcode/Secrets.xcconfig
+
+      # sign_update comes from the Swift package, which SwiftPM verified against its checksum.
+      - name: Build and sign the Sparkle update
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          ZIP="$WORK/CleanerXcode-$VERSION-$BUILD.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
+
+          sign_update="$WORK/DerivedData/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update"
+          [ -x "$sign_update" ] || { echo "::error::sign_update not found in the Sparkle package."; exit 1; }
+
+          # The private key goes through standard input and never touches the disk.
+          signature_line="$(printf '%s' "$SPARKLE_ED_PRIVATE_KEY" | "$sign_update" --ed-key-file - "$ZIP")"
+
+          signature="$(printf '%s' "$signature_line" | sed -nE 's/.*sparkle:edSignature="([^"]+)".*/\1/p')"
+          length="$(printf '%s' "$signature_line" | sed -nE 's/.*length="([0-9]+)".*/\1/p')"
+          [ -n "$signature" ] && [ -n "$length" ] || { echo "::error::sign_update returned no signature."; exit 1; }
+
+          echo "ZIP=$ZIP" >> "$GITHUB_ENV"
+          echo "ED_SIGNATURE=$signature" >> "$GITHUB_ENV"
+          echo "ZIP_LENGTH=$length" >> "$GITHUB_ENV"
+
+      - name: Write the release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.plan.outputs.pr }}
+        run: |
+          notes="$WORK/notes.md"
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json title,body \
+              --jq '"- " + .title + "\n\n" + (.body // "")' > "$notes"
+          else
+            git log -1 --format='- %s%n%n%b' "$GITHUB_SHA" > "$notes"
+          fi
+          echo "NOTES=$notes" >> "$GITHUB_ENV"
+
+      - name: Upload the update and the installer to R2
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_EC2_METADATA_DISABLED: "true"
+        run: |
+          endpoint="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+          put() {
+            aws s3 cp "$1" "s3://$R2_BUCKET/$2" --endpoint-url "$endpoint" \
+              --content-type "$3" --cache-control "$4" --only-show-errors
+          }
+
+          put "$ZIP" "CleanerXcode-$VERSION-$BUILD.zip" application/zip "public, max-age=31536000, immutable"
+          put "$DMG" "CleanerXcode-$VERSION.dmg" application/x-apple-diskimage "public, max-age=31536000, immutable"
+          put "$DMG" "latest/CleanerXcode.dmg" application/x-apple-diskimage "public, max-age=300"
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # A fixed name keeps https://github.com/<repo>/releases/latest/download/CleanerXcode.dmg working.
+          cp "$DMG" "$WORK/CleanerXcode.dmg"
+          gh release create "v$VERSION" "$WORK/CleanerXcode.dmg" "$DMG" "$ZIP" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "CleanerXcode $VERSION" \
+            --notes-file "$NOTES" \
+            --latest
+
+      - name: Publish the appcast
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_EC2_METADATA_DISABLED: "true"
+        run: |
+          endpoint="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+          current="$WORK/appcast-current.xml"
+
+          # Only a missing feed starts a new one; any other error stops before overwriting it.
+          if aws s3api head-object --bucket "$R2_BUCKET" --key appcast.xml --endpoint-url "$endpoint" \
+            > /dev/null 2> "$WORK/head-object.err"; then
+            aws s3 cp "s3://$R2_BUCKET/appcast.xml" "$current" --endpoint-url "$endpoint" --only-show-errors
+          elif grep -qE '404|Not Found|NoSuchKey' "$WORK/head-object.err"; then
+            echo "No appcast yet: starting a new one."
+          else
+            cat "$WORK/head-object.err" >&2
+            echo "::error::Could not read the current appcast."
+            exit 1
+          fi
+
+          python3 scripts/release/release_tools.py appcast \
+            --existing "$current" \
+            --version "$VERSION" \
+            --build "$BUILD" \
+            --url "$DOWNLOADS_BASE_URL/CleanerXcode-$VERSION-$BUILD.zip" \
+            --length "$ZIP_LENGTH" \
+            --signature "$ED_SIGNATURE" \
+            --notes-file "$NOTES" \
+            --minimum-system "$MINIMUM_SYSTEM_VERSION" \
+            --output "$WORK/appcast.xml"
+
+          # The snapshot lets the rollback workflow put this exact feed back.
+          aws s3 cp "$WORK/appcast.xml" "s3://$R2_BUCKET/appcasts/appcast-$BUILD.xml" --endpoint-url "$endpoint" \
+            --content-type "application/xml" --cache-control "public, max-age=31536000, immutable" --only-show-errors
+          aws s3 cp "$WORK/appcast.xml" "s3://$R2_BUCKET/appcast.xml" --endpoint-url "$endpoint" \
+            --content-type "application/xml" --cache-control "no-cache" --only-show-errors
+
+      # RELEASE_PUSH_TOKEN is only needed when a rule on main blocks pushes from GITHUB_TOKEN.
+      - name: Point version.json at the new installer
+        env:
+          PUSH_TOKEN: ${{ secrets.RELEASE_PUSH_TOKEN || github.token }}
+        run: |
+          basic="$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 | tr -d '\n')"
+          echo "::add-mask::$basic"
+          auth="AUTHORIZATION: basic $basic"
+          git_auth() { git -c "http.https://github.com/.extraheader=$auth" "$@"; }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git_auth fetch origin main
+          git checkout -B release-bookkeeping origin/main
+
+          python3 scripts/release/release_tools.py version-json \
+            --version "$VERSION" --build "$BUILD" \
+            --url "$DOWNLOADS_BASE_URL/latest/CleanerXcode.dmg" \
+            --output resources/version.json
+
+          if ! grep -qE "^# v$VERSION( |$)" RELEASE_NOTES.md; then
+            { echo "# v$VERSION - Build $BUILD"; echo; sed -E 's/^- /• /' "$NOTES"; echo; cat RELEASE_NOTES.md; } > "$WORK/RELEASE_NOTES.md"
+            mv "$WORK/RELEASE_NOTES.md" RELEASE_NOTES.md
+          fi
+
+          # The installer used to live in the repository; old apps now follow version.json to R2.
+          git rm -q --ignore-unmatch releases/CleanerXcode.dmg
+
+          git add resources/version.json RELEASE_NOTES.md
+          git commit -m "Release $VERSION ($BUILD) [skip ci]"
+
+          # Another merge may land meanwhile: rebase on it and try again.
+          for attempt in 1 2 3; do
+            git_auth push origin HEAD:main && exit 0
+            echo "Push failed (attempt $attempt); rebasing on main."
+            git_auth pull --rebase origin main
+          done
+
+          echo "::error::Could not push version.json. See docs/RELEASE.md (Repository settings), or update it by hand."
+          exit 1
+
+      # Runs after the publication, without the keychain or the R2 keys; a failure only warns.
+      - name: Upload the dSYMs to Sentry
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "::warning::SENTRY_AUTH_TOKEN is not set: the dSYMs were not uploaded."
+            exit 0
+          fi
+          command -v sentry-cli >/dev/null || brew install getsentry/tools/sentry-cli
+          scripts/upload-dsyms.sh "$WORK/CleanerXcode.xcarchive"
+
+      - name: Clean up after a failure
+        if: always()
+        run: |
+          [ -n "${KEYCHAIN:-}" ] && security delete-keychain "$KEYCHAIN" || true
+          rm -f CleanerXcode/Secrets.xcconfig

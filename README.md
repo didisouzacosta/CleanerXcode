@@ -1,83 +1,85 @@
 <p align="center">
-  <image src="resources/app-icon.png" width="200" />
+  <img src="resources/app-icon.png" width="160" alt="CleanerXcode icon" />
+</p>
+
+<h1 align="center">CleanerXcode</h1>
+
+<p align="center">Free up the disk space Xcode keeps filling. Free and open source.</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue" alt="Version 1.0.0" />
+  <img src="https://img.shields.io/badge/macOS-26%2B-000000?logo=apple&logoColor=white" alt="macOS 26 or later" />
+  <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="MIT License" /></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/main/releases/CleanerXcode.dmg">
-    <image src="resources/download-button.png" width="200" />
+  <img src="resources/preview.gif" width="720" alt="CleanerXcode demo: the overview measures the space, the Xcode, User data and Simulators pages list each item, and a cleanup frees 40.4 GB" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/didisouzacosta/CleanerXcode/releases/latest/download/CleanerXcode.dmg">
+    <img src="resources/download-button.png" width="180" alt="Download CleanerXcode" />
   </a>
 </p>
 
-<h1 align="center">CleanerXcode (BETA)</h1>
+---
 
-### What is CleanerXcode?
-CleanerXcode is a macOS tool designed to remove unnecessary Xcode files, such as Derived Data, build caches, device support files, and simulator data. It helps keep your development environment clean and efficient.
+## What it does
 
-### Why use it?
-Xcode can accumulate a large number of temporary files and data that take up disk space and may affect system performance. CleanerXcode solves this problem by providing a simple and effective way to free up space and improve your workflow speed.
+- **See it first:** every item shows its size and its risk, and the Clean button shows the total before anything is removed.
+- **Clean in one click:** DerivedData, caches, Archives, Device Support, simulator data, temporary files and more.
+- **Stay safe:** risky items start off, ask for confirmation and go to the Trash. You can cancel at any time, and a report shows what was removed, skipped or failed, with Try Again.
+- **Manage simulators and runtimes:** remove duplicate or old simulators, delete runtimes, and download the ones your Xcode needs.
+- **Menu bar:** see the space you can free and start a cleanup without opening the window.
 
-<div align="center">
-  <video src="https://github.com/user-attachments/assets/8ec7d018-04e0-43c3-900b-330e76dc30b8"/>
-</div>
+The [user guide](docs/USER_GUIDE.md) explains each item, its risk and what happens when it is removed.
 
-## Key Features
-- **Temporary file removal:** Deletes Derived Data, build caches, and other temporary Xcode files.
-- **Device support cleanup:** Removes outdated device support and simulator data.
-- **Simulator management:** Allows the removal of obsolete simulators, keeping only the essentials.
-- **Intuitive interface:** Easy to use, with clear options for managing Xcode files.
+---
+
+## What's new in 1.0
+
+- **A new window:** a sidebar with the Overview, a page for each section (Xcode, Simulators, Temporary files, User data), Simulators and runtimes, and Settings.
+- **A native cleanup engine:** no shell scripts. Each item says its risk, and only safe items are on by default.
+- **Download runtimes:** pick iOS, watchOS, tvOS or visionOS, choose an earlier version to test on older systems, and follow the progress and the time left.
+- **Live size in the menu bar:** it updates a few seconds after a build or an archive changes the folders.
+- **English and Brazilian Portuguese.**
+- **Privacy first:** anonymous statistics that you can turn off, and crash reports without paths, names or exact sizes.
+
+---
 
 ## Requirements
 
-| Platform                                             | 
-| ---------------------------------------------------- |
-| macOS 15.0+
+| macOS | Xcode | Price |
+| --- | --- | --- |
+| 26 or later | Any installed version | Free |
 
-## Installation & Usage
-1. [Download CleanerXcode](https://github.com/didisouzacosta/CleanerXcode/raw/refs/heads/main/releases/CleanerXcode.dmg).
-2. Open the application and select the desired cleaning options.
-3. Click the clean button and wait for the process to complete.
+---
 
-## Areas for Improvement
-- Support for advanced customization of file removal.
-- Integration with macOS shortcuts for automated cleaning.
-- Interface improvements for visualizing freed-up space.
+## Install
 
-## Privacy And Usage Policy
-- This app doesn't collect any user data and will never require personal data for sign-in or sign-up.
-- This app is totally free and open source under the MIT license.
+1. [Download CleanerXcode](https://github.com/didisouzacosta/CleanerXcode/releases/latest/download/CleanerXcode.dmg).
+2. Open the DMG and drag CleanerXcode to Applications.
 
-## Contribution Guidelines
+CleanerXcode updates itself: it checks for new versions once a day and installs them after you confirm. You can also use CleanerXcode › Check for Updates…, and turn the automatic checks off in Settings › General.
 
-### How to Contribute
-- **Report Bugs:** Open an issue using this [link](https://github.com/didisouzacosta/CleanerXcode/issues/new/choose).
-- **Suggest Improvements:** Submit a proposal via [issue](https://github.com/didisouzacosta/CleanerXcode/issues/new/choose) or pull request.
-- **Submit Code:** Fork the repository, create a branch with your changes, and submit a pull request.
+---
 
-Feel free to contribute and help improve CleanerXcode!
+## Free and open source
 
-### Coding Standards
-- Follow best practices for Swift and macOS development.
-- Include clear documentation and explanatory comments in the code.
-- This project uses Google Analytics. To run it in developer mode, the project already includes the GoogleService-Info-Development.plist. To run it in production mode, you need to contact me to request the production GoogleService-Info.plist file.
+- No ads, accounts or paid features.
+- All the code is on GitHub under the [MIT license](LICENSE). Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+- [Donations](https://buy.stripe.com/00gcN772R2ns3wA9AA) are optional and help keep the project going.
+- Only the analytics and crash-reporting keys stay out of the repository. A build without them works fully and sends nothing.
 
-### License
+---
 
-This project is licensed under the MIT License. You are free to use, modify, and distribute it as long as you include the original license terms. See the [LICENSE file](https://github.com/didisouzacosta/CleanerXcode/blob/v0.1.1/LICENSE) for more details.
+## Privacy
 
-### Dependencies
-• [LaunchAtLogin](https://github.com/sindresorhus/LaunchAtLogin-Modern)
-• [Timeout](https://github.com/swhitty/swift-timeout)
+No sign-in and no personal data. Anonymous usage statistics (you can turn them off in Settings) and crash reports never include file paths, names or exact sizes. Details in [PRIVACY.md](docs/PRIVACY.md).
 
-### Didication
+---
 
-This simple app was made for anyone who loves developing for Apple technologies.
-I'd like to dedicate this app to my son Orlando and my wife Gisele.
+## Thanks
 
-### Special thanks
-
-My sincere thanks for [Lesley](https://github.com/lesleyandrez) and [Nic](https://github.com/ngimelliUW) for all help.
-
-### Donate
-
-If this project help you, consider make a [donation](https://buy.stripe.com/00gcN772R2ns3wA9AA).
-
+Dedicated to my son Orlando and my wife Gisele. Thanks to [Lesley](https://github.com/lesleyandrez) and [Nic](https://github.com/ngimelliUW) for all the help.

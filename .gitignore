@@ -9,12 +9,11 @@
 build/CleanerXcode.app
 build/CleanerXcode.zip
 
-## Analytics
-GoogleService-info.plist
+## Secrets (analytics and crash reporting keys)
+CleanerXcode/Secrets.xcconfig
 
 ## User settings
 xcuserdata/
-xcshareddata/
 
 ## Obj-C/Swift specific
 *.hmap

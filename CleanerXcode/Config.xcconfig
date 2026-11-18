@@ -6,4 +6,15 @@
 //
 
 VERSION_FILE_URL = https:/$()/github.com/didisouzacosta/CleanerXcode/raw/refs/heads/main/resources/version.json
-MIXPANEL_TOKEN = 93adfb2457dbd449e94c5f0d6317b392
+
+// Analytics and crash reporting keys are never committed. Empty values mean "not configured";
+// copy Secrets.example.xcconfig to Secrets.xcconfig (git-ignored) to fill them in.
+HIMETRICA_API_KEY =
+SENTRY_DSN =
+
+// In-app updates with Sparkle (C42). The release workflow fills both from the repository's
+// settings; a build without them falls back to the version.json above.
+SPARKLE_FEED_URL =
+SPARKLE_PUBLIC_ED_KEY =
+
+#include? "Secrets.xcconfig"
