@@ -190,7 +190,7 @@ struct HeroContent {
                 isFreedAmount: report.freedBytes > 0,
                 isAmountDimmed: report.freedBytes == 0,
                 detail: suggestsDonation
-                    ? String(localized: "Enjoying it? Any amount helps — 100% goes to shelters and hospitals")
+                    ? String(localized: "Enjoying it? Any amount helps keep CleanerXcode going")
                     : summary,
                 symbol: Symbol(name: "checkmark.circle.fill", tint: .success),
                 actions: suggestsDonation ? Action.donationSuggestion : [Action(.dismiss, "OK", style: .secondary)]

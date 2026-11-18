@@ -4,7 +4,7 @@
 
 <h1 align="center">CleanerXcode</h1>
 
-<p align="center">Free up the disk space Xcode keeps filling. Free, open source, and every donation goes to charity.</p>
+<p align="center">Free up the disk space Xcode keeps filling. Free and open source.</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.0.0-blue" alt="Version 1.0.0" />
@@ -65,11 +65,11 @@ CleanerXcode updates itself: it checks for new versions once a day and installs 
 
 ---
 
-## Free, open source, for charity
+## Free and open source
 
 - No ads, accounts or paid features.
 - All the code is on GitHub under the [MIT license](LICENSE). Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
-- [Donations](https://buy.stripe.com/00gcN772R2ns3wA9AA) are optional, and 100% of the money goes to charities (shelters and hospitals).
+- [Donations](https://buy.stripe.com/00gcN772R2ns3wA9AA) are optional and help keep the project going.
 - Only the analytics and crash-reporting keys stay out of the repository. A build without them works fully and sends nothing.
 
 ---

@@ -1933,12 +1933,12 @@
         }
       }
     },
-    "Any amount helps keep CleanerXcode going, and all of it goes to shelters and hospitals." : {
+    "Any amount helps keep CleanerXcode going." : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualquer valor ajuda a manter o CleanerXcode — e 100% do arrecadado vai para abrigos e hospitais."
+            "value" : "Qualquer valor ajuda a manter o CleanerXcode."
           }
         }
       }
@@ -3387,12 +3387,12 @@
         }
       }
     },
-    "Enjoying it? Any amount helps — 100% goes to shelters and hospitals" : {
+    "Enjoying it? Any amount helps keep CleanerXcode going" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gostou? Qualquer valor ajuda — 100% vai para abrigos e hospitais"
+            "value" : "Gostou? Qualquer valor ajuda a manter o CleanerXcode"
           }
         }
       }
@@ -3417,22 +3417,22 @@
         }
       }
     },
-    "CleanerXcode is free and open source. Your donation, of any amount, goes a long way to keep the project going — and all of it goes to shelters and hospitals." : {
+    "CleanerXcode is free and open source. Your donation, of any amount, goes a long way to keep the project going." : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O CleanerXcode é gratuito e open source. Sua doação, de qualquer valor, ajuda muito a manter o projeto — e todo o valor arrecadado vai para abrigos e hospitais."
+            "value" : "O CleanerXcode é gratuito e open source. Sua doação, de qualquer valor, ajuda muito a manter o projeto."
           }
         }
       }
     },
-    "Any amount · 100% goes to shelters and hospitals" : {
+    "Any amount · Keeps the project going" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualquer valor · 100% vai para abrigos e hospitais"
+            "value" : "Qualquer valor · Mantém o projeto vivo"
           }
         }
       }

@@ -64,7 +64,7 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
   - Sugestão de doação (1.0, C31): a cada 5 limpezas bem-sucedidas (5ª, 10ª…),
     contadas entre aberturas, o sucesso troca "OK" por "Apoiar o projeto"
     (rosa, com coração) e "Fechar" em texto, e o detalhe passa a "Gostou?
-    Qualquer valor ajuda — 100% vai para abrigos e hospitais". "Apoiar o
+    Qualquer valor ajuda a manter o CleanerXcode". "Apoiar o
     projeto" abre a folha "Apoie o CleanerXcode" e o resultado volta ao
     sucesso comum com OK; só "Doar qualquer valor" na folha abre o Stripe e
     registra `donate`; "Agora não" e Esc só fecham. O painel da barra de menus

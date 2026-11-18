@@ -30,7 +30,7 @@ struct SupportProjectSheet: View {
                 .font(.system(size: 17, weight: .semibold))
 
             Text(
-                "CleanerXcode is free and open source. Your donation, of any amount, goes a long way to keep the project going — and all of it goes to shelters and hospitals."
+                "CleanerXcode is free and open source. Your donation, of any amount, goes a long way to keep the project going."
             )
             .font(.system(size: 13))
             .foregroundStyle(.secondary)
@@ -108,14 +108,14 @@ private struct SupportAppIcon: View {
 
 }
 
-/// "Any amount · 100% goes to shelters and hospitals", in pink.
+/// "Any amount · Keeps the project going", in pink.
 private struct SupportAmountChip: View {
 
     // MARK: - Public Properties
 
     var body: some View {
         Label {
-            Text("Any amount · 100% goes to shelters and hospitals")
+            Text("Any amount · Keeps the project going")
         } icon: {
             Image(systemName: "heart.fill")
                 .accessibilityHidden(true)
