@@ -9,7 +9,7 @@ import AppKit
 import SwiftUI
 
 /// "Support CleanerXcode" (C31, Figma 18:274): opened by "Support the project" on the success
-/// that suggests a donation. "Donate any amount" opens the payment page and logs `donate` through
+/// that suggests a donation. "Make a donation" opens the payment page and logs `donate` through
 /// `onDonate`; "Not now" and Esc only close it. Purely visual: the window owns its state.
 struct SupportProjectSheet: View {
 
@@ -30,7 +30,7 @@ struct SupportProjectSheet: View {
                 .font(.system(size: 17, weight: .semibold))
 
             Text(
-                "CleanerXcode is free and open source. Your donation, of any amount, goes a long way to keep the project going."
+                "CleanerXcode is free and open source. Your donation goes a long way to keep the project going."
             )
             .font(.system(size: 13))
             .foregroundStyle(.secondary)
@@ -41,7 +41,7 @@ struct SupportProjectSheet: View {
 
             Button(action: donate) {
                 Label {
-                    Text("Donate any amount")
+                    Text("Make a donation")
                 } icon: {
                     Image(systemName: "heart.fill")
                         .accessibilityHidden(true)
@@ -108,14 +108,14 @@ private struct SupportAppIcon: View {
 
 }
 
-/// "Any amount · Keeps the project going", in pink.
+/// "From US$3 · Keeps the project going", in pink.
 private struct SupportAmountChip: View {
 
     // MARK: - Public Properties
 
     var body: some View {
         Label {
-            Text("Any amount · Keeps the project going")
+            Text("From US$3 · Keeps the project going")
         } icon: {
             Image(systemName: "heart.fill")
                 .accessibilityHidden(true)

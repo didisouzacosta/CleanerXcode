@@ -100,7 +100,7 @@ Settings are pages in the sidebar, under Settings. Open them with ⌘, (CleanerX
   - anonymous usage statistics (see [PRIVACY.md](PRIVACY.md)).
 - **About:** version, updates, links, the dedication and donations.
 
-Every fifth successful cleanup, the result also asks for support: "Support the project" opens a short note about donating, with "Donate any amount" (Stripe, in your browser) and "Not now". "Close" dismisses the result as usual.
+Every fifth successful cleanup, the result also asks for support: "Support the project" opens a short note about donating, with "Make a donation" (Stripe, in your browser) and "Not now". "Close" dismisses the result as usual.
 
 ## Updates
 

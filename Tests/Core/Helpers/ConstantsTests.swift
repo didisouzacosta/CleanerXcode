@@ -22,7 +22,7 @@ struct ConstantsTests {
 
     @Test
     func ensureDonateURL() {
-        #expect(Constants.donateURL.absoluteString == "https://buy.stripe.com/00gcN772R2ns3wA9AA")
+        #expect(Constants.donateURL.absoluteString == "https://buy.stripe.com/4gM6oI9L8eNX6A99gWaEE01")
     }
 
 }

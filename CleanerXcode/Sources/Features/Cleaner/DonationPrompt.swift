@@ -9,7 +9,7 @@ import Observation
 
 /// The donation suggestion (C31), owned by `CleanerViewModel`, which forwards its state and
 /// intents: it counts the successful cleanups in the preferences, suggests a donation on the
-/// policy's turn and opens the support sheet. Only the sheet's "Donate any amount" logs `donate`.
+/// policy's turn and opens the support sheet. Only the sheet's "Make a donation" logs `donate`.
 @Observable
 final class DonationPrompt {
 
@@ -68,7 +68,7 @@ final class DonationPrompt {
         isShowingSupportSheet = true
     }
 
-    /// "Donate any amount", which opens the payment page: the only place the suggestion logs
+    /// "Make a donation", which opens the payment page: the only place the suggestion logs
     /// `donate`.
     func donateFromSupportSheet() {
         guard isShowingSupportSheet else { return }

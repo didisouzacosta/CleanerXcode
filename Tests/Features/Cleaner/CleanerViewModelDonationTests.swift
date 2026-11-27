@@ -11,7 +11,7 @@ import Testing
 
 /// The donation suggestion (C31): every successful cleanup is counted in the preferences, the
 /// fifth, tenth… success suggests a donation instead of OK, and "Support the project" opens the
-/// sheet, where only "Donate any amount" logs `donate`.
+/// sheet, where only "Make a donation" logs `donate`.
 @MainActor
 struct CleanerViewModelDonationTests {
 

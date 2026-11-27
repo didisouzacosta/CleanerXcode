@@ -1933,12 +1933,12 @@
         }
       }
     },
-    "Any amount helps keep CleanerXcode going." : {
+    "Every donation helps keep CleanerXcode going." : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualquer valor ajuda a manter o CleanerXcode."
+            "value" : "Cada doação ajuda a manter o CleanerXcode."
           }
         }
       }
@@ -3387,12 +3387,12 @@
         }
       }
     },
-    "Enjoying it? Any amount helps keep CleanerXcode going" : {
+    "Enjoying it? A donation helps keep CleanerXcode going" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gostou? Qualquer valor ajuda a manter o CleanerXcode"
+            "value" : "Gostou? Uma doação ajuda a manter o CleanerXcode"
           }
         }
       }
@@ -3417,32 +3417,32 @@
         }
       }
     },
-    "CleanerXcode is free and open source. Your donation, of any amount, goes a long way to keep the project going." : {
+    "CleanerXcode is free and open source. Your donation goes a long way to keep the project going." : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O CleanerXcode é gratuito e open source. Sua doação, de qualquer valor, ajuda muito a manter o projeto."
+            "value" : "O CleanerXcode é gratuito e open source. Sua doação ajuda muito a manter o projeto."
           }
         }
       }
     },
-    "Any amount · Keeps the project going" : {
+    "From US$3 · Keeps the project going" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualquer valor · Mantém o projeto vivo"
+            "value" : "A partir de US$ 3 · Mantém o projeto vivo"
           }
         }
       }
     },
-    "Donate any amount" : {
+    "Make a donation" : {
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Doar qualquer valor"
+            "value" : "Fazer uma doação"
           }
         }
       }

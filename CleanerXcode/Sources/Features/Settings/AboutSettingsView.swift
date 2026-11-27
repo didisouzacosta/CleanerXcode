@@ -141,7 +141,7 @@ private struct AboutLinkRow: View {
 
 }
 
-/// "Support the project": any amount helps keep CleanerXcode going.
+/// "Support the project": every donation helps keep CleanerXcode going.
 private struct SupportCard: View {
 
     // MARK: - Public Properties
@@ -159,7 +159,7 @@ private struct SupportCard: View {
                 Text("Support this project")
                     .font(.callout.weight(.semibold))
 
-                Text("Any amount helps keep CleanerXcode going.")
+                Text("Every donation helps keep CleanerXcode going.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

@@ -60,13 +60,15 @@ Regras de experiência do dono (2026-10-31), válidas para a versão 1.0:
     instalada, aparece o botão "Update", que abre o link do DMG. Na 1.0,
     desde o C40, é um botão redondo com seta ao lado de "Versão x (y)", no
     rodapé da barra lateral e no Sobre.
-  - Links sociais (GitHub, X, LinkedIn) e doação (Stripe) abrem no navegador.
+  - Links sociais (GitHub, X, LinkedIn) e doação (Stripe) abrem no navegador. Desde 2026-11-24 o link
+    de doação tem mínimo de US$ 3, depois de um ataque de card testing no link
+    antigo, sem mínimo.
   - Sugestão de doação (1.0, C31): a cada 5 limpezas bem-sucedidas (5ª, 10ª…),
     contadas entre aberturas, o sucesso troca "OK" por "Apoiar o projeto"
     (rosa, com coração) e "Fechar" em texto, e o detalhe passa a "Gostou?
-    Qualquer valor ajuda a manter o CleanerXcode". "Apoiar o
+    Uma doação ajuda a manter o CleanerXcode". "Apoiar o
     projeto" abre a folha "Apoie o CleanerXcode" e o resultado volta ao
-    sucesso comum com OK; só "Doar qualquer valor" na folha abre o Stripe e
+    sucesso comum com OK; só "Fazer uma doação" na folha abre o Stripe e
     registra `donate`; "Agora não" e Esc só fecham. O painel da barra de menus
     mostra a mesma sugestão e "Apoiar" abre a janela principal com a folha.
     Falha parcial, falha, cancelamento e permissão negada não contam nem

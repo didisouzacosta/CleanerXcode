@@ -169,7 +169,7 @@ struct HeroContentTests {
         #expect(content.actions.map(\.title.key) == ["Support the project", "Close"])
         #expect(content.actions.allSatisfy { $0.isEnabled })
         #expect(
-            content.detail == String(localized: "Enjoying it? Any amount helps keep CleanerXcode going")
+            content.detail == String(localized: "Enjoying it? A donation helps keep CleanerXcode going")
         )
         #expect(content.symbol?.tint == .success)
         #expect(content.isFreedAmount)

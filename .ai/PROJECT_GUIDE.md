@@ -280,8 +280,8 @@ e `UpdateViewModel`), montados pelo `AppContainer` e passados explicitamente
     `simulator_unavailable_deleted`, `runtime_deleted`, `social`, `donate` e
     `update_opened`, sem caminhos nem tamanhos exatos), `HimetricaAnalytics`,
     `NullAnalytics`, chamados só pelos ViewModels. `donate` registra a abertura
-    do Stripe: rodapé da barra lateral, Sobre e, desde o C31, "Doar qualquer
-    valor" na folha "Apoie o CleanerXcode" (nunca o "Apoiar o projeto" do
+    do Stripe: rodapé da barra lateral, Sobre e, desde o C31, "Fazer uma
+    doação" na folha "Apoie o CleanerXcode" (nunca o "Apoiar o projeto" do
     sucesso, que só abre a folha). Também `ErrorReporting` (com
     `ReportableFailure` e `ReportingStage`), `NullErrorReporter`,
     `SentryErrorReporter`, `ErrorReportingConfiguration` e

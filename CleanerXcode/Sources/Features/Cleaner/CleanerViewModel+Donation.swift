@@ -27,7 +27,7 @@ extension CleanerViewModel {
         donation.supportProject()
     }
 
-    /// "Donate any amount" in the sheet: logs `donate` and closes it.
+    /// "Make a donation" in the sheet: logs `donate` and closes it.
     func donateFromSupportSheet() {
         donation.donateFromSupportSheet()
     }

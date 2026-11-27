@@ -69,7 +69,7 @@ CleanerXcode updates itself: it checks for new versions once a day and installs 
 
 - No ads, accounts or paid features.
 - All the code is on GitHub under the [MIT license](LICENSE). Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
-- [Donations](https://buy.stripe.com/00gcN772R2ns3wA9AA) are optional and help keep the project going.
+- [Donations](https://buy.stripe.com/4gM6oI9L8eNX6A99gWaEE01) are optional and help keep the project going.
 - Only the analytics and crash-reporting keys stay out of the repository. A build without them works fully and sends nothing.
 
 ---
