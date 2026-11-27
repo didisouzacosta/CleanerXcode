@@ -1,3 +1,13 @@
+# v1.0.1 - Build 230
+
+• Keep the DMG only on R2 (C42)
+
+The README downloads latest/CleanerXcode.dmg from R2, and the GitHub
+Release now carries only the tag, the notes and the Sparkle zip.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+
 # v1.0.0
 
 • A new window with a sidebar: the Overview, a page for each section (Xcode, Simulators, Temporary files, User data), Simulators and runtimes, and Settings.
