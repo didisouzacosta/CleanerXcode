@@ -208,6 +208,9 @@ jobs:
           keychain="$(scripts/release/import-certificate.sh | tail -n 1)"
           echo "KEYCHAIN=$keychain" >> "$GITHUB_ENV"
 
+      # xcodebuild splits a command-line setting at its first "=", so a conditional like
+      # CODE_SIGN_IDENTITY[sdk=macosx*]=... would set the identity to "macosx*]=...". The plain
+      # setting below already overrides the project's conditional "Apple Development".
       - name: Archive
         run: |
           xcodebuild archive \
@@ -222,7 +225,6 @@ jobs:
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
-            "CODE_SIGN_IDENTITY[sdk=macosx*]=$SIGNING_IDENTITY" \
             PROVISIONING_PROFILE_SPECIFIER= \
             OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN --timestamp"
 
