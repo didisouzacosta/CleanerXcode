@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/didisouzacosta/CleanerXcode/releases/latest/download/CleanerXcode.dmg">
+  <a href="https://cleanerxcode.adrianosouzacosta.com.br/latest/CleanerXcode.dmg">
     <img src="resources/download-button.png" width="180" alt="Download CleanerXcode" />
   </a>
 </p>
@@ -58,7 +58,7 @@ The [user guide](docs/USER_GUIDE.md) explains each item, its risk and what happe
 
 ## Install
 
-1. [Download CleanerXcode](https://github.com/didisouzacosta/CleanerXcode/releases/latest/download/CleanerXcode.dmg).
+1. [Download CleanerXcode](https://cleanerxcode.adrianosouzacosta.com.br/latest/CleanerXcode.dmg).
 2. Open the DMG and drag CleanerXcode to Applications.
 
 CleanerXcode updates itself: it checks for new versions once a day and installs them after you confirm. You can also use CleanerXcode › Check for Updates…, and turn the automatic checks off in Settings › General.

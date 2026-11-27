@@ -72,7 +72,7 @@ jobs:
           copy "CleanerXcode-$VERSION.dmg" "latest/CleanerXcode.dmg" application/x-apple-diskimage "public, max-age=300"
           copy "appcasts/appcast-$BUILD.xml" "appcast.xml" application/xml "no-cache"
 
-      # The README downloads releases/latest/download/CleanerXcode.dmg from GitHub.
+      # The DMG lives only on R2; the GitHub "Latest" Release keeps the tag, the notes and the zip.
       - name: Mark the restored GitHub Release as Latest
         env:
           GH_TOKEN: ${{ github.token }}

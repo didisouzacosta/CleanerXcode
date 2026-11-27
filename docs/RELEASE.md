@@ -18,8 +18,8 @@ Every merge to `main` publishes a new version by itself (C42). This page explain
       - checks both with `spctl`;
       - zips the app and signs the zip with Sparkle's EdDSA key.
    4. **Publish**, in this order:
-      - **R2:** the zip, the versioned DMG and `latest/CleanerXcode.dmg`;
-      - **GitHub Release:** tag `vX.Y.Z` with the pull request's notes and the files (including `CleanerXcode.dmg`, for the README link);
+      - **R2:** the zip, the versioned DMG and `latest/CleanerXcode.dmg` (the README's download link);
+      - **GitHub Release:** tag `vX.Y.Z` with the pull request's notes and the zip. The DMG is never attached to GitHub; it stays only on R2;
       - **`appcast.xml` on R2:** the feed Sparkle reads, plus a snapshot in `appcasts/`;
       - **`resources/version.json` and `RELEASE_NOTES.md` on `main`:** a `[skip ci]` commit that also removes the old `releases/CleanerXcode.dmg`. Apps 0.7 and 1.0 builds without Sparkle still read this file;
       - **Sentry:** the dSYMs.
@@ -117,8 +117,8 @@ If that push fails anyway, the release is already out on R2 and GitHub; update `
 - **Don't release a merge:** add the `skip-release` label before merging.
 - **Undo:** run **Actions › Rollback › Run workflow** on `main` with the version and build to restore. It puts back:
   - that `appcast.xml`;
-  - `latest/CleanerXcode.dmg` on R2;
-  - the "Latest" GitHub Release that the README downloads;
+  - `latest/CleanerXcode.dmg` on R2, which the README downloads;
+  - the "Latest" GitHub Release (tag, notes and zip; it has no DMG);
   - `version.json`.
 
   Sparkle never offers an older build, so people who already installed the bad version keep it until the next release. Ship a fixed patch for them.

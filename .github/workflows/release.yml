@@ -338,9 +338,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # A fixed name keeps https://github.com/<repo>/releases/latest/download/CleanerXcode.dmg working.
-          cp "$DMG" "$WORK/CleanerXcode.dmg"
-          gh release create "v$VERSION" "$WORK/CleanerXcode.dmg" "$DMG" "$ZIP" \
+          # The DMG lives only on R2 (latest/CleanerXcode.dmg); the Release carries the tag, the notes and the zip.
+          gh release create "v$VERSION" "$ZIP" \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "CleanerXcode $VERSION" \
