@@ -1,0 +1,33 @@
+{
+  "originHash" : "33d9d98051d7768a329d694827791a0c1f4ed4a396b8952ce8e07e6ff0764a34",
+  "pins" : [
+    {
+      "identity" : "himetrica-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/himetrica/himetrica-swift",
+      "state" : {
+        "revision" : "b62348eca2beeaa1b960ee7d4ebc6dd105fdbc4d",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "sentry-cocoa",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/getsentry/sentry-cocoa",
+      "state" : {
+        "revision" : "4e1e4ba9ce329f91ad6bfb63bab6da576a3f348c",
+        "version" : "9.32.0"
+      }
+    },
+    {
+      "identity" : "sparkle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sparkle-project/Sparkle",
+      "state" : {
+        "revision" : "ab7d71291238df6e0492143b120c9b696a35f603",
+        "version" : "2.10.1"
+      }
+    }
+  ],
+  "version" : 3
+}
